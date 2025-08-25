@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">SWAPI</string>
+    <string name="login_image_desc">Login Image</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="login_button">Login</string>
+    <string name="enter_weight">Enter Weight (kg)</string>
+    <string name="enter_height">Enter Height (m)</string>
+    <string name="calculate_imc">Calculate BMI</string>
+    <string name="imc_normal">The patient is at a healthy weight</string>
+    <string name="imc_not_normal">The patient is NOT at a healthy weight</string>
+    <string name="title_imc_calculator">Body Max Index Calculator</string>
+    <string name="error_invalid_input">Please enter valid numeric values</string>
+    <string name="imc_label">BMI:</string>
+    <string name="temp_label">Calculator of Celsius to Fahrenheit</string>
+    <string name="enter_cel">Celsius (C°)</string>
+    <string name="calculate_temp">Calculate C° to F°</string>
+</resources>
