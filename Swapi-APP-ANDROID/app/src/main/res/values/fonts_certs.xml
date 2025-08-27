@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="com_google_android_gms_fonts_certs">
+        <item>@array/com_google_android_gms_fonts_certs_dev</item>
+        <item>@array/com_google_android_gms_fonts_certs_prod</item>
+    </array>
+
+    <string-array name="com_google_android_gms_fonts_certs_dev">
+        <item>
+            MIIEqDCCA5CgAwIBAgIJANzD8n0TrA1+MA0GCSqGSIb3DQEBBQUAMIGUMQswCQYD
+            VQQGEwJVUzELMAkGA1UECBMCQ0ExEDAOBgNVBAcTB1NhbiBKb3NlMRMwEQYDVQQK
+            EwpHb29nbGUgSW5jMRowGAYDVQQLExFnb29nbGUuY29tIHJvb3QgY2ExHDAaBgNV
+            BAMTE2dvb2dsZS5jb20gcm9vdCBjYTAeFw0wOTA4MjUyMzM2NTNaFw0zNjAxMDcy
+            MzM2NTNaMIGUMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExEDAOBgNVBAcTB1Nh
+            biBKb3NlMRMwEQYDVQQKEwpHb29nbGUgSW5jMRowGAYDVQQLExFnb29nbGUuY29t
+            IHJvb3QgY2ExHDAaBgNVBAMTE2dvb2dsZS5jb20gcm9vdCBjYTCCASIwDQYJKoZI
+            hvcNAQEBBQADggEPADCCAQoCggEBAKtCFgZi1zcfJm3ZI1QkbEbCEj/KhRF0dcX+
+            zC/ss3hkaZw2v+5do1Z6bH8y9vN9lb6tFyo9IGwUczdlz7YTlDo4A9ixFaG+UvbA
+            2vMFa0p9+8pZx8s2Pw+IQTnHo79mhHjqO9p0ZkxvEXS4yH1mEUGuTwPtWohZxmwa
+            iQyqDKRIt4kI0npBK2ZV0E1SPznDtJvLzhU54whPznfTg6FxA7VntfnF3p/wheMS
+            Pp0E9JnpNmWjYI9GR5xcmh3dkvLwZkwbpYZaZX6mE6xPD58Ll35H5TADaBrZEcGd
+            K+J0cJ2ynwXRxP2pCg8GHNirMRHkRkNvztNFVQVw1Gc7YCO5IQ8CAwEAAaOCAQkw
+            ggEFMB0GA1UdDgQWBBSfWvhb6J3CD1YF1gI+K5O7LxPNlTAfBgNVHSMEGDAWgBSf
+            Wvhb6J3CD1YF1gI+K5O7LxPNlTAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQE
+            AwIBhjBQBgNVHSAESTBHMAgGBmeBDAECATA3BgsrBgEEAYLfEwEBATAoMCYGCCsG
+            AQUFBwIBFhpodHRwOi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwgYgGCCsGAQUFBwEB
+            BHwwfjAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZGlnaWNlcnQuY29tME4GCCsG
+            AQUFBzAChkJodHRwOi8vd3d3LmRpZ2ljZXJ0LmNvbS9yZXBvc2l0b3J5L2NhX2Nv
+            ZGUvZ29vZ2xlLmNvbV9yb290X2NhLmNydDAJBgNVHRMEAjAAMA0GCSqGSIb3DQEB
+            BQUAA4IBAQAiX9mr5wt+8C47jQFV7XsrGrjOT2vKBXG+MhwYmlC9lNm7Rs5Z2xCe
+            seWS5AvQAVe7S0oG+cEnNQ74yqT4Dn65iDHkZIzpAsFwh+r7YxJ8lAoy/qcc8Jc+
+            gEC6zWXtNYXdtFHDHZ8qYuoR0DX0xl+o0PKqA4yysG7hS3x4WnlPldtrxnFqW6Qm
+            E4UhE/1YPj0l5GMpZu9iNvdj0dx3yVsJZ3kg3sRbQkzB8ZmkQ+Za7BoG96U3biI+
+            1bRnbkU8X3f+0v1WGTAnod3oUED7Yvw1m+ZD30TkaXb8L3GBnQpiW2ScHMCIG7fb
+            I/j4r7yJVmsDnqkskj4q4oWUx9xBL2WzAQ==
+        </item>
+    </string-array>
+
+    <string-array name="com_google_android_gms_fonts_certs_prod">
+        <item>
+            MIIEQzCCAyugAwIBAgIJAPlsWP65sU9pMA0GCSqGSIb3DQEBCwUAMH0xCzAJBgNV
+            BAYTAlVTMQswCQYDVQQIDAJDQTETMBEGA1UEBwwKU2FuIEZyYW5jaXNjbzEWMBQG
+            A1UECgwNR29vZ2xlLCBJbmMuMRowGAYDVQQLDBFnb29nbGUuY29tIHJvb3QgY2Ex
+            HTAbBgNVBAMMFGdvb2dsZS5jb20gcm9vdCBjYSAxMB4XDTA4MDgyMjE4MzQzMVoX
+            DTI4MDgxNTE4MzQzMVowfTELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAkNBMRMwEQYD
+            VQQHDApTYW4gRnJhbmNpc2NvMRYwFAYDVQQKDA1Hb29nbGUsIEluYy4xGjAYBgNV
+            BAsMEWdvb2dsZS5jb20gcm9vdCBjYTEdMBsGA1UEAwwUZ29vZ2xlLmNvbSByb290
+            IGNhIDEwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQD2V8LhvbZIEjbL
+            Xx7QG/8Ru62j1v3mi9I7afpnmBWUh+SnxFYQ5vYwbfkDTFBIgqFVoT1urxpt8F8h
+            +lFdZdpwDwzAHtqZ00Uy6uJhfhwk6I6lF88twRreW8/vkFf3Lcp53A4A9JDm6QRl
+            MZt/1HtPNeHOa+qxl9Unphax0ClMGx5XMc1SmQdwQ3dx1H5EuCnNQ7Yu6ZRkb4Gh
+            oLe7wt32dyaIue/h3fyeQHP5MQihfYldUfl/WkZ8M4F8Xm+x43OADvL9DGHeUG2e
+            ttrCr9kZsDzGSoDmp3g9yod+UacJsmM4Cezc6e6T3HlKuoWWmMZdUzzlzVEk3/EU
+            3AarqhfvAgMBAAGjUDBOMB0GA1UdDgQWBBQWkRDFo63/hGgC/97jfcXn/XoqjjAf
+            BgNVHSMEGDAWgBQWkRDFo63/hGgC/97jfcXn/XoqjjAMBgNVHRMEBTADAQH/MA0G
+            CSqGSIb3DQEBCwUAA4IBAQBl2cU4JS7gLmyVLPhrLjEtu3i+rLAA9BLNn9QjvgWl
+            DvqLWuZI+jy5sYr7fC4t1CRrwYy6dE3W0qg2gybqJrlNI1FozoxHPrU1tttLNYZG
+            DmVDP4Sx2ZfY5YXsk+DaR5R6j3W6Yd+UBdNRRaN7ApnBRsYjXJfP4c1ZCjw4w8hJ
+            jXbRcXc73K6EDpUHHUiSHEKRn1nYnEGBdKH1ONqQ07xbBD3GMgdJO6p5bGTG32yr
+            EvjICR1P98C4/lVawyaFobd7slKnGj6wUi4EDUUmWPgoW0i2BCFX7Oni3AuOr9SC
+            UKWUu/88D7MyTFCgaiYH0QaZaiiYkfn7h9P1whsmtd1
+        </item>
+    </string-array>
+</resources>
