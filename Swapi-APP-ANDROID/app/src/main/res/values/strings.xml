@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SWAPI</string>
+    <string name="app_name">Swapi</string>
     <string name="login_image_desc">Login Image</string>
     <string name="email_label">Email</string>
     <string name="password_label">Password</string>

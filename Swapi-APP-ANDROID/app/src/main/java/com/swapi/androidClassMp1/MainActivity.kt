@@ -12,9 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.swapi.androidClassMp1.utils.datastore.DataStoreManager
-import com.swapi.androidClassMp1.firstpartial.onboarding.viewmodel.OnboardingViewModel
-import com.swapi.androidClassMp1.firstpartial.onboarding.views.OnboardingView
 import com.swapi.androidClassMp1.navigation.TabBarNavigationView
+import com.swapi.androidClassMp1.onboarding.viewmodel.OnboardingViewModel
+import com.swapi.androidClassMp1.onboarding.views.OnboardingView
 import com.swapi.androidClassMp1.ui.theme.AndroidClassMP1Theme
 import kotlinx.coroutines.launch
 
@@ -23,22 +23,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val ds = DataStoreManager(this)
+        val dataStore = DataStoreManager(this)
 
         setContent {
             AndroidClassMP1Theme {
                 val scope = rememberCoroutineScope()
-                val vm: OnboardingViewModel = viewModel()
+                val onboardingViewModel: OnboardingViewModel = viewModel()
 
-                // Estado nulo mientras se obtiene el valor real del Flow
-                val onboardingDone: Boolean? by ds.onboardingDoneFlow.collectAsState(initial = null)
+                // estado inicial nulo mientras carga del DataStore
+                val onboardingDone: Boolean? by dataStore.onboardingDoneFlow.collectAsState(initial = null)
 
                 when (onboardingDone) {
-                    null -> SplashLoader() // loader / splash temporal
+                    null -> SplashLoader()
                     false -> OnboardingView(
-                        viewModel = vm,
+                        viewModel = onboardingViewModel,
                         onFinish = {
-                            scope.launch { ds.setOnboardingDone(true) }
+                            scope.launch { dataStore.setOnboardingDone(true) }
                         }
                     )
                     true -> TabBarNavigationView()
@@ -50,7 +50,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun SplashLoader() {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
         CircularProgressIndicator()
     }
 }
+

@@ -24,13 +24,13 @@ fun SplashScreenView() {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
-                painter = painterResource(id = R.drawable.ulsalogo),
-                contentDescription = "ULSA logo",
+                painter = painterResource(id = R.drawable.swapi),
+                contentDescription = "Swapi logo",
                 modifier = Modifier.size(160.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Universidad La Salle",
+                text = "Swapi",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground

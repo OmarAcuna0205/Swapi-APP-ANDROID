@@ -1,111 +1,82 @@
 package com.swapi.androidClassMp1.navigation
 
-import SecondPartialView
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
-import androidx.navigation.compose.rememberNavController
-import com.swapi.androidClassMp1.firstpartial.FirstPartialView
-import com.swapi.androidClassMp1.ids.imc.views.IMCView
-import com.swapi.androidClassMp1.ids.IdsView
-import com.swapi.androidClassMp1.ids.location.views.LocationListScreen
-import com.swapi.androidClassMp1.ids.login.views.LoginView
-import com.swapi.androidClassMp1.ids.student.views.StudentView
-import com.swapi.androidClassMp1.ids.sum.views.SumView
-import com.swapi.androidClassMp1.ids.temperature.views.TempView
-import com.swapi.androidClassMp1.thirdpartial.ThirdPartialView
 import androidx.compose.ui.graphics.Color
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import com.swapi.androidClassMp1.ventas.VentasView
+import com.swapi.androidClassMp1.rentas.RentasView
+import com.swapi.androidClassMp1.home.HomeView
+import com.swapi.androidClassMp1.servicios.ServiciosView
+import com.swapi.androidClassMp1.anuncios.AnunciosView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabBarNavigationView(navController: NavHostController = rememberNavController()) {
-    val items = listOf(
-        ScreenNavigation.Ids,
-        ScreenNavigation.FirstPartial,
-        ScreenNavigation.SecondPartial,
-        ScreenNavigation.ThirdPartial
-    )
-
-    // Mapa de títulos por ruta (incluye tabs y pantallas internas)
-    val routeTitles = remember {
-        mapOf(
-            ScreenNavigation.Ids.route to ScreenNavigation.Ids.label,
-            ScreenNavigation.FirstPartial.route to ScreenNavigation.FirstPartial.label,
-            ScreenNavigation.SecondPartial.route to ScreenNavigation.SecondPartial.label,
-            ScreenNavigation.ThirdPartial.route to ScreenNavigation.ThirdPartial.label,
-
-            // Rutas internas (ajusta a tus strings preferidos)
-            ScreenNavigation.IMC.route to "IMC",
-            ScreenNavigation.Login.route to "Login",
-            ScreenNavigation.Sum.route to "Suma",
-            ScreenNavigation.Temperature.route to "Temperatura",
-            ScreenNavigation.StudentList.route to "Estudiantes",
-            ScreenNavigation.Locations.route to "Ubicaciones"
-        )
-    }
-
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    // Si usas nested graphs, puedes leer la jerarquía; aquí basta con la route actual:
     val currentRoute = navBackStackEntry?.destination?.route
-    val currentTitle = routeTitles[currentRoute] ?: ""
 
     Scaffold(
         topBar = {
-            // Puedes usar SmallTopAppBar o CenterAlignedTopAppBar
             CenterAlignedTopAppBar(
-                title = { Text(text = "Android Omar Acuña 13097") },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF87CEFA), // Azul
-                titleContentColor = Color.White
-            )
+                title = { Text(text = "Swapi") },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xFF87CEFA), // Azul
+                    titleContentColor = Color.White
+                )
             )
         },
         bottomBar = {
             NavigationBar {
-                items.forEach { screen ->
-                    val selected = currentRoute == screen.route
-                    NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = screen.label) },
-                        label = { Text(screen.label) },
-                        selected = selected,
-                        onClick = {
-                            if (!selected) {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        }
-                    )
-                }
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.ShoppingCart, contentDescription = "Ventas") },
+                    label = { Text("Ventas") },
+                    selected = currentRoute == "ventas",
+                    onClick = { navController.navigate("ventas") }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Rentas") },
+                    label = { Text("Rentas") },
+                    selected = currentRoute == "rentas",
+                    onClick = { navController.navigate("rentas") }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Dashboard, contentDescription = "Home") },
+                    label = { Text("Home") },
+                    selected = currentRoute == "home",
+                    onClick = { navController.navigate("home") }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Build, contentDescription = "Servicios") },
+                    label = { Text("Servicios") },
+                    selected = currentRoute == "servicios",
+                    onClick = { navController.navigate("servicios") }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Campaign, contentDescription = "Anuncios") },
+                    label = { Text("Anuncios") },
+                    selected = currentRoute == "anuncios",
+                    onClick = { navController.navigate("anuncios") }
+                )
             }
         }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = ScreenNavigation.Ids.route,
+            startDestination = "ventas",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(ScreenNavigation.Ids.route) { IdsView(navController) }
-            composable(ScreenNavigation.FirstPartial.route) { FirstPartialView() }
-            composable(ScreenNavigation.SecondPartial.route) { SecondPartialView() }
-            composable(ScreenNavigation.ThirdPartial.route) { ThirdPartialView(navController) }
-
-            // Rutas internas
-            composable(ScreenNavigation.IMC.route) { IMCView() }
-            composable(ScreenNavigation.Login.route) { LoginView() }
-            composable(ScreenNavigation.Sum.route) { SumView() }
-            composable(ScreenNavigation.Temperature.route) { TempView() }
-            composable(ScreenNavigation.StudentList.route) { StudentView() }
-            composable(ScreenNavigation.Locations.route) { LocationListScreen() }
+            composable("ventas") { VentasView() }
+            composable("rentas") { RentasView() }
+            composable("home") { HomeView() }
+            composable("servicios") { ServiciosView() }
+            composable("anuncios") { AnunciosView() }
         }
     }
 }
