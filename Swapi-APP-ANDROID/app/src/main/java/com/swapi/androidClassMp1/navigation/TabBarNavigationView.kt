@@ -27,7 +27,7 @@ fun TabBarNavigationView(navController: NavHostController = rememberNavControlle
             CenterAlignedTopAppBar(
                 title = { Text(text = "Swapi") },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(0xFF87CEFA), // Azul
+                    containerColor = Color(0xFF1976D2), // Azul
                     titleContentColor = Color.White
                 )
             )
@@ -41,7 +41,7 @@ fun TabBarNavigationView(navController: NavHostController = rememberNavControlle
                     onClick = { navController.navigate("ventas") }
                 )
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Rentas") },
+                    icon = { Icon(Icons.Default.Key, contentDescription = "Rentas") },
                     label = { Text("Rentas") },
                     selected = currentRoute == "rentas",
                     onClick = { navController.navigate("rentas") }
