@@ -14,14 +14,25 @@ class DataStoreManager(private val context: Context) {
 
     private object Keys {
         val ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
+        val LOGGED_IN = booleanPreferencesKey("logged_in")
     }
 
     val onboardingDoneFlow: Flow<Boolean> =
         context.dataStore.data.map { prefs -> prefs[Keys.ONBOARDING_DONE] ?: false }
+
+    val isLoggedInFlow: Flow<Boolean> =
+        context.dataStore.data.map { prefs -> prefs[Keys.LOGGED_IN] ?: false }
 
     suspend fun setOnboardingDone(done: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[Keys.ONBOARDING_DONE] = done
         }
     }
+
+    suspend fun setLoggedIn(loggedIn: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.LOGGED_IN] = loggedIn
+        }
+    }
 }
+

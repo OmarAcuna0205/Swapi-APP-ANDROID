@@ -2,14 +2,11 @@ package com.swapi.androidClassMp1.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
-import androidx.compose.ui.graphics.Color
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import com.swapi.androidClassMp1.ventas.VentasView
 import com.swapi.androidClassMp1.rentas.RentasView
 import com.swapi.androidClassMp1.home.HomeView
@@ -18,65 +15,64 @@ import com.swapi.androidClassMp1.anuncios.AnunciosView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TabBarNavigationView(navController: NavHostController = rememberNavController()) {
+fun TabBarNavigationView(
+    startDestination: String = ScreenNavigation.Home.route, // <--- recibe inicio
+    navController: NavHostController = rememberNavController()
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    val tabs = listOf(
+        ScreenNavigation.Ventas,
+        ScreenNavigation.Rentas,
+        ScreenNavigation.Home,
+        ScreenNavigation.Servicios,
+        ScreenNavigation.Anuncios
+    )
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(text = "Swapi") },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(0xFF1976D2), // Azul
+                    containerColor = Color(0xFF1976D2),
                     titleContentColor = Color.White
                 )
             )
         },
         bottomBar = {
             NavigationBar {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.ShoppingCart, contentDescription = "Ventas") },
-                    label = { Text("Ventas") },
-                    selected = currentRoute == "ventas",
-                    onClick = { navController.navigate("ventas") }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Key, contentDescription = "Rentas") },
-                    label = { Text("Rentas") },
-                    selected = currentRoute == "rentas",
-                    onClick = { navController.navigate("rentas") }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Dashboard, contentDescription = "Home") },
-                    label = { Text("Home") },
-                    selected = currentRoute == "home",
-                    onClick = { navController.navigate("home") }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Build, contentDescription = "Servicios") },
-                    label = { Text("Servicios") },
-                    selected = currentRoute == "servicios",
-                    onClick = { navController.navigate("servicios") }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Campaign, contentDescription = "Anuncios") },
-                    label = { Text("Anuncios") },
-                    selected = currentRoute == "anuncios",
-                    onClick = { navController.navigate("anuncios") }
-                )
+                tabs.forEach { tab ->
+                    NavigationBarItem(
+                        icon = { Icon(tab.icon, contentDescription = tab.label) },
+                        label = { Text(tab.label) },
+                        selected = currentRoute == tab.route,
+                        onClick = {
+                            navController.navigate(tab.route) {
+                                launchSingleTop = true
+                                restoreState = true
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "ventas",
+            startDestination = startDestination, // <-- usa el startDestination recibido
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("ventas") { VentasView() }
-            composable("rentas") { RentasView() }
-            composable("home") { HomeView() }
-            composable("servicios") { ServiciosView() }
-            composable("anuncios") { AnunciosView() }
+            composable(ScreenNavigation.Ventas.route) { VentasView() }
+            composable(ScreenNavigation.Rentas.route) { RentasView() }
+            composable(ScreenNavigation.Home.route) { HomeView() }
+            composable(ScreenNavigation.Servicios.route) { ServiciosView() }
+            composable(ScreenNavigation.Anuncios.route) { AnunciosView() }
         }
     }
 }
+
+
