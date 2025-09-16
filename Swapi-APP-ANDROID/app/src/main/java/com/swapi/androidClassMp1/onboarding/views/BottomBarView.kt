@@ -10,7 +10,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.swapi.androidClassMp1.R
 
 @Composable
 fun BottomBarView(
@@ -30,7 +32,7 @@ fun BottomBarView(
             onClick = onPrev
         ) {
             Text(
-                "Anterior",
+                text = stringResource(id = R.string.onboarding_previous_button),
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                 style = MaterialTheme.typography.bodyLarge
             )
@@ -48,7 +50,8 @@ fun BottomBarView(
             )
         ) {
             Text(
-                if (isLastPage) "Empezar" else "Siguiente",
+                text = if (isLastPage) stringResource(id = R.string.onboarding_start_button)
+                else stringResource(id = R.string.onboarding_next_button),
                 style = MaterialTheme.typography.bodyLarge
             )
         }

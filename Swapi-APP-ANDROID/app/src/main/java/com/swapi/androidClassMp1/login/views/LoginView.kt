@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -80,7 +81,7 @@ fun LoginView(
         ) {
             Image(
                 painter = painterResource(id = R.drawable.swapi),
-                contentDescription = "Logo",
+                contentDescription = stringResource(id = R.string.login_logo_cd),
                 modifier = Modifier.size(150.dp).clip(CircleShape)
             )
 
@@ -89,7 +90,7 @@ fun LoginView(
             OutlinedTextField(
                 value = ui.email,
                 onValueChange = vm::onEmailChange,
-                label = { Text("Email") },
+                label = { Text(stringResource(id = R.string.login_email_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions.Default,
                 modifier = Modifier.fillMaxWidth()
@@ -100,14 +101,16 @@ fun LoginView(
             OutlinedTextField(
                 value = ui.password,
                 onValueChange = vm::onPasswordChange,
-                label = { Text("Password") },
+                label = { Text(stringResource(id = R.string.login_password_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions.Default,
                 keyboardActions = KeyboardActions(onDone = { vm.login() }),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) { Icon(icon, contentDescription = "Toggle password") }
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(icon, contentDescription = stringResource(id = R.string.login_toggle_password_cd))
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -122,8 +125,8 @@ fun LoginView(
                 if (ui.isLoading) {
                     CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Signing in…")
-                } else Text("Login")
+                    Text(stringResource(id = R.string.login_signing_in))
+                } else Text(stringResource(id = R.string.login_button_text))
             }
 
             Spacer(Modifier.height(12.dp))
@@ -133,9 +136,9 @@ fun LoginView(
                 enabled = !ui.isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(Icons.Default.Face, contentDescription = "Face ID", modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Face, contentDescription = stringResource(id = R.string.login_face_id_cd), modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Face ID")
+                Text(stringResource(id = R.string.login_face_id_button))
             }
 
             Spacer(Modifier.height(16.dp))
@@ -143,7 +146,7 @@ fun LoginView(
             TextButton(onClick = {
                 navHostController.navigate("signup")
             }) {
-                Text("Don't have an account? Sign up here")
+                Text(stringResource(id = R.string.login_signup_prompt))
             }
         }
     }
