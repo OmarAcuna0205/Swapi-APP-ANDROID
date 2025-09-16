@@ -1,18 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Swapi</string>
-    <string name="login_image_desc">Login Image</string>
-    <string name="email_label">Email</string>
-    <string name="password_label">Password</string>
-    <string name="login_button">Login</string>
-    <string name="enter_weight">Enter Weight (kg)</string>
-    <string name="enter_height">Enter Height (m)</string>
-    <string name="calculate_imc">Calculate BMI</string>
-    <string name="imc_normal">The patient is at a healthy weight</string>
-    <string name="imc_not_normal">The patient is NOT at a healthy weight</string>
-    <string name="title_imc_calculator">Body Max Index Calculator</string>
-    <string name="error_invalid_input">Please enter valid numeric values</string>
-    <string name="imc_label">BMI:</string>
-    <string name="temp_label">Calculator of Celsius to Fahrenheit</string>
-    <string name="enter_cel">Celsius (C°)</string>
-    <string name="calculate_temp">Calculate C° to F°</string>
+
+    <string name="anuncios_title">Announcements</string>
+    <string name="home_title">Home</string>
+    <string name="rentas_title">Rentals</string>
+    <string name="servicios_title">Services</string>
+    <string name="ventas_title">Sales</string> <string name="tab_ventas">Sales</string>
+    <string name="tab_rentas">Rentals</string>
+    <string name="tab_home">Home</string>
+    <string name="tab_servicios">Services</string>
+    <string name="tab_anuncios">Announcements</string>
+
+    <string name="login_logo_cd">Application logo</string>
+    <string name="login_email_label">Email</string>
+    <string name="login_password_label">Password</string>
+    <string name="login_toggle_password_cd">Toggle password visibility</string>
+    <string name="login_button_text">Login</string>
+    <string name="login_signing_in">Signing in…</string>
+    <string name="login_face_id_button">Face ID</string>
+    <string name="login_face_id_cd">Login with Face ID</string>
+    <string name="login_signup_prompt">Don\'t have an account? Sign up here</string>
+
+    <string name="onboarding_previous_button">Previous</string>
+    <string name="onboarding_next_button">Next</string>
+    <string name="onboarding_start_button">Start</string>
+    <string name="onboarding_finished_toast">Onboarding finished</string>
 </resources>

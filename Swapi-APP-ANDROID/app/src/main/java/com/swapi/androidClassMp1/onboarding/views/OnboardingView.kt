@@ -17,13 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.swapi.androidClassMp1.R
 import com.swapi.androidClassMp1.onboarding.viewmodel.OnboardingViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingView(
     viewModel: OnboardingViewModel,
-    onFinish: () -> Unit = {} // <-- NUEVO
+    onFinish: () -> Unit = {}
 ) {
     val pages by viewModel.pages.collectAsState()
     val currentPage by viewModel.currentPage.collectAsState()
@@ -60,8 +61,12 @@ fun OnboardingView(
                     if (!viewModel.isLastPage()) {
                         scope.launch { pagerState.animateScrollToPage(currentPage + 1) }
                     } else {
-                        onFinish() // <-- GUARDAR FLAG (se hará desde Main)
-                        Toast.makeText(context, "Onboarding finished", Toast.LENGTH_SHORT).show()
+                        onFinish()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.onboarding_finished_toast),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             )

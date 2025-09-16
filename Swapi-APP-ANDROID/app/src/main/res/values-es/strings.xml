@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Swapi</string>
+
+    <string name="anuncios_title">Anuncios</string>
+    <string name="home_title">Inicio</string>
+    <string name="rentas_title">Rentas</string>
+    <string name="servicios_title">Servicios</string>
+    <string name="ventas_title">Ventas</string> <string name="tab_ventas">Ventas</string>
+    <string name="tab_rentas">Rentas</string>
+    <string name="tab_home">Inicio</string>
+    <string name="tab_servicios">Servicios</string>
+    <string name="tab_anuncios">Anuncios</string>
+
+    <string name="login_logo_cd">Logo de la aplicación</string>
+    <string name="login_email_label">Correo Electrónico</string>
+    <string name="login_password_label">Contraseña</string>
+    <string name="login_toggle_password_cd">Mostrar/ocultar contraseña</string>
+    <string name="login_button_text">Iniciar Sesión</string>
+    <string name="login_signing_in">Iniciando sesión…</string>
+    <string name="login_face_id_button">Face ID</string>
+    <string name="login_face_id_cd">Iniciar sesión con Face ID</string>
+    <string name="login_signup_prompt">¿No tienes una cuenta? Regístrate aquí</string>
+
+    <string name="onboarding_previous_button">Anterior</string>
+    <string name="onboarding_next_button">Siguiente</string>
+    <string name="onboarding_start_button">Empezar</string>
+    <string name="onboarding_finished_toast">Introducción finalizada</string>
+</resources>
