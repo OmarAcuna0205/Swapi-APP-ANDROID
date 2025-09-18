@@ -26,4 +26,5 @@
     <string name="onboarding_next_button">Next</string>
     <string name="onboarding_start_button">Start</string>
     <string name="onboarding_finished_toast">Onboarding finished</string>
+
 </resources>

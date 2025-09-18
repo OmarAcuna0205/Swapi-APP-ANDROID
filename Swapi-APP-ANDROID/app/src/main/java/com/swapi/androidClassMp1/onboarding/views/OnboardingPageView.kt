@@ -10,66 +10,66 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.swapi.androidClassMp1.onboarding.model.OnboardingPageModel
-import com.swapi.androidClassMp1.ui.theme.SwapiBlue
-import com.swapi.androidClassMp1.ui.theme.SwapiBlueLight
-import com.swapi.androidClassMp1.ui.theme.SwapiWhite
 
 @Composable
 fun OnboardingPageView(pageModel: OnboardingPageModel, selected: Boolean = false) {
-    // Animación de escala de la imagen
-    val scale by animateFloatAsState(targetValue = if (selected) 1.1f else 1f)
-    val animatedAlpha by animateFloatAsState(if (selected) 1f else 0.7f)
+    val animatedAlpha by animateFloatAsState(if (selected) 1f else 0.5f)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(SwapiBlue, SwapiBlueLight)
+    Box(modifier = Modifier.fillMaxSize()) {
+        // CAMBIO: La imagen ahora es el fondo y ocupa toda la pantalla.
+        Image(
+            painter = painterResource(id = pageModel.imageRes),
+            contentDescription = pageModel.title,
+            // AÑADIDO: Asegura que la imagen cubra el espacio sin deformarse.
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // AÑADIDO: Un degradado oscuro para que el texto blanco siempre sea legible.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f)),
+                        startY = 600f // Empieza el degradado más abajo
+                    )
                 )
-            ),
-        contentAlignment = Alignment.Center
-    ) {
+        )
+
+        // CAMBIO: El Column ahora se alinea en la parte inferior del Box.
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 24.dp)
+            // AÑADIDO: Empuja el contenido hacia abajo y añade padding.
+            verticalArrangement = Arrangement.Bottom,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 150.dp) // Espacio para los botones y los puntos
+                .alpha(animatedAlpha)
         ) {
-            Image(
-                painter = painterResource(id = pageModel.imageRes),
-                contentDescription = pageModel.title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(280.dp)
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                    }
-            )
-
-            Spacer(Modifier.height(24.dp))
-
             Text(
                 text = pageModel.title,
-                style = MaterialTheme.typography.titleLarge,
-                color = SwapiWhite,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.graphicsLayer { alpha = animatedAlpha }
+                style = MaterialTheme.typography.headlineMedium, // Estilo más grande
+                color = Color.White,
+                textAlign = TextAlign.Center
             )
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
 
             Text(
                 text = pageModel.description,
                 style = MaterialTheme.typography.bodyLarge,
-                color = SwapiWhite.copy(alpha = 0.9f),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.graphicsLayer { alpha = animatedAlpha }
+                color = Color.White.copy(alpha = 0.9f),
+                textAlign = TextAlign.Center
             )
         }
     }
