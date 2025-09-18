@@ -41,7 +41,6 @@ fun LoginView(
     val repo = remember { AuthRepository(RetrofitProvider.authApi) }
     val vm: LoginViewModel = viewModel(factory = LoginViewModelFactory(repo))
     val ui by vm.ui.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
     var passwordVisible by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
@@ -51,8 +50,7 @@ fun LoginView(
 
     LaunchedEffect(vm) {
         vm.toastEvents.collectLatest { msg ->
-            showToastSafe(msg)
-            snackbarHostState.showSnackbar(msg)
+            showToastSafe(msg) // 👉 Solo toast
         }
     }
 
@@ -70,7 +68,7 @@ fun LoginView(
         }
     }
 
-    Scaffold(snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { padding ->
+    Scaffold { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -82,7 +80,9 @@ fun LoginView(
             Image(
                 painter = painterResource(id = R.drawable.swapi),
                 contentDescription = stringResource(id = R.string.login_logo_cd),
-                modifier = Modifier.size(150.dp).clip(CircleShape)
+                modifier = Modifier
+                    .size(150.dp)
+                    .clip(CircleShape)
             )
 
             Spacer(Modifier.height(16.dp))
@@ -107,9 +107,13 @@ fun LoginView(
                 keyboardActions = KeyboardActions(onDone = { vm.login() }),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                    val icon =
+                        if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(icon, contentDescription = stringResource(id = R.string.login_toggle_password_cd))
+                        Icon(
+                            icon,
+                            contentDescription = stringResource(id = R.string.login_toggle_password_cd)
+                        )
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -123,7 +127,10 @@ fun LoginView(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (ui.isLoading) {
-                    CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
+                    CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(18.dp)
+                    )
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(id = R.string.login_signing_in))
                 } else Text(stringResource(id = R.string.login_button_text))
@@ -136,7 +143,11 @@ fun LoginView(
                 enabled = !ui.isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(Icons.Default.Face, contentDescription = stringResource(id = R.string.login_face_id_cd), modifier = Modifier.size(20.dp))
+                Icon(
+                    Icons.Default.Face,
+                    contentDescription = stringResource(id = R.string.login_face_id_cd),
+                    modifier = Modifier.size(20.dp)
+                )
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(id = R.string.login_face_id_button))
             }

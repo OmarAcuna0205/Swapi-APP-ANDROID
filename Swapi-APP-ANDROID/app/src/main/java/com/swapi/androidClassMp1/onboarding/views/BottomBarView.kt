@@ -27,15 +27,18 @@ fun BottomBarView(
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        TextButton(
-            enabled = page > 0,
-            onClick = onPrev
-        ) {
-            Text(
-                text = stringResource(id = R.string.onboarding_previous_button),
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                style = MaterialTheme.typography.bodyLarge
-            )
+        // CAMBIO: Se añade una condición para que el botón solo exista
+        // si la página actual NO es la primera (índice 0).
+        if (page > 0) {
+            TextButton(
+                onClick = onPrev
+            ) {
+                Text(
+                    text = stringResource(id = R.string.onboarding_previous_button),
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
         }
 
         Spacer(Modifier.weight(1f))
@@ -45,8 +48,8 @@ fun BottomBarView(
             shape = RoundedCornerShape(50),
             modifier = Modifier.height(48.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1976D2),   // Fondo del botón
-                contentColor = Color.White           // Color del texto
+                containerColor = Color(0xFF1976D2),
+                contentColor = Color.White
             )
         ) {
             Text(
@@ -57,4 +60,3 @@ fun BottomBarView(
         }
     }
 }
-
