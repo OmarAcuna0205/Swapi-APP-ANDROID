@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.swapi.androidClassMp1.onboarding.model.OnboardingPageModel
@@ -58,7 +59,10 @@ fun OnboardingPageView(pageModel: OnboardingPageModel, selected: Boolean = false
         ) {
             Text(
                 text = pageModel.title,
-                style = MaterialTheme.typography.headlineMedium, // Estilo más grande
+                // CAMBIO: Añadido fontWeight para hacer la letra más gruesa (negrita)
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                ),
                 color = Color.White,
                 textAlign = TextAlign.Center
             )
@@ -67,7 +71,10 @@ fun OnboardingPageView(pageModel: OnboardingPageModel, selected: Boolean = false
 
             Text(
                 text = pageModel.description,
-                style = MaterialTheme.typography.bodyLarge,
+                // CAMBIO: Añadido fontWeight para hacerla más notoria (semi-negrita)
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
                 color = Color.White.copy(alpha = 0.9f),
                 textAlign = TextAlign.Center
             )

@@ -5,8 +5,6 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class ScreenNavigation(val route: String, val label: String, val icon: ImageVector) {
-
-
     object Login : ScreenNavigation("login", "Login", Icons.Default.Person)
     object Home : ScreenNavigation("home", "Home", Icons.Default.Home)
     object Ventas : ScreenNavigation("ventas", "Ventas", Icons.Default.ShoppingCart)
@@ -14,5 +12,7 @@ sealed class ScreenNavigation(val route: String, val label: String, val icon: Im
     object Servicios : ScreenNavigation("servicios", "Servicios", Icons.Default.Build)
     object Anuncios : ScreenNavigation("anuncios", "Anuncios", Icons.Default.Campaign)
 
-
+    // --- NUEVA LÍNEA AÑADIDA ---
+    // No necesita icono ni label si no va en la barra inferior, pero es buena práctica tenerlos.
+    object Profile : ScreenNavigation("profile", "Perfil", Icons.Default.AccountCircle)
 }

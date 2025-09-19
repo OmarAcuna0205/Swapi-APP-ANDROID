@@ -4,19 +4,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
-import com.swapi.androidClassMp1.ventas.VentasView
-import com.swapi.androidClassMp1.rentas.RentasView
-import com.swapi.androidClassMp1.home.HomeView
-import com.swapi.androidClassMp1.servicios.ServiciosView
 import com.swapi.androidClassMp1.anuncios.AnunciosView
+import com.swapi.androidClassMp1.components.topbar.SwapiTopBar
+import com.swapi.androidClassMp1.home.HomeView
+import com.swapi.androidClassMp1.profile.view.ProfileView
+import com.swapi.androidClassMp1.rentas.RentasView
+import com.swapi.androidClassMp1.servicios.ServiciosView
+import com.swapi.androidClassMp1.ventas.VentasView
 
+// CORRECCIÓN: Se quitó la 'D' de ExperimentalMaterial3DApi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabBarNavigationView(
-    startDestination: String = ScreenNavigation.Home.route, // <--- recibe inicio
+    startDestination: String = ScreenNavigation.Home.route,
     navController: NavHostController = rememberNavController()
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -30,49 +32,56 @@ fun TabBarNavigationView(
         ScreenNavigation.Anuncios
     )
 
+    val showTopAndBottomBar = currentRoute in tabs.map { it.route }
+
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(text = "Swapi") },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(0xFF1976D2),
-                    titleContentColor = Color.White
+            if (showTopAndBottomBar) {
+                SwapiTopBar(
+                    navController = navController,
+                    onSearchClick = {
+                        // TODO: Implementa la lógica de búsqueda aquí
+                        println("Búsqueda activada!")
+                    }
                 )
-            )
+            }
         },
         bottomBar = {
-            NavigationBar {
-                tabs.forEach { tab ->
-                    NavigationBarItem(
-                        icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label) },
-                        selected = currentRoute == tab.route,
-                        onClick = {
-                            navController.navigate(tab.route) {
-                                launchSingleTop = true
-                                restoreState = true
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
+            if (showTopAndBottomBar) {
+                NavigationBar {
+                    tabs.forEach { tab ->
+                        NavigationBarItem(
+                            icon = { Icon(tab.icon, contentDescription = tab.label) },
+                            label = { Text(tab.label) },
+                            selected = currentRoute == tab.route,
+                            onClick = {
+                                navController.navigate(tab.route) {
+                                    launchSingleTop = true
+                                    restoreState = true
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = startDestination, // <-- usa el startDestination recibido
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(ScreenNavigation.Ventas.route) { VentasView() }
             composable(ScreenNavigation.Rentas.route) { RentasView() }
+            // CORRECCIÓN: La llamada a HomeView() no necesita parámetros.
             composable(ScreenNavigation.Home.route) { HomeView() }
             composable(ScreenNavigation.Servicios.route) { ServiciosView() }
             composable(ScreenNavigation.Anuncios.route) { AnunciosView() }
+
+            composable(ScreenNavigation.Profile.route) { ProfileView(navController) }
         }
     }
 }
-
-
