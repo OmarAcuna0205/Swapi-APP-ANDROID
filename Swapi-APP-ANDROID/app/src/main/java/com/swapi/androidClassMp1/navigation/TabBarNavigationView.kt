@@ -14,7 +14,6 @@ import com.swapi.androidClassMp1.rentas.RentasView
 import com.swapi.androidClassMp1.servicios.ServiciosView
 import com.swapi.androidClassMp1.ventas.VentasView
 
-// CORRECCIÓN: Se quitó la 'D' de ExperimentalMaterial3DApi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabBarNavigationView(
@@ -37,11 +36,14 @@ fun TabBarNavigationView(
     Scaffold(
         topBar = {
             if (showTopAndBottomBar) {
+                // --- CAMBIO PRINCIPAL AQUÍ ---
+                // Se actualiza el parámetro de onSearchClick a onSearchAction
                 SwapiTopBar(
                     navController = navController,
-                    onSearchClick = {
-                        // TODO: Implementa la lógica de búsqueda aquí
-                        println("Búsqueda activada!")
+                    onSearchAction = { query ->
+                        // TODO: Implementa la lógica de búsqueda real aquí.
+                        // Este código se ejecutará cuando el usuario presione "Buscar" en el teclado.
+                        println("Búsqueda realizada para: $query")
                     }
                 )
             }
@@ -76,7 +78,6 @@ fun TabBarNavigationView(
         ) {
             composable(ScreenNavigation.Ventas.route) { VentasView() }
             composable(ScreenNavigation.Rentas.route) { RentasView() }
-            // CORRECCIÓN: La llamada a HomeView() no necesita parámetros.
             composable(ScreenNavigation.Home.route) { HomeView() }
             composable(ScreenNavigation.Servicios.route) { ServiciosView() }
             composable(ScreenNavigation.Anuncios.route) { AnunciosView() }
