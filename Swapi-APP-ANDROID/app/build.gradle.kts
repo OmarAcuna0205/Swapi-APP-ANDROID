@@ -77,6 +77,8 @@ dependencies {
     // Google Fonts
     implementation("androidx.compose.ui:ui-text-google-fonts:1.9.0")
 
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
     // Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
