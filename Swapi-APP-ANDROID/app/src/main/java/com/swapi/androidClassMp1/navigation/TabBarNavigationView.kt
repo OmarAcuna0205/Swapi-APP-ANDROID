@@ -8,7 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import com.swapi.androidClassMp1.anuncios.AnunciosView
 import com.swapi.androidClassMp1.components.topbar.SwapiTopBar
-import com.swapi.androidClassMp1.home.HomeView
+import com.swapi.androidClassMp1.home.views.HomeView
 import com.swapi.androidClassMp1.profile.view.ProfileView
 import com.swapi.androidClassMp1.rentas.RentasView
 import com.swapi.androidClassMp1.servicios.ServiciosView
