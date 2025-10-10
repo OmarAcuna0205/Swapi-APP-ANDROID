@@ -1,19 +1,13 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.swapi.androidClassMp1.onboarding.views
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,6 +15,7 @@ import com.swapi.androidClassMp1.R
 import com.swapi.androidClassMp1.onboarding.viewmodel.OnboardingViewModel
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingView(
     viewModel: OnboardingViewModel,
@@ -46,21 +41,20 @@ fun OnboardingView(
         }
     }
 
-    // CAMBIO: Usamos un Box para superponer los elementos.
     Box(modifier = Modifier.fillMaxSize()) {
-        // FONDO: El Pager ocupa toda la pantalla.
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            // Le pasamos si la página está seleccionada para la animación
-            OnboardingPageView(pageModel = pages[page], selected = page == pagerState.currentPage)
+            OnboardingPageView(
+                pageModel = pages[page],
+                selected = page == pagerState.currentPage
+            )
         }
 
-        // CONTROLES: Una columna en la parte inferior para los puntos y botones.
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter) // Alinear en la parte inferior del Box
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Bottom
