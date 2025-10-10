@@ -31,5 +31,6 @@ data class UserDto(
     @SerializedName("userId") val userId: String,
     @SerializedName("name") val name: String,
     @SerializedName("avatarUrl") val avatarUrl: String,
-    @SerializedName("contactInfo") val contactInfo: String
+    @SerializedName("contactInfo") val contactInfo: String,
+    @SerializedName("phoneNumber") val phoneNumber: String? // <-- AÑADE EL SIGNO DE INTERROGACIÓN (?)
 )

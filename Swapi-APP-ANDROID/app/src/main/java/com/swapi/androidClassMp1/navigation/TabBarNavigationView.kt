@@ -5,9 +5,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.swapi.androidClassMp1.anuncios.AnunciosView
 import com.swapi.androidClassMp1.components.topbar.SwapiTopBar
+import com.swapi.androidClassMp1.home.productdetail.view.ProductDetailScreen
 import com.swapi.androidClassMp1.home.views.HomeView
 import com.swapi.androidClassMp1.profile.view.ProfileView
 import com.swapi.androidClassMp1.rentas.RentasView
@@ -31,18 +34,16 @@ fun TabBarNavigationView(
         ScreenNavigation.Anuncios
     )
 
+    // Determina si se deben mostrar las barras superior e inferior
+    // La pantalla de detalle no las mostrará, lo que le da más espacio.
     val showTopAndBottomBar = currentRoute in tabs.map { it.route }
 
     Scaffold(
         topBar = {
             if (showTopAndBottomBar) {
-                // --- CAMBIO PRINCIPAL AQUÍ ---
-                // Se actualiza el parámetro de onSearchClick a onSearchAction
                 SwapiTopBar(
                     navController = navController,
                     onSearchAction = { query ->
-                        // TODO: Implementa la lógica de búsqueda real aquí.
-                        // Este código se ejecutará cuando el usuario presione "Buscar" en el teclado.
                         println("Búsqueda realizada para: $query")
                     }
                 )
@@ -60,9 +61,7 @@ fun TabBarNavigationView(
                                 navController.navigate(tab.route) {
                                     launchSingleTop = true
                                     restoreState = true
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
                                 }
                             }
                         )
@@ -78,11 +77,28 @@ fun TabBarNavigationView(
         ) {
             composable(ScreenNavigation.Ventas.route) { VentasView() }
             composable(ScreenNavigation.Rentas.route) { RentasView() }
-            composable(ScreenNavigation.Home.route) { HomeView() }
+
+            // --- CAMBIO 1: Se pasa el navController a HomeView ---
+            composable(ScreenNavigation.Home.route) { HomeView(navController = navController) }
+
             composable(ScreenNavigation.Servicios.route) { ServiciosView() }
             composable(ScreenNavigation.Anuncios.route) { AnunciosView() }
-
             composable(ScreenNavigation.Profile.route) { ProfileView(navController) }
+
+            // --- CAMBIO 2: Nuevo composable para la pantalla de detalle ---
+            composable(
+                route = ScreenNavigation.ProductDetail.route,
+                arguments = listOf(navArgument("productId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val productId = backStackEntry.arguments?.getString("productId")
+                requireNotNull(productId) { "El ID del producto no puede ser nulo" }
+
+                // La pantalla de detalle no está dentro del Scaffold, por lo que no tendrá la barra inferior
+                ProductDetailScreen(
+                    productId = productId,
+                    navController = navController
+                )
+            }
         }
     }
 }

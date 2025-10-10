@@ -11,8 +11,12 @@ sealed class ScreenNavigation(val route: String, val label: String, val icon: Im
     object Rentas : ScreenNavigation("rentas", "Rentas", Icons.Default.Key)
     object Servicios : ScreenNavigation("servicios", "Servicios", Icons.Default.Build)
     object Anuncios : ScreenNavigation("anuncios", "Anuncios", Icons.Default.Campaign)
-
-    // --- NUEVA LÍNEA AÑADIDA ---
-    // No necesita icono ni label si no va en la barra inferior, pero es buena práctica tenerlos.
     object Profile : ScreenNavigation("profile", "Perfil", Icons.Default.AccountCircle)
+
+    // --- NUEVA RUTA PARA EL DETALLE ---
+    // La ruta contiene "{productId}" para indicar que es un argumento dinámico.
+    object ProductDetail : ScreenNavigation("product_detail/{productId}", "Detalle", Icons.Default.Store) {
+        // Función auxiliar para construir la ruta fácilmente
+        fun createRoute(productId: String) = "product_detail/$productId"
+    }
 }
