@@ -32,7 +32,7 @@ private val retrofit = Retrofit.Builder()
 
 // Interface que define los endpoints de la API
 interface HomeApi {
-    @GET("/iancorral/8068b8b9513c0f06e7a745c63cfd2787/raw/b196e22563c34d689fdffb2344fc1ee5e2487f63/HomeData.json")
+    @GET("/iancorral/8068b8b9513c0f06e7a745c63cfd2787/raw/e9fb2bfa0326038d097dcd82139b6371b1f38607/HomeData.json")
     suspend fun getHomeData(): HomeScreenResponse
 }
 

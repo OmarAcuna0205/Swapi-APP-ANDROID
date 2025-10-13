@@ -3,13 +3,14 @@ package com.swapi.androidClassMp1.home.views
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,35 +50,39 @@ fun HomeView(navController: NavController) {
         contentAlignment = Alignment.Center
     ) {
         when (val state = uiState) {
-            is HomeUIState.Loading -> CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary // Color del spinner
-            )
-
+            is HomeUIState.Loading -> CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             is HomeUIState.Error -> Text(
                 text = state.message,
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(16.dp)
             )
-
             is HomeUIState.Success -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp) // Más espacio arriba y abajo
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        // CAMBIO CLAVE: Quitamos el padding manual de aquí.
+                        // El Scaffold ya lo maneja a través del NavHost.
+                        .padding(top = 8.dp)
                 ) {
-                    items(state.sections) { section ->
-                        Column(modifier = Modifier.padding(bottom = 24.dp)) { // Más espacio entre secciones
-                            Text(
-                                text = section.sectionTitle,
-                                style = MaterialTheme.typography.headlineMedium, // Título de sección más grande
-                                fontWeight = FontWeight.ExtraBold, // Más énfasis
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp) // Padding ajustado
+                    state.sections.forEach { section ->
+                        Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                            SectionHeader(
+                                title = section.sectionTitle,
+                                onSeeMoreClicked = {
+                                    when (section.sectionTitle) {
+                                        "Ventas" -> navController.navigate(ScreenNavigation.Ventas.route)
+                                        "Rentas" -> navController.navigate(ScreenNavigation.Rentas.route)
+                                        "Servicios" -> navController.navigate(ScreenNavigation.Servicios.route)
+                                        "Anuncios" -> navController.navigate(ScreenNavigation.Anuncios.route)
+                                    }
+                                }
                             )
-                            Spacer(modifier = Modifier.height(8.dp)) // Menos espacio aquí para que se sienta más compacto
-
+                            Spacer(modifier = Modifier.height(8.dp))
                             LazyRow(
                                 contentPadding = PaddingValues(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp) // Más espacio entre tarjetas
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 items(section.listings) { listing ->
                                     ModernProductCard(listing = listing, navController = navController)
@@ -86,19 +90,45 @@ fun HomeView(navController: NavController) {
                             }
                         }
                     }
+                    // Agregamos un espacio al final para que el último elemento no quede pegado
+                    // a la barra de navegación al hacer scroll hasta el fondo.
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
     }
 }
 
+// Las funciones SectionHeader y ModernProductCard se quedan igual
+@Composable
+fun SectionHeader(title: String, onSeeMoreClicked: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.ExtraBold
+        )
+        TextButton(onClick = onSeeMoreClicked) {
+            Text("Ver más", fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
+
 @Composable
 fun ModernProductCard(listing: ListingDto, navController: NavController) {
-    // --- CAMBIO AQUÍ ---
-    // Un azul vibrante y moderno. Puedes experimentar con otros códigos de color.
-    val priceColor = Color(0xFF448AFF)
-
-    // Formateador de moneda
+    val priceColor = Color(0xFF448AFF) // Azul
     val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
     format.currency = java.util.Currency.getInstance(listing.currency)
 
@@ -113,15 +143,12 @@ fun ModernProductCard(listing: ListingDto, navController: NavController) {
             }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Imagen de fondo
             AsyncImage(
                 model = listing.imageUrl,
                 contentDescription = listing.title,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-
-            // Gradiente oscuro para legibilidad
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -132,8 +159,6 @@ fun ModernProductCard(listing: ListingDto, navController: NavController) {
                         )
                     )
             )
-
-            // Sección inferior con título/precio y perfil
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -142,10 +167,7 @@ fun ModernProductCard(listing: ListingDto, navController: NavController) {
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Columna para Título y Precio
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = listing.title,
                         fontWeight = FontWeight.ExtraBold,
@@ -157,18 +179,13 @@ fun ModernProductCard(listing: ListingDto, navController: NavController) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = format.format(listing.price),
-                        color = priceColor, // <-- ¡COLOR DEL PRECIO CAMBIADO A AZUL!
+                        color = priceColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
                 }
-
                 Spacer(modifier = Modifier.width(8.dp))
-
-                // Columna para Avatar y Nombre
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     AsyncImage(
                         model = listing.user.avatarUrl,
                         contentDescription = "Avatar de ${listing.user.name}",
@@ -188,8 +205,6 @@ fun ModernProductCard(listing: ListingDto, navController: NavController) {
                     )
                 }
             }
-
-            // Etiqueta de Categoría
             if (listing.category.isNotBlank()) {
                 Surface(
                     color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.9f),
