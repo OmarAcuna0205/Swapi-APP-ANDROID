@@ -22,12 +22,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle // <-- Usando la dependencia recomendada
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.swapi.androidClassMp1.home.model.dto.ListingDto
-import com.swapi.androidClassMp1.home.model.network.HomeApiImpl // <-- Importante
+import com.swapi.androidClassMp1.home.model.network.HomeApiImpl
 import com.swapi.androidClassMp1.home.model.repository.HomeRepository
 import com.swapi.androidClassMp1.home.productdetail.viewmodel.ProductDetailUiState
 import com.swapi.androidClassMp1.home.productdetail.viewmodel.ProductDetailViewModel
@@ -39,7 +39,7 @@ fun ProductDetailScreen(
     productId: String,
     navController: NavController
 ) {
-    // --- LÍNEA CORREGIDA AQUÍ ---
+    // ViewModel con factory personalizado
     val factory = ProductDetailViewModelFactory(productId, HomeRepository(HomeApiImpl.retrofitApi))
     val viewModel: ProductDetailViewModel = viewModel(factory = factory)
 
@@ -55,7 +55,7 @@ fun ProductDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Lógica para guardar */ }) {
+                    IconButton(onClick = { /* TODO: Guardar producto */ }) {
                         Icon(Icons.Default.BookmarkBorder, contentDescription = "Guardar")
                     }
                 }
@@ -70,7 +70,10 @@ fun ProductDetailScreen(
         ) {
             when (val state = uiState) {
                 is ProductDetailUiState.Loading -> CircularProgressIndicator()
-                is ProductDetailUiState.Error -> Text(state.message, color = MaterialTheme.colorScheme.error)
+                is ProductDetailUiState.Error -> Text(
+                    state.message,
+                    color = MaterialTheme.colorScheme.error
+                )
                 is ProductDetailUiState.Success -> ProductContentView(product = state.product)
             }
         }
@@ -80,43 +83,125 @@ fun ProductDetailScreen(
 @Composable
 fun ProductContentView(product: ListingDto) {
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+    ) {
+        // Imagen destacada sin overlay
         AsyncImage(
             model = product.imageUrl,
             contentDescription = product.title,
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp),
-            contentScale = ContentScale.Crop
+                .height(320.dp)
+                .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
         )
+
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(product.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text("$${product.price} ${product.currency}", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-            Text("Descripción", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(product.description, style = MaterialTheme.typography.bodyLarge)
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-            Text("Vendedor", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-                AsyncImage(model = product.user.avatarUrl, contentDescription = null, modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape))
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(product.user.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            // Título + precio
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    product.title,
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    "$${product.price} ${product.currency}",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
-            Spacer(modifier = Modifier.height(16.dp))
+
+            // Descripción en card
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        "Descripción",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
+                    Text(
+                        product.description,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // Vendedor en card
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.08f)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AsyncImage(
+                        model = product.user.avatarUrl,
+                        contentDescription = "Avatar vendedor",
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Column {
+                        Text(
+                            product.user.name,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                        Text(
+                            "Vendedor verificado",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // Botón de contacto
             Button(
                 onClick = { openWhatsApp(context, product.user.phoneNumber, product.title) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp)
+                    .height(56.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
             ) {
-                Text("Contactar por WhatsApp", fontSize = 16.sp)
+                Text(
+                    "Contactar por WhatsApp",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }

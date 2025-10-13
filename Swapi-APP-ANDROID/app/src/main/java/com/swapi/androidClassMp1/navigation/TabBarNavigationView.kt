@@ -15,7 +15,8 @@ import com.swapi.androidClassMp1.home.views.HomeView
 import com.swapi.androidClassMp1.profile.view.ProfileView
 import com.swapi.androidClassMp1.rentas.RentasView
 import com.swapi.androidClassMp1.servicios.ServiciosView
-import com.swapi.androidClassMp1.ventas.VentasView
+import com.swapi.androidClassMp1.ventas.views.CrearPublicacionView
+import com.swapi.androidClassMp1.ventas.views.VentasView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,7 +76,7 @@ fun TabBarNavigationView(
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(ScreenNavigation.Ventas.route) { VentasView() }
+            composable(ScreenNavigation.Ventas.route) { VentasView(navController = navController) }
             composable(ScreenNavigation.Rentas.route) { RentasView() }
 
             // --- CAMBIO 1: Se pasa el navController a HomeView ---
@@ -84,6 +85,10 @@ fun TabBarNavigationView(
             composable(ScreenNavigation.Servicios.route) { ServiciosView() }
             composable(ScreenNavigation.Anuncios.route) { AnunciosView() }
             composable(ScreenNavigation.Profile.route) { ProfileView(navController) }
+            composable(ScreenNavigation.CrearPublicacion.route) {
+                CrearPublicacionView (navController)
+            }
+
 
             // --- CAMBIO 2: Nuevo composable para la pantalla de detalle ---
             composable(

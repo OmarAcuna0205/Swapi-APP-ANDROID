@@ -12,6 +12,8 @@ sealed class ScreenNavigation(val route: String, val label: String, val icon: Im
     object Servicios : ScreenNavigation("servicios", "Servicios", Icons.Default.Build)
     object Anuncios : ScreenNavigation("anuncios", "Anuncios", Icons.Default.Campaign)
     object Profile : ScreenNavigation("profile", "Perfil", Icons.Default.AccountCircle)
+    object CrearPublicacion : ScreenNavigation("crear_publicacion", "Crear", Icons.Default.Add)
+
 
     // --- NUEVA RUTA PARA EL DETALLE ---
     // La ruta contiene "{productId}" para indicar que es un argumento dinámico.
