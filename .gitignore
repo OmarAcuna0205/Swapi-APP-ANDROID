@@ -1,0 +1,3 @@
+# IntelliJ / Android Studio
+# Ignora todos los directorios .idea/ en cualquier parte del proyecto
+.idea/
