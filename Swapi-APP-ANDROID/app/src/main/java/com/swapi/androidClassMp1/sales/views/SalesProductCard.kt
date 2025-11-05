@@ -1,4 +1,4 @@
-package com.swapi.androidClassMp1.ventas.views
+package com.swapi.androidClassMp1.sales.views
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -29,7 +29,7 @@ import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
-fun VentaProductCard(
+fun SaleProductCard(
     listing: ListingDto,
     onClick: () -> Unit
 ) {

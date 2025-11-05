@@ -51,8 +51,8 @@ fun ProfileView(
 
     // Definimos las nuevas secciones relevantes para Swapi
     val activityItems = listOf(
-        MenuItem(Icons.Default.ListAlt, "Mis publicaciones", "Gestiona todos tus anuncios", "my_posts"),
-        MenuItem(Icons.Default.History, "Historial de actividad", "Ventas, rentas y servicios pasados", "history")
+        MenuItem(Icons.Default.ListAlt, "Mis publicaciones", "Gestiona todos tus ads", "my_posts"),
+        MenuItem(Icons.Default.History, "Historial de actividad", "Ventas, rents y services pasados", "history")
     )
 
     val accountItems = listOf(

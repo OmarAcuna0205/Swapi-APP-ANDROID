@@ -72,10 +72,10 @@ fun HomeView(navController: NavController) {
                                 title = section.sectionTitle,
                                 onSeeMoreClicked = {
                                     when (section.sectionTitle) {
-                                        "Ventas" -> navController.navigate(ScreenNavigation.Ventas.route)
-                                        "Rentas" -> navController.navigate(ScreenNavigation.Rentas.route)
-                                        "Servicios" -> navController.navigate(ScreenNavigation.Servicios.route)
-                                        "Anuncios" -> navController.navigate(ScreenNavigation.Anuncios.route)
+                                        "Ventas" -> navController.navigate(ScreenNavigation.Sales.route) // <-- CORREGIDO
+                                        "Rentas" -> navController.navigate(ScreenNavigation.Rents.route)
+                                        "Servicios" -> navController.navigate(ScreenNavigation.Services.route) // <-- CORREGIDO
+                                        "Anuncios" -> navController.navigate(ScreenNavigation.Ads.route) // <-- CORREGIDO
                                     }
                                 }
                             )

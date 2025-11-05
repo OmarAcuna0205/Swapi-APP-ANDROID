@@ -35,7 +35,7 @@ import com.swapi.androidClassMp1.home.productdetail.viewmodel.ProductDetailViewM
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductDetailScreen(
+fun ProductDetailView(
     productId: String,
     navController: NavController
 ) {

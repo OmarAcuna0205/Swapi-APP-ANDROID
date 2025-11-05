@@ -5,29 +5,29 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
- * Sealed class para gestionar las rutas de navegación de la aplicación.
- * Define cada pantalla con su ruta, una etiqueta para la UI y un ícono.
+ * Sealed class to manage the app's navigation routes.
+ * Defines each screen with its route, a UI label, and an icon.
  */
 sealed class ScreenNavigation(val route: String, val label: String, val icon: ImageVector) {
-    // --- Pantallas principales y de autenticación ---
+    // --- Main and Auth Screens ---
     object Login : ScreenNavigation("login", "Login", Icons.Default.Person)
     object Home : ScreenNavigation("home", "Home", Icons.Default.Home)
-    object Profile : ScreenNavigation("profile", "Perfil", Icons.Default.AccountCircle)
-    object CrearPublicacion : ScreenNavigation("crear_publicacion", "Crear", Icons.Default.Add)
+    object Profile : ScreenNavigation("profile", "Profile", Icons.Default.AccountCircle)
+    object NewPublication : ScreenNavigation("new_publication", "Create", Icons.Default.Add) // <-- Corregido
 
-    // --- Pantallas de categorías (accesibles desde Home) ---
-    object Ventas : ScreenNavigation("ventas", "Ventas", Icons.Default.ShoppingCart)
-    object Rentas : ScreenNavigation("rentas", "Rentas", Icons.Default.Key)
-    object Servicios : ScreenNavigation("servicios", "Servicios", Icons.Default.Build)
-    object Anuncios : ScreenNavigation("anuncios", "Anuncios", Icons.Default.Campaign)
+    // --- Category Screens (accessed from Home) ---
+    object Sales : ScreenNavigation("sales", "Sales", Icons.Default.ShoppingCart) // <-- Corregido
+    object Rents : ScreenNavigation("rents", "Rents", Icons.Default.Key)
+    object Services : ScreenNavigation("services", "Services", Icons.Default.Build) // <-- Corregido
+    object Ads : ScreenNavigation("ads", "Ads", Icons.Default.Campaign) // <-- Corregido
 
-    // --- Pantalla de detalle con argumento dinámico ---
-    // La ruta contiene "{productId}" para indicar que es un parámetro.
-    object ProductDetail : ScreenNavigation("product_detail/{productId}", "Detalle", Icons.Default.Store) {
+    // --- Detail screen with dynamic argument ---
+    // The route contains "{productId}" to indicate it's a parameter.
+    object ProductDetail : ScreenNavigation("product_detail/{productId}", "Detail", Icons.Default.Store) { // <-- Label corregida
         /**
-         * Función auxiliar para construir la ruta de detalle con un ID de producto específico.
-         * @param productId El ID del producto a mostrar.
-         * @return La ruta completa para navegar a la pantalla de detalle.
+         * Helper function to build the detail route with a specific product ID.
+         * @param productId The ID of the product to display.
+         * @return The complete route to navigate to the detail screen.
          */
         fun createRoute(productId: String) = "product_detail/$productId"
     }

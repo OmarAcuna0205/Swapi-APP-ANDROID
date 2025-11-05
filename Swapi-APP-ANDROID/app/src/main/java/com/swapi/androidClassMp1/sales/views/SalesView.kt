@@ -1,4 +1,4 @@
-package com.swapi.androidClassMp1.ventas.views
+package com.swapi.androidClassMp1.sales.views
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
@@ -40,7 +40,7 @@ import com.swapi.androidClassMp1.navigation.ScreenNavigation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VentasView(navController: NavController) {
+fun SalesView(navController: NavController) {
     val factory = HomeViewModelFactory(HomeRepository(HomeApiImpl.retrofitApi))
     val viewModel: HomeViewModel = viewModel(factory = factory)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -72,7 +72,7 @@ fun VentasView(navController: NavController) {
                 FloatingActionButton(
                     onClick = {
                         fabScale = 0.85f
-                        navController.navigate(ScreenNavigation.CrearPublicacion.route)
+                        navController.navigate(ScreenNavigation.NewPublication.route)
                     },
                     modifier = Modifier
                         .graphicsLayer {
@@ -95,7 +95,7 @@ fun VentasView(navController: NavController) {
                 }
             },
             topBar = {
-                VentasTopBar(
+                SalesTopBar(
                     searchQuery = searchQuery,
                     onQueryChange = { searchQuery = it }
                 )
@@ -176,7 +176,7 @@ fun VentasView(navController: NavController) {
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 items(filteredListings, key = { it.id }) { listing ->
-                                    VentaProductCard(
+                                    SaleProductCard(
                                         listing = listing,
                                         onClick = {
                                             navController.navigate(
@@ -227,7 +227,7 @@ fun VentasView(navController: NavController) {
 }
 
 @Composable
-private fun VentasTopBar(searchQuery: String, onQueryChange: (String) -> Unit) {
+private fun SalesTopBar(searchQuery: String, onQueryChange: (String) -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()

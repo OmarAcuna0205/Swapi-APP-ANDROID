@@ -1,4 +1,4 @@
-package com.swapi.androidClassMp1.servicios
+package com.swapi.androidClassMp1.services
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.sp
 import com.swapi.androidClassMp1.R
 
 @Composable
-fun ServiciosView() {
+fun ServicesView() {
     Column(
         modifier = Modifier
             .fillMaxSize()

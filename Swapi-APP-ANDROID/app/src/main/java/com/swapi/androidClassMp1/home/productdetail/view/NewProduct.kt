@@ -1,4 +1,4 @@
-package com.swapi.androidClassMp1.ventas.views
+package com.swapi.androidClassMp1.sales.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,7 +19,7 @@ import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CrearPublicacionView(navController: NavController) {
+fun NewPublicationView(navController: NavController) {
 
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }

@@ -1,4 +1,4 @@
-package com.swapi.androidClassMp1.rentas
+package com.swapi.androidClassMp1.ads
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.sp
 import com.swapi.androidClassMp1.R
 
 @Composable
-fun RentasView() {
+fun AdsView() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -19,11 +19,10 @@ fun RentasView() {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = stringResource(id = R.string.rentas_title),
+            text = stringResource(id = R.string.anuncios_title),
             fontSize = 24.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
     }
 }
-

@@ -20,15 +20,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.swapi.androidClassMp1.anuncios.AnunciosView
+import com.swapi.androidClassMp1.ads.AdsView
 import com.swapi.androidClassMp1.components.topbar.SwapiTopBar
-import com.swapi.androidClassMp1.home.productdetail.view.ProductDetailScreen
+import com.swapi.androidClassMp1.home.productdetail.view.ProductDetailView
 import com.swapi.androidClassMp1.home.views.HomeView
 import com.swapi.androidClassMp1.profile.view.ProfileView
-import com.swapi.androidClassMp1.rentas.RentasView
-import com.swapi.androidClassMp1.servicios.ServiciosView
-import com.swapi.androidClassMp1.ventas.views.CrearPublicacionView
-import com.swapi.androidClassMp1.ventas.views.VentasView
+import com.swapi.androidClassMp1.rents.RentsView
+import com.swapi.androidClassMp1.services.ServicesView
+import com.swapi.androidClassMp1.sales.views.NewPublicationView
+import com.swapi.androidClassMp1.sales.views.SalesView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,10 +43,10 @@ fun TabBarNavigationView(
     val showBars = currentRoute in listOf(
         ScreenNavigation.Home.route,
         ScreenNavigation.Profile.route,
-        ScreenNavigation.Ventas.route,
-        ScreenNavigation.Rentas.route,
-        ScreenNavigation.Servicios.route,
-        ScreenNavigation.Anuncios.route
+        ScreenNavigation.Sales.route,
+        ScreenNavigation.Rents.route,
+        ScreenNavigation.Services.route,
+        ScreenNavigation.Ads.route
     )
 
     val swapiBlue = Color(0xFF448AFF)
@@ -131,7 +131,7 @@ fun TabBarNavigationView(
                                 )
                                 .clip(CircleShape)
                                 .background(swapiBlue)
-                                .clickable { navController.navigate(ScreenNavigation.CrearPublicacion.route) },
+                                .clickable { navController.navigate(ScreenNavigation.NewPublication.route) },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -154,11 +154,11 @@ fun TabBarNavigationView(
             // --- Definición de todas las rutas de la aplicación ---
             composable(ScreenNavigation.Home.route) { HomeView(navController = navController) }
             composable(ScreenNavigation.Profile.route) { ProfileView(navController) }
-            composable(ScreenNavigation.CrearPublicacion.route) { CrearPublicacionView(navController) }
-            composable(ScreenNavigation.Ventas.route) { VentasView(navController = navController) }
-            composable(ScreenNavigation.Rentas.route) { RentasView() }
-            composable(ScreenNavigation.Servicios.route) { ServiciosView() }
-            composable(ScreenNavigation.Anuncios.route) { AnunciosView() }
+            composable(ScreenNavigation.NewPublication.route) { NewPublicationView(navController) } // <-- CORREGIDO
+            composable(ScreenNavigation.Sales.route) { SalesView(navController = navController) }      // <-- CORREGIDO
+            composable(ScreenNavigation.Rents.route) { RentsView() }
+            composable(ScreenNavigation.Services.route) { ServicesView() }                             // <-- CORREGIDO
+            composable(ScreenNavigation.Ads.route) { AdsView() }
 
             // --- Ruta para la pantalla de detalle del producto ---
             composable(
@@ -167,7 +167,7 @@ fun TabBarNavigationView(
             ) { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId")
                 requireNotNull(productId) { "El ID del producto no puede ser nulo" }
-                ProductDetailScreen(productId = productId, navController = navController)
+                ProductDetailView(productId = productId, navController = navController)
             }
         }
     }

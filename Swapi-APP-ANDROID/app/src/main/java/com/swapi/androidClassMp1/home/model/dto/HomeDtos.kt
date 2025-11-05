@@ -7,7 +7,7 @@ data class HomeScreenResponse(
     @SerializedName("homeScreen") val homeScreen: List<HomeSectionDto>
 )
 
-// Representa cada sección con un título y una lista de anuncios
+// Representa cada sección con un título y una lista de ads
 data class HomeSectionDto(
     @SerializedName("sectionTitle") val sectionTitle: String,
     @SerializedName("listings") val listings: List<ListingDto>
