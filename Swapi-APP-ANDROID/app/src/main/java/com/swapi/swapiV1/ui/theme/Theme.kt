@@ -49,7 +49,7 @@ private val LuxuryLightColorScheme = lightColorScheme(
 
 
 @Composable
-fun SwpaiTheme(
+fun SwapiTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true, // Puedes ponerlo en `false` para forzar tu tema

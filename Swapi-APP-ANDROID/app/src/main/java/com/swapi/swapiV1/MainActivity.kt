@@ -13,7 +13,7 @@ import com.swapi.swapiV1.navigation.TabBarNavigationView
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.onboarding.viewmodel.OnboardingViewModel
 import com.swapi.swapiV1.onboarding.views.OnboardingView
-import com.swapi.swapiV1.ui.theme.SwpaiTheme
+import com.swapi.swapiV1.ui.theme.SwapiTheme
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
 import kotlinx.coroutines.launch
 import androidx.navigation.compose.NavHost
@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
         val dataStore = DataStoreManager(this)
 
         setContent {
-            SwpaiTheme {
+            SwapiTheme {
                 val navController = rememberNavController()
                 val scope = rememberCoroutineScope()
                 val onboardingViewModel: OnboardingViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
