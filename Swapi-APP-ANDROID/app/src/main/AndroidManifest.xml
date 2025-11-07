@@ -12,14 +12,14 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AndroidClassMP1"
+        android:theme="@style/Theme.SwapiApp"
         tools:targetApi="31">
 
         <!-- SplashActivity en el paquete utils como punto de entrada -->
         <activity
-            android:name="com.swapi.androidClassMp1.utils.SplashActivity"
+            android:name=".utils.SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.AndroidClassMP1">
+            android:theme="@style/Theme.SwapiApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -31,7 +31,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.AndroidClassMP1" />
+            android:theme="@style/Theme.SwapiApp" />
     </application>
 
 </manifest>

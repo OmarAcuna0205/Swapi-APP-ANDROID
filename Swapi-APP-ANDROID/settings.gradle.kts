@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AndroidClassMP1"
+rootProject.name = "swapiV1"
 include(":app")
  

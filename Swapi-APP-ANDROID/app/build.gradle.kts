@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.swapi.androidClassMp1"
+    namespace = "com.swapi.swapiV1"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.swapi.androidClassMp1"
+        applicationId = "com.swapi.swapiV1"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
