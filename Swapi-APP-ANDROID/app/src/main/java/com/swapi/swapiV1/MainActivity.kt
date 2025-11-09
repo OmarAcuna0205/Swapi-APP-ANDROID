@@ -4,9 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.swapi.swapiV1.login.views.LoginView
 import com.swapi.swapiV1.navigation.TabBarNavigationView
@@ -24,6 +27,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // El DataStore se crea una vez aquí y se comparte
         val dataStore = DataStoreManager(this)
 
         setContent {
@@ -32,22 +36,49 @@ class MainActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
                 val onboardingViewModel: OnboardingViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
+                // Leemos AMBOS flujos
                 val onboardingDone: Boolean? by dataStore.onboardingDoneFlow.collectAsState(initial = null)
                 val isLoggedIn: Boolean? by dataStore.isLoggedInFlow.collectAsState(initial = null)
 
-                when (onboardingDone) {
-                    null -> SplashLoader()
-                    false -> OnboardingView(
+                if (onboardingDone == null || isLoggedIn == null) {
+                    SplashLoader()
+                }
+
+                else if (onboardingDone == false) {
+                    OnboardingView(
                         viewModel = onboardingViewModel,
                         onFinish = { scope.launch { dataStore.setOnboardingDone(true) } }
                     )
-                    true -> {
-                        NavHost(
-                            navController = navController,
-                            startDestination = if (isLoggedIn == true) "tabbar" else "login"
-                        ) {
-                            composable("login") { LoginView(navController, dataStore) }
-                            composable("tabbar") { TabBarNavigationView(startDestination = ScreenNavigation.Home.route) }
+                }
+
+                else {
+
+                    val startDestination = if (isLoggedIn == true) "tabbar" else "login"
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = startDestination // Asignación segura
+                    ) {
+                        composable("login") {
+                            LoginView(navController, dataStore)
+                        }
+                        composable("tabbar") {
+                            TabBarNavigationView(
+                                dataStore = dataStore,
+                                startDestination = ScreenNavigation.Home.route,
+                                // --- CAMBIO: Definimos la lógica de logout ---
+                                onLogout = {
+                                    scope.launch {
+                                        dataStore.setLoggedIn(false)
+                                        dataStore.setUserName("Usuario") // Resetea el nombre
+                                    }
+                                    // Navega al login y BORRA todo el historial
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                                // ---------------------------------------
+                            )
                         }
                     }
                 }
@@ -58,9 +89,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun SplashLoader() {
-    androidx.compose.foundation.layout.Box(
-        modifier = androidx.compose.ui.Modifier.fillMaxSize(),
-        contentAlignment = androidx.compose.ui.Alignment.Center
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator()
     }

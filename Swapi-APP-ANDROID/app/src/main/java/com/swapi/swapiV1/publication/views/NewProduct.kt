@@ -1,21 +1,52 @@
-package com.swapi.swapiV1.sales.views
+package com.swapi.swapiV1.publication.views // (Ojo, revisa si este paquete es correcto)
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +57,19 @@ fun NewPublicationView(navController: NavController) {
     var precio by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
+
+    // --- CAMBIO 2: Estado para la imagen ---
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    // --- CAMBIO 3: Launcher de la galería ---
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            if (uri != null) {
+                selectedImageUri = uri
+            }
+        }
+    )
 
     val categorias = listOf("Ventas", "Rentas", "Información", "Servicios")
 
@@ -64,7 +108,7 @@ fun NewPublicationView(navController: NavController) {
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 📝 Campo de título
+                // ... (TextFields de Título, Descripción, Precio y Dropdown se quedan igual)
                 OutlinedTextField(
                     value = titulo,
                     onValueChange = { titulo = it },
@@ -73,7 +117,6 @@ fun NewPublicationView(navController: NavController) {
                     shape = RoundedCornerShape(12.dp)
                 )
 
-                // 📄 Campo de descripción más grande
                 OutlinedTextField(
                     value = descripcion,
                     onValueChange = { descripcion = it },
@@ -86,7 +129,6 @@ fun NewPublicationView(navController: NavController) {
                     maxLines = 8
                 )
 
-                // 💰 Campo de precio con signo de pesos
                 OutlinedTextField(
                     value = precio,
                     onValueChange = { precio = it },
@@ -96,7 +138,6 @@ fun NewPublicationView(navController: NavController) {
                     shape = RoundedCornerShape(12.dp)
                 )
 
-                // 🧭 Dropdown de categorías
                 ExposedDropdownMenuBox(
                     expanded = expanded,
                     onExpandedChange = { expanded = !expanded }
@@ -130,24 +171,40 @@ fun NewPublicationView(navController: NavController) {
                     }
                 }
 
-                // 🖼️ Contenedor de imagen simulado
+                // --- CAMBIO 4: Lógica del Box de imagen ---
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
+                        .clip(RoundedCornerShape(16.dp)) // <-- Clip aplicado primero
                         .background(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            RoundedCornerShape(16.dp)
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                         )
-                        .clickable { },
+                        .clickable {
+                            // Abre la galería
+                            galleryLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.Default.CameraAlt,
-                        contentDescription = "Subir imagen",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        modifier = Modifier.size(48.dp)
-                    )
+                    if (selectedImageUri == null) {
+                        // Muestra el ícono si no hay imagen
+                        Icon(
+                            Icons.Default.CameraAlt,
+                            contentDescription = "Subir imagen",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            modifier = Modifier.size(48.dp)
+                        )
+                    } else {
+                        // Muestra la imagen seleccionada
+                        AsyncImage(
+                            model = selectedImageUri,
+                            contentDescription = "Imagen seleccionada",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
 
                 // 🚀 Botón publicar

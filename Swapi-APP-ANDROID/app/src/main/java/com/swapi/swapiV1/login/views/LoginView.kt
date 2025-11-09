@@ -50,15 +50,22 @@ fun LoginView(
 
     LaunchedEffect(vm) {
         vm.toastEvents.collectLatest { msg ->
-            showToastSafe(msg) // 👉 Solo toast
+            showToastSafe(msg) // 👉 Solo toast de errores
         }
     }
 
+    // --- BLOQUE MODIFICADO ---
+    // Este LaunchedEffect ahora recibe el evento `GoHome` con el nombre
+    // y lo guarda en el DataStore.
     LaunchedEffect(Unit) {
         vm.navEvents.collectLatest { event ->
             when (event) {
                 is LoginViewModel.LoginNavEvent.GoHome -> {
-                    scope.launch { dataStore.setLoggedIn(true) }
+                    scope.launch {
+                        dataStore.setLoggedIn(true)
+                        // Aquí guardamos el nombre que viene del ViewModel
+                        dataStore.setUserName(event.userName ?: "Usuario")
+                    }
                     navHostController.navigate("tabbar") {
                         popUpTo("login") { inclusive = true }
                         launchSingleTop = true
@@ -67,6 +74,7 @@ fun LoginView(
             }
         }
     }
+    // ------------------------
 
     Scaffold { padding ->
         Column(
@@ -162,7 +170,5 @@ fun LoginView(
         }
     }
 }
-
-
 
 

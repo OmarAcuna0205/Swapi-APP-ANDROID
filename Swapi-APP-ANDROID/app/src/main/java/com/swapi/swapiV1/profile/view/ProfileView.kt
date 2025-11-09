@@ -44,6 +44,7 @@ data class MenuItem(
 @Composable
 fun ProfileView(
     navController: NavHostController,
+    onLogout: () -> Unit, // <-- CAMBIO: Añadido
     vm: ProfileViewModel = viewModel()
 ) {
     val uiState by vm.uiState.collectAsState()
@@ -103,8 +104,8 @@ fun ProfileView(
                     val item = accountItems[index]
                     ProfileListItem(icon = item.icon, title = item.title, subtitle = item.subtitle) {
                         if (item.route == "logout") {
-                            // Aquí iría la lógica para cerrar sesión
-                            Toast.makeText(context, "Cerrando sesión...", Toast.LENGTH_SHORT).show()
+                            // --- CAMBIO: Se llama a la función ---
+                            onLogout()
                         } else {
                             Toast.makeText(context, "Ir a ${item.title}", Toast.LENGTH_SHORT).show()
                         }
@@ -149,7 +150,6 @@ private fun ActionsGrid(navController: NavHostController) {
 
 // El resto de componentes reutilizables (ProfileHeader, ActionCard, SectionHeader, ProfileListItem)
 // se quedan exactamente igual, ya que solo hemos cambiado los datos que les pasamos.
-// No es necesario volver a pegarlos si no les hiciste cambios. Te los incluyo por si acaso.
 
 @Composable
 private fun ProfileHeader(state: ProfileUiState) {
