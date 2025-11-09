@@ -2,13 +2,28 @@ package com.swapi.swapiV1.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,57 +36,38 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.swapi.swapiV1.ads.AdsView
-import com.swapi.swapiV1.components.topbar.SwapiTopBar
 import com.swapi.swapiV1.home.productdetail.view.ProductDetailView
 import com.swapi.swapiV1.home.views.HomeView
 import com.swapi.swapiV1.profile.view.ProfileView
+import com.swapi.swapiV1.publication.views.NewPublicationView
 import com.swapi.swapiV1.rents.RentsView
-import com.swapi.swapiV1.services.ServicesView
-import com.swapi.swapiV1.sales.views.NewPublicationView
 import com.swapi.swapiV1.sales.views.SalesView
+import com.swapi.swapiV1.services.ServicesView
+import com.swapi.swapiV1.utils.datastore.DataStoreManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabBarNavigationView(
+    dataStore: DataStoreManager,
+    onLogout: () -> Unit,
     startDestination: String = ScreenNavigation.Home.route,
     navController: NavHostController = rememberNavController()
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Define en qué rutas se mostrarán las barras de navegación.
-    val showBars = currentRoute in listOf(
-        ScreenNavigation.Home.route,
-        ScreenNavigation.Profile.route,
-        ScreenNavigation.Sales.route,
-        ScreenNavigation.Rents.route,
-        ScreenNavigation.Services.route,
-        ScreenNavigation.Ads.route
-    )
-
     val swapiBlue = Color(0xFF448AFF)
 
     Scaffold(
-        topBar = {
-            if (showBars) {
-                SwapiTopBar(
-                    onSearchAction = { query ->
-                        println("Búsqueda realizada para: $query")
-                    }
-                )
-            }
-        },
+        topBar = { /* Vacío */ },
         bottomBar = {
-            // La barra inferior solo se muestra en las rutas principales.
             if (currentRoute in listOf(ScreenNavigation.Home.route, ScreenNavigation.Profile.route)) {
-                Box(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                Box(modifier = Modifier.fillMaxWidth()) {
                     NavigationBar(
                         containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
                         modifier = Modifier.height(80.dp)
                     ) {
-                        // Ítem 1: Inicio
+                        // Inicio
                         NavigationBarItem(
                             selected = currentRoute == ScreenNavigation.Home.route,
                             onClick = {
@@ -93,7 +89,7 @@ fun TabBarNavigationView(
 
                         Spacer(modifier = Modifier.weight(1f))
 
-                        // Ítem 2: Perfil
+                        // Perfil
                         NavigationBarItem(
                             selected = currentRoute == ScreenNavigation.Profile.route,
                             onClick = {
@@ -114,7 +110,7 @@ fun TabBarNavigationView(
                         )
                     }
 
-                    // Botón flotante central para "Crear Publicación"
+                    // Botón central flotante
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
@@ -131,7 +127,9 @@ fun TabBarNavigationView(
                                 )
                                 .clip(CircleShape)
                                 .background(swapiBlue)
-                                .clickable { navController.navigate(ScreenNavigation.NewPublication.route) },
+                                .clickable {
+                                    navController.navigate(ScreenNavigation.NewPublication.route)
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -144,23 +142,27 @@ fun TabBarNavigationView(
                     }
                 }
             }
-        }
+        },
+        // ✅ Este es el parámetro correcto
+        contentWindowInsets = WindowInsets(0.dp)
     ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
-            // --- Definición de todas las rutas de la aplicación ---
-            composable(ScreenNavigation.Home.route) { HomeView(navController = navController) }
-            composable(ScreenNavigation.Profile.route) { ProfileView(navController) }
-            composable(ScreenNavigation.NewPublication.route) { NewPublicationView(navController) } // <-- CORREGIDO
-            composable(ScreenNavigation.Sales.route) { SalesView(navController = navController) }      // <-- CORREGIDO
+            composable(ScreenNavigation.Home.route) {
+                HomeView(navController = navController, dataStore = dataStore)
+            }
+            composable(ScreenNavigation.Profile.route) {
+                ProfileView(navController, onLogout = onLogout)
+            }
+            composable(ScreenNavigation.NewPublication.route) { NewPublicationView(navController) }
+            composable(ScreenNavigation.Sales.route) { SalesView(navController = navController) }
             composable(ScreenNavigation.Rents.route) { RentsView() }
-            composable(ScreenNavigation.Services.route) { ServicesView() }                             // <-- CORREGIDO
+            composable(ScreenNavigation.Services.route) { ServicesView() }
             composable(ScreenNavigation.Ads.route) { AdsView() }
 
-            // --- Ruta para la pantalla de detalle del producto ---
             composable(
                 route = ScreenNavigation.ProductDetail.route,
                 arguments = listOf(navArgument("productId") { type = NavType.StringType })

@@ -3,6 +3,7 @@ package com.swapi.swapiV1.utils.datastore
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey // <-- NUEVO IMPORT
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -15,6 +16,7 @@ class DataStoreManager(private val context: Context) {
     private object Keys {
         val ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
         val LOGGED_IN = booleanPreferencesKey("logged_in")
+        val USER_NAME = stringPreferencesKey("user_name") // <-- NUEVA KEY
     }
 
     val onboardingDoneFlow: Flow<Boolean> =
@@ -22,6 +24,12 @@ class DataStoreManager(private val context: Context) {
 
     val isLoggedInFlow: Flow<Boolean> =
         context.dataStore.data.map { prefs -> prefs[Keys.LOGGED_IN] ?: false }
+
+    // --- NUEVO FLOW ---
+    // Flow para leer el nombre del usuario, con un valor por defecto.
+    val userNameFlow: Flow<String> =
+        context.dataStore.data.map { prefs -> prefs[Keys.USER_NAME] ?: "Usuario" }
+    // -------------------
 
     suspend fun setOnboardingDone(done: Boolean) {
         context.dataStore.edit { prefs ->
@@ -34,5 +42,13 @@ class DataStoreManager(private val context: Context) {
             prefs[Keys.LOGGED_IN] = loggedIn
         }
     }
-}
 
+    // --- NUEVA FUNCIÓN ---
+    // Función para guardar el nombre del usuario
+    suspend fun setUserName(name: String) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.USER_NAME] = name
+        }
+    }
+    // ---------------------
+}

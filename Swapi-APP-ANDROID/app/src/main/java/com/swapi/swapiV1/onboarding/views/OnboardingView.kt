@@ -2,7 +2,6 @@
 
 package com.swapi.swapiV1.onboarding.views
 
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -10,8 +9,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import com.swapi.swapiV1.R
 import com.swapi.swapiV1.onboarding.viewmodel.OnboardingViewModel
 import kotlinx.coroutines.launch
 
@@ -29,9 +26,6 @@ fun OnboardingView(
         pageCount = { pages.size }
     )
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-
-    // Sincronización entre ViewModel y PagerState
     LaunchedEffect(pagerState.currentPage) {
         viewModel.setPage(pagerState.currentPage)
     }
@@ -78,11 +72,6 @@ fun OnboardingView(
                         scope.launch { pagerState.animateScrollToPage(currentPage + 1) }
                     } else {
                         onFinish()
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.onboarding_finished_toast),
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
                 }
             )

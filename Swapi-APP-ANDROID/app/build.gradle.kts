@@ -80,7 +80,7 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.5.0")
 
-    // --- LÍNEA DUPLICADA Y ERRÓNEA ELIMINADA ---
+    implementation("androidx.activity:activity-compose:1.9.0")
 
     // Tests
     testImplementation(libs.junit)
