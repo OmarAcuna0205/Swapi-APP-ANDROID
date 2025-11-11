@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -37,12 +36,13 @@ fun SaleProductCard(
     format.maximumFractionDigits = 0
 
     var isPressed by remember { mutableStateOf(false) }
-
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.97f else 1f,
         animationSpec = tween(180),
         label = "cardScale"
     )
+
+    val swapiBrandColor = Color(0xFF4A8BFF)
 
     Card(
         modifier = Modifier
@@ -51,32 +51,34 @@ fun SaleProductCard(
                 scaleX = scale
                 scaleY = scale
             }
-            .shadow(
-                elevation = 6.dp,
-                shape = RoundedCornerShape(20.dp),
-                clip = false
-            )
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(24.dp))
             .clickable {
                 isPressed = true
                 onClick()
             },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f)
+            containerColor = Color.Transparent
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                        )
+                    )
+                )
         ) {
-            // Imagen del producto con overlay sutil
+            // Imagen superior (sin cambios)
             Box(
                 modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(14.dp))
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
             ) {
                 AsyncImage(
                     model = listing.imageUrl,
@@ -89,21 +91,18 @@ fun SaleProductCard(
                         .fillMaxSize()
                         .background(
                             Brush.verticalGradient(
-                                listOf(
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.05f)
-                                )
+                                0f to Color.Transparent,
+                                1f to Color.Black.copy(alpha = 0.1f)
                             )
                         )
                 )
             }
 
-            Spacer(modifier = Modifier.width(20.dp))
-
-            // Info del producto
+            // Contenido textual (sin cambios)
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
             ) {
                 Text(
                     text = listing.category.uppercase(),
@@ -111,44 +110,54 @@ fun SaleProductCard(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
                     ),
-                    color = MaterialTheme.colorScheme.primary
+                    color = swapiBrandColor
                 )
+
+                Spacer(Modifier.height(4.dp))
 
                 Text(
                     text = listing.title,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp
+                        fontSize = 17.sp
                     ),
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Text(
-                    text = format.format(listing.price),
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
+                Spacer(Modifier.height(10.dp))
 
-            // Botón de navegación más limpio y elegante
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Filled.ArrowForward,
-                    contentDescription = "Ver detalles",
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                    modifier = Modifier.size(18.dp)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = format.format(listing.price),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 19.sp
+                        ),
+                        color = swapiBrandColor
+                    )
+
+                    // Botón (Este código ya no tiene sombra, así que está listo)
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .clickable { onClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Filled.ArrowForward,
+                            contentDescription = "Ver detalles",
+                            tint = swapiBrandColor,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
             }
         }
     }

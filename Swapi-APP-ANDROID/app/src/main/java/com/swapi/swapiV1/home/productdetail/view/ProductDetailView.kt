@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color // ✨ IMPORTANTE
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -39,11 +40,12 @@ fun ProductDetailView(
     productId: String,
     navController: NavController
 ) {
-    // ViewModel con factory personalizado
+    // ViewModel
     val factory = ProductDetailViewModelFactory(productId, HomeRepository(HomeApiImpl.retrofitApi))
     val viewModel: ProductDetailViewModel = viewModel(factory = factory)
-
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val swapiBrandColor = Color(0xFF4A8BFF)
 
     Scaffold(
         topBar = {
@@ -69,19 +71,27 @@ fun ProductDetailView(
             contentAlignment = Alignment.Center
         ) {
             when (val state = uiState) {
-                is ProductDetailUiState.Loading -> CircularProgressIndicator()
+
+                is ProductDetailUiState.Loading -> CircularProgressIndicator(color = swapiBrandColor)
                 is ProductDetailUiState.Error -> Text(
                     state.message,
                     color = MaterialTheme.colorScheme.error
                 )
-                is ProductDetailUiState.Success -> ProductContentView(product = state.product)
+
+                is ProductDetailUiState.Success -> ProductContentView(
+                    product = state.product,
+                    brandColor = swapiBrandColor
+                )
             }
         }
     }
 }
 
 @Composable
-fun ProductContentView(product: ListingDto) {
+fun ProductContentView(
+    product: ListingDto,
+    brandColor: Color
+) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
@@ -90,7 +100,7 @@ fun ProductContentView(product: ListingDto) {
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-        // Imagen destacada sin overlay
+        // Imagen destacada (sin cambios)
         AsyncImage(
             model = product.imageUrl,
             contentDescription = product.title,
@@ -111,8 +121,10 @@ fun ProductContentView(product: ListingDto) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     product.title,
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold
+
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp // Ajuste fino si es necesario
                     ),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -121,11 +133,12 @@ fun ProductContentView(product: ListingDto) {
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold
                     ),
-                    color = MaterialTheme.colorScheme.primary
+
+                    color = brandColor
                 )
             }
 
-            // Descripción en card
+            // Descripción en card (sin cambios)
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -149,7 +162,7 @@ fun ProductContentView(product: ListingDto) {
                 }
             }
 
-            // Vendedor en card
+            // Vendedor en card (sin cambios)
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -194,7 +207,8 @@ fun ProductContentView(product: ListingDto) {
                     .height(56.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = brandColor,
+                    contentColor = Color.White
                 )
             ) {
                 Text(
@@ -206,7 +220,6 @@ fun ProductContentView(product: ListingDto) {
         }
     }
 }
-
 private fun openWhatsApp(context: Context, phoneNumber: String?, productName: String) {
     if (phoneNumber.isNullOrBlank()) {
         Toast.makeText(context, "El vendedor no especificó un número.", Toast.LENGTH_SHORT).show()

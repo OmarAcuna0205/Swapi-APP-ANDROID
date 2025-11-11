@@ -11,9 +11,22 @@ import androidx.compose.ui.graphics.vector.ImageVector
 sealed class ScreenNavigation(val route: String, val label: String, val icon: ImageVector) {
     // --- Main and Auth Screens ---
     object Login : ScreenNavigation("login", "Login", Icons.Default.Person)
+
+    object SignUpEmail : ScreenNavigation("signup_email", "Registro Email", Icons.Default.Email)
+
+    object SignUpCode : ScreenNavigation("signup_code/{email}", "Registro Código", Icons.Default.QrCode) {
+        fun createRoute(email: String) = "signup_code/$email"
+    }
+
+    object SignUpProfile : ScreenNavigation("signup_profile/{email}", "Registro Perfil", Icons.Default.PersonAdd) {
+        fun createRoute(email: String) = "signup_profile/$email"
+    }
+
     object Home : ScreenNavigation("home", "Home", Icons.Default.Home)
     object Profile : ScreenNavigation("profile", "Profile", Icons.Default.AccountCircle)
     object NewPublication : ScreenNavigation("new_publication", "Create", Icons.Default.Add) // <-- Corregido
+
+    object SavedPosts : ScreenNavigation("saved_posts", "Guardados", Icons.Default.Bookmark)
 
     // --- Category Screens (accessed from Home) ---
     object Sales : ScreenNavigation("sales", "Sales", Icons.Default.ShoppingCart) // <-- Corregido

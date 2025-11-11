@@ -57,7 +57,7 @@ fun SwapiTopBar(
                     singleLine = true,
                     textStyle = TextStyle(
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 16.sp
+                        fontSize = 10.sp
                     ),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),

@@ -10,8 +10,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType // <-- Asegúrate de tener este
+import androidx.navigation.compose.*
+import androidx.navigation.navArgument // <-- Y este
 import com.swapi.swapiV1.login.views.LoginView
+import com.swapi.swapiV1.login.views.SignUpCodeView
+import com.swapi.swapiV1.login.views.SignUpEmailView
+import com.swapi.swapiV1.login.views.SignUpProfileView
 import com.swapi.swapiV1.navigation.TabBarNavigationView
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.onboarding.viewmodel.OnboardingViewModel
@@ -19,8 +24,6 @@ import com.swapi.swapiV1.onboarding.views.OnboardingView
 import com.swapi.swapiV1.ui.theme.SwapiTheme
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
 import kotlinx.coroutines.launch
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,31 +56,60 @@ class MainActivity : ComponentActivity() {
 
                 else {
 
-                    val startDestination = if (isLoggedIn == true) "tabbar" else "login"
+                    val startDestination = if (isLoggedIn == true) "tabbar" else ScreenNavigation.Login.route
 
                     NavHost(
                         navController = navController,
                         startDestination = startDestination // Asignación segura
                     ) {
-                        composable("login") {
+
+                        // --- RUTA 1: LOGIN ---
+                        composable(ScreenNavigation.Login.route) {
                             LoginView(navController, dataStore)
                         }
+
+                        // --- INICIO DEL FLUJO DE REGISTRO ---
+
+                        // RUTA 2: REGISTRO (Paso 1: Email)
+                        composable(ScreenNavigation.SignUpEmail.route) {
+                            SignUpEmailView(navHostController = navController)
+                        }
+
+                        // RUTA 3: REGISTRO (Paso 2: Código)
+                        composable(
+                            route = ScreenNavigation.SignUpCode.route,
+                            arguments = listOf(navArgument("email") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val email = backStackEntry.arguments?.getString("email") ?: "error@swapi.com"
+                            SignUpCodeView(navHostController = navController, email = email)
+                        }
+
+                        // RUTA 4: REGISTRO (Paso 3: Perfil)
+                        composable(
+                            route = ScreenNavigation.SignUpProfile.route,
+                            arguments = listOf(navArgument("email") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val email = backStackEntry.arguments?.getString("email") ?: "error@swapi.com"
+                            SignUpProfileView(navHostController = navController, email = email)
+                        }
+
+                        // --- FIN DEL FLUJO DE REGISTRO ---
+
+                        // --- RUTA 5: LA APP INTERNA ---
                         composable("tabbar") {
                             TabBarNavigationView(
                                 dataStore = dataStore,
                                 startDestination = ScreenNavigation.Home.route,
-                                // --- CAMBIO: Definimos la lógica de logout ---
                                 onLogout = {
                                     scope.launch {
                                         dataStore.setLoggedIn(false)
                                         dataStore.setUserName("Usuario") // Resetea el nombre
                                     }
                                     // Navega al login y BORRA todo el historial
-                                    navController.navigate("login") {
+                                    navController.navigate(ScreenNavigation.Login.route) {
                                         popUpTo(0) { inclusive = true }
                                     }
                                 }
-                                // ---------------------------------------
                             )
                         }
                     }
