@@ -38,6 +38,7 @@ import com.swapi.swapiV1.home.viewmodel.HomeViewModel
 import com.swapi.swapiV1.home.viewmodel.HomeViewModelFactory
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
+import com.swapi.swapiV1.utils.dismissKeyboardOnClick // ✨ --- ¡IMPORT NUEVO! --- ✨
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -72,7 +73,8 @@ fun HomeView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding), // Aplicamos el padding de la TopBar
+                .padding(innerPadding) // Aplicamos el padding de la TopBar
+                .dismissKeyboardOnClick(), // ✨ --- ¡MODIFIER APLICADO AQUÍ! --- ✨
             contentAlignment = Alignment.Center
         ) {
             when (val state = uiState) {

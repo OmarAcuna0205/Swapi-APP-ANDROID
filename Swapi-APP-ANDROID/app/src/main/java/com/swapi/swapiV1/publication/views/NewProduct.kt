@@ -9,17 +9,21 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState // ✨ --- ¡IMPORT NUEVO! (Para el scroll) --- ✨
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll // ✨ --- ¡IMPORT NUEVO! (Para el scroll) --- ✨
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults // ✨ --- IMPORT NUEVO para ButtonDefaults --- ✨
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -47,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.swapi.swapiV1.utils.dismissKeyboardOnClick // ✨ --- ¡IMPORT YA EXISTENTE! --- ✨
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,10 +63,8 @@ fun NewPublicationView(navController: NavController) {
     var categoria by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
 
-    // --- CAMBIO 2: Estado para la imagen ---
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // --- CAMBIO 3: Launcher de la galería ---
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
@@ -72,6 +75,11 @@ fun NewPublicationView(navController: NavController) {
     )
 
     val categorias = listOf("Ventas", "Rentas", "Información", "Servicios")
+
+    val scrollState = rememberScrollState()
+
+    // ✨ Definimos tu color de marca aquí para reusarlo
+    val swapiBrandColor = Color(0xFF4A8BFF)
 
     Scaffold(
         topBar = {
@@ -101,20 +109,22 @@ fun NewPublicationView(navController: NavController) {
                     )
                 )
                 .padding(padding)
+                .dismissKeyboardOnClick()
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
+                    .padding(24.dp)
+                    .verticalScroll(scrollState),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // ... (TextFields de Título, Descripción, Precio y Dropdown se quedan igual)
                 OutlinedTextField(
                     value = titulo,
                     onValueChange = { titulo = it },
                     label = { Text("Título") },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
                 )
 
                 OutlinedTextField(
@@ -135,7 +145,8 @@ fun NewPublicationView(navController: NavController) {
                     label = { Text("Precio") },
                     prefix = { Text("$") },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
                 )
 
                 ExposedDropdownMenuBox(
@@ -171,17 +182,15 @@ fun NewPublicationView(navController: NavController) {
                     }
                 }
 
-                // --- CAMBIO 4: Lógica del Box de imagen ---
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
-                        .clip(RoundedCornerShape(16.dp)) // <-- Clip aplicado primero
+                        .clip(RoundedCornerShape(16.dp))
                         .background(
                             MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                         )
                         .clickable {
-                            // Abre la galería
                             galleryLauncher.launch(
                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                             )
@@ -189,7 +198,6 @@ fun NewPublicationView(navController: NavController) {
                     contentAlignment = Alignment.Center
                 ) {
                     if (selectedImageUri == null) {
-                        // Muestra el ícono si no hay imagen
                         Icon(
                             Icons.Default.CameraAlt,
                             contentDescription = "Subir imagen",
@@ -197,7 +205,6 @@ fun NewPublicationView(navController: NavController) {
                             modifier = Modifier.size(48.dp)
                         )
                     } else {
-                        // Muestra la imagen seleccionada
                         AsyncImage(
                             model = selectedImageUri,
                             contentDescription = "Imagen seleccionada",
@@ -207,16 +214,22 @@ fun NewPublicationView(navController: NavController) {
                     }
                 }
 
-                // 🚀 Botón publicar
+                // 🚀 Botón publicar - ¡AHORA AZUL SWAPI!
                 Button(
                     onClick = { /* acción futura */ },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(55.dp),
-                    shape = RoundedCornerShape(14.dp)
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors( // ✨ Aplicamos los colores
+                        containerColor = swapiBrandColor, // Tu color azul
+                        contentColor = Color.White        // Texto blanco
+                    )
                 ) {
                     Text("Publicar", fontSize = 18.sp)
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }

@@ -23,7 +23,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +40,9 @@ import com.swapi.swapiV1.home.views.HomeView
 import com.swapi.swapiV1.profile.view.ProfileView
 import com.swapi.swapiV1.publication.views.NewPublicationView
 import com.swapi.swapiV1.rents.RentsView
+// --- CAMBIO AQUÍ: Import para la nueva pantalla ---
+import com.swapi.swapiV1.saved.views.SavedPostsView
+// --- FIN DEL CAMBIO ---
 import com.swapi.swapiV1.sales.views.SalesView
 import com.swapi.swapiV1.services.ServicesView
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
@@ -64,8 +66,9 @@ fun TabBarNavigationView(
             if (currentRoute in listOf(ScreenNavigation.Home.route, ScreenNavigation.Profile.route)) {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
-                        modifier = Modifier.height(80.dp)
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 0.dp,
+                        modifier = Modifier.height(72.dp)
                     ) {
                         // Inicio
                         NavigationBarItem(
@@ -114,36 +117,44 @@ fun TabBarNavigationView(
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .offset(y = (-28).dp)
+                            .offset(y = (-48).dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(68.dp)
+                                .size(72.dp)
                                 .shadow(
-                                    elevation = 8.dp,
+                                    elevation = 20.dp,
                                     shape = CircleShape,
-                                    ambientColor = swapiBlue.copy(alpha = 0.3f),
-                                    spotColor = swapiBlue.copy(alpha = 0.3f)
+                                    ambientColor = Color.Black.copy(alpha = 0.6f),
+                                    spotColor = Color.Black.copy(alpha = 0.6f)
                                 )
                                 .clip(CircleShape)
-                                .background(swapiBlue)
-                                .clickable {
-                                    navController.navigate(ScreenNavigation.NewPublication.route)
-                                },
+                                .background(Color.White)
+                                .padding(4.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Publicar",
-                                tint = Color.White,
-                                modifier = Modifier.size(32.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(CircleShape)
+                                    .background(swapiBlue)
+                                    .clickable {
+                                        navController.navigate(ScreenNavigation.NewPublication.route)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Publicar",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
                         }
                     }
                 }
             }
         },
-        // ✅ Este es el parámetro correcto
         contentWindowInsets = WindowInsets(0.dp)
     ) { innerPadding ->
         NavHost(
@@ -162,6 +173,12 @@ fun TabBarNavigationView(
             composable(ScreenNavigation.Rents.route) { RentsView() }
             composable(ScreenNavigation.Services.route) { ServicesView() }
             composable(ScreenNavigation.Ads.route) { AdsView() }
+
+            // --- CAMBIO AQUÍ: Ruta añadida para "Guardados" ---
+            composable(ScreenNavigation.SavedPosts.route) {
+                SavedPostsView(navController = navController)
+            }
+            // --- FIN DEL CAMBIO ---
 
             composable(
                 route = ScreenNavigation.ProductDetail.route,

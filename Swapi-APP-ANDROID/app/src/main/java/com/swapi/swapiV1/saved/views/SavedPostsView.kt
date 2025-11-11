@@ -1,19 +1,18 @@
-package com.swapi.swapiV1.sales.views
+package com.swapi.swapiV1.saved.views
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image // <-- IMPORT AÑADIDO
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale // <-- IMPORT AÑADIDO
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -29,29 +28,23 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter // <-- IMPORT AÑADIDO
 import com.swapi.swapiV1.home.model.network.HomeApiImpl
 import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.viewmodel.HomeUIState
 import com.swapi.swapiV1.home.viewmodel.HomeViewModel
 import com.swapi.swapiV1.home.viewmodel.HomeViewModelFactory
 import com.swapi.swapiV1.navigation.ScreenNavigation
-import com.swapi.swapiV1.utils.dismissKeyboardOnClick // ✨ --- ¡IMPORT NUEVO! --- ✨
+import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SalesView(navController: NavController) {
+fun SavedPostsView(navController: NavController) {
     val factory = HomeViewModelFactory(HomeRepository(HomeApiImpl.retrofitApi))
     val viewModel: HomeViewModel = viewModel(factory = factory)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     var searchQuery by remember { mutableStateOf("") }
-    var fabScale by remember { mutableStateOf(1f) }
-
-    val animatedFabScale by animateFloatAsState(
-        targetValue = fabScale,
-        animationSpec = tween(200),
-        label = "fabScale"
-    )
 
     val swapiBrandColor = Color(0xFF4A8BFF)
 
@@ -69,34 +62,8 @@ fun SalesView(navController: NavController) {
     ) {
         Scaffold(
             containerColor = Color.Transparent,
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = {
-                        fabScale = 0.85f
-                        navController.navigate(ScreenNavigation.NewPublication.route)
-                    },
-                    modifier = Modifier
-                        .graphicsLayer {
-                            scaleX = animatedFabScale
-                            scaleY = animatedFabScale
-                        },
-                    shape = CircleShape,
-                    containerColor = swapiBrandColor,
-                    elevation = FloatingActionButtonDefaults.elevation(
-                        defaultElevation = 10.dp,
-                        pressedElevation = 16.dp
-                    )
-                ) {
-                    Icon(
-                        Icons.Filled.Add,
-                        contentDescription = "Añadir Venta",
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            },
             topBar = {
-                SalesTopBar(
+                SavedTopBar(
                     searchQuery = searchQuery,
                     onQueryChange = { searchQuery = it },
                     brandColor = swapiBrandColor
@@ -107,7 +74,7 @@ fun SalesView(navController: NavController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .dismissKeyboardOnClick(), // ✨ --- ¡MODIFIER APLICADO AQUÍ! --- ✨
+                    .dismissKeyboardOnClick(),
                 contentAlignment = Alignment.Center
             ) {
                 when (val state = uiState) {
@@ -122,7 +89,7 @@ fun SalesView(navController: NavController) {
                                 color = swapiBrandColor
                             )
                             Text(
-                                "Cargando productos...",
+                                "Cargando guardados...",
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -136,13 +103,13 @@ fun SalesView(navController: NavController) {
                             modifier = Modifier.padding(32.dp)
                         ) {
                             Icon(
-                                Icons.Filled.ShoppingCart,
+                                Icons.Filled.Bookmark,
                                 contentDescription = null,
                                 modifier = Modifier.size(72.dp),
                                 tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                             )
                             Text(
-                                "Oops... Algo salió mal",
+                                "Oops... No se cargaron tus guardados",
                                 style = MaterialTheme.typography.headlineSmall.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
@@ -159,6 +126,7 @@ fun SalesView(navController: NavController) {
 
                     is HomeUIState.Success -> {
                         val allListings = state.sections.flatMap { it.listings }
+
                         val filteredListings = if (searchQuery.isBlank()) allListings else {
                             allListings.filter {
                                 it.title.contains(searchQuery, ignoreCase = true) ||
@@ -179,14 +147,19 @@ fun SalesView(navController: NavController) {
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 items(filteredListings, key = { it.id }) { listing ->
-                                    SaleProductCard(
-                                        listing = listing,
+                                    // --- INICIO DEL CAMBIO ---
+                                    // Llamamos a la tarjeta actualizada y le pasamos la imageUrl
+                                    SavedItemCard(
+                                        title = listing.title,
+                                        price = "$${listing.price} ${listing.currency}",
+                                        imageUrl = listing.imageUrl, // <-- Se la pasamos aquí
                                         onClick = {
                                             navController.navigate(
                                                 ScreenNavigation.ProductDetail.createRoute(listing.id)
                                             )
                                         }
                                     )
+                                    // --- FIN DEL CAMBIO ---
                                 }
                             }
                         }
@@ -230,7 +203,7 @@ fun SalesView(navController: NavController) {
 }
 
 @Composable
-private fun SalesTopBar(
+private fun SavedTopBar(
     searchQuery: String,
     onQueryChange: (String) -> Unit,
     brandColor: Color
@@ -263,7 +236,7 @@ private fun SalesTopBar(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        "Ventas",
+                        "Guardados",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.SemiBold,
                             letterSpacing = 0.5.sp
@@ -271,13 +244,13 @@ private fun SalesTopBar(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        "Descubre productos premium",
+                        "Tus publicaciones guardadas",
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Icon(
-                    Icons.Filled.ShoppingCart,
+                    Icons.Filled.Bookmark,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
                     tint = brandColor
@@ -292,7 +265,7 @@ private fun SalesTopBar(
                     .padding(horizontal = 24.dp, vertical = 12.dp),
                 placeholder = {
                     Text(
-                        "Buscar productos...",
+                        "Buscar en guardados...",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
@@ -318,6 +291,57 @@ private fun SalesTopBar(
                 ),
                 textStyle = MaterialTheme.typography.bodyLarge
             )
+        }
+    }
+}
+
+
+/**
+ * --- ¡AQUÍ ESTÁ EL CAMBIO! ---
+ * Esta es la tarjeta actualizada que ahora carga la imagen desde una URL.
+ */
+@Composable
+private fun SavedItemCard(
+    title: String,
+    price: String,
+    imageUrl: String, // <-- Aceptamos la URL
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column {
+            // Reemplazamos el Box/Icon con un Image Composable de Coil
+            Image(
+                painter = rememberAsyncImagePainter(model = imageUrl), // Carga la imagen
+                contentDescription = title, // Descripción para accesibilidad
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant), // Fondo mientras carga
+                contentScale = ContentScale.Crop // Para que la imagen llene el espacio
+            )
+
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2
+                )
+                Text(
+                    text = price,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
     }
 }

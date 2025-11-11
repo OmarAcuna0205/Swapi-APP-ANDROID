@@ -29,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+// --- CAMBIO AQUÍ: Import añadido ---
+import com.swapi.swapiV1.navigation.ScreenNavigation
+// --- FIN DEL CAMBIO ---
 import com.swapi.swapiV1.profile.viewmodel.ProfileUiState
 import com.swapi.swapiV1.profile.viewmodel.ProfileViewModel
 
@@ -44,7 +47,7 @@ data class MenuItem(
 @Composable
 fun ProfileView(
     navController: NavHostController,
-    onLogout: () -> Unit, // <-- CAMBIO: Añadido
+    onLogout: () -> Unit,
     vm: ProfileViewModel = viewModel()
 ) {
     val uiState by vm.uiState.collectAsState()
@@ -85,7 +88,7 @@ fun ProfileView(
                     .padding(paddingValues)
             ) {
                 item { ProfileHeader(uiState) }
-                item { ActionsGrid(navController) }
+                item { ActionsGrid(navController) } // Pasamos el navController
 
                 // Sección "Mi Actividad"
                 item { SectionHeader("Mi Actividad") }
@@ -104,7 +107,6 @@ fun ProfileView(
                     val item = accountItems[index]
                     ProfileListItem(icon = item.icon, title = item.title, subtitle = item.subtitle) {
                         if (item.route == "logout") {
-                            // --- CAMBIO: Se llama a la función ---
                             onLogout()
                         } else {
                             Toast.makeText(context, "Ir a ${item.title}", Toast.LENGTH_SHORT).show()
@@ -130,7 +132,9 @@ private fun ActionsGrid(navController: NavHostController) {
     Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             ActionCard(title = actions[0].first, icon = actions[0].second, modifier = Modifier.weight(1f)) {
-                Toast.makeText(context, "Ir a ${actions[0].first}", Toast.LENGTH_SHORT).show()
+                // --- CAMBIO AQUÍ: Se reemplazó el Toast por la navegación ---
+                navController.navigate(ScreenNavigation.SavedPosts.route)
+                // --- FIN DEL CAMBIO ---
             }
             ActionCard(title = actions[1].first, icon = actions[1].second, modifier = Modifier.weight(1f)) {
                 Toast.makeText(context, "Ir a ${actions[1].first}", Toast.LENGTH_SHORT).show()
@@ -149,7 +153,7 @@ private fun ActionsGrid(navController: NavHostController) {
 }
 
 // El resto de componentes reutilizables (ProfileHeader, ActionCard, SectionHeader, ProfileListItem)
-// se quedan exactamente igual, ya que solo hemos cambiado los datos que les pasamos.
+// se quedan exactamente igual.
 
 @Composable
 private fun ProfileHeader(state: ProfileUiState) {
@@ -159,15 +163,19 @@ private fun ProfileHeader(state: ProfileUiState) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = rememberAsyncImagePainter(model = state.profileImageUrl),
-            contentDescription = "Foto de perfil",
+        Box(
             modifier = Modifier
                 .size(80.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentScale = ContentScale.Crop
-        )
+                .background(MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.AccountCircle, // Icono de perfil
+                contentDescription = "Foto de perfil",
+                modifier = Modifier.size(64.dp), // Tamaño del icono dentro del círculo
+                tint = MaterialTheme.colorScheme.onSurfaceVariant // Color del icono
+            )
+        }
         Spacer(Modifier.height(8.dp))
         Text(state.userName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         TextButton(onClick = { /* TODO: Navegar al perfil público */ }) {
