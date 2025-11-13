@@ -2,7 +2,9 @@ package com.swapi.swapiV1.login.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState // ✨ --- ¡IMPORT NUEVO! --- ✨
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll // ✨ --- ¡IMPORT NUEVO! --- ✨
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -17,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.swapi.swapiV1.navigation.ScreenNavigation
-import com.swapi.swapiV1.utils.dismissKeyboardOnClick // ✨ --- ¡IMPORT NUEVO! --- ✨
+import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,25 +28,24 @@ fun SignUpEmailView(
 ) {
     var email by remember { mutableStateOf("") }
     val swapiBrandColor = Color(0xFF4A8BFF)
-    val elegantGradient = Brush.verticalGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-            MaterialTheme.colorScheme.background,
-            MaterialTheme.colorScheme.background
-        )
-    )
+
+    // ✨ --- CAMBIO 1: Quitamos el gradiente --- ✨
+    // val elegantGradient = Brush.verticalGradient(...)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(elegantGradient)
-            .dismissKeyboardOnClick(), // ✨ --- ¡MODIFIER APLICADO AQUÍ! --- ✨
-        contentAlignment = Alignment.Center
+            // ✨ --- CAMBIO 2: Usamos fondo sólido --- ✨
+            .background(MaterialTheme.colorScheme.background)
+            .dismissKeyboardOnClick(),
+        // Quitamos contentAlignment
     ) {
         Column(
+            // ✨ --- CAMBIO 3: Hacemos la columna SCROLLABLE --- ✨
             modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .padding(horizontal = 28.dp),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 28.dp, vertical = 48.dp), // Padding para centrar
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
@@ -82,7 +83,6 @@ fun SignUpEmailView(
             Spacer(Modifier.height(12.dp))
 
             Button(
-                // Solo navega por demo, pero aquí iría la lógica de enviar el email
                 onClick = {
                     navHostController.navigate(ScreenNavigation.SignUpCode.createRoute(email.ifBlank { "demo" }))
                 },

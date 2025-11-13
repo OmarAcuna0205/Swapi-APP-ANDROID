@@ -68,7 +68,7 @@ fun TabBarNavigationView(
                     NavigationBar(
                         containerColor = MaterialTheme.colorScheme.surface,
                         tonalElevation = 0.dp,
-                        modifier = Modifier.height(72.dp)
+                        modifier = Modifier.height(85.dp)
                     ) {
                         // Inicio
                         NavigationBarItem(

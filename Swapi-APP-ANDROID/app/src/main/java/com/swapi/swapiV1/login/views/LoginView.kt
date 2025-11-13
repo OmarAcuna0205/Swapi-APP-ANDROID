@@ -4,10 +4,12 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState // ✨ --- ¡IMPORT NUEVO! --- ✨
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll // ✨ --- ¡IMPORT NUEVO! --- ✨
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -36,7 +38,7 @@ import com.swapi.swapiV1.login.viewmodel.LoginViewModel
 import com.swapi.swapiV1.login.viewmodel.LoginViewModelFactory
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
-import com.swapi.swapiV1.utils.dismissKeyboardOnClick // ✨ --- ¡IMPORT NUEVO! --- ✨
+import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -46,12 +48,12 @@ fun LoginView(
     navHostController: NavHostController,
     dataStore: DataStoreManager
 ) {
-    // --- LÓGICA ---
+    // --- LÓGICA (Sin cambios) ---
     val context = LocalContext.current.applicationContext
     val repo = remember { AuthRepository(RetrofitProvider.authApi) }
     val vm: LoginViewModel = viewModel(factory = LoginViewModelFactory(repo))
     val ui by vm.ui.collectAsState()
-    var passwordVisible by remember { mutableStateOf(false) } // <-- ¡Línea corregida!
+    var passwordVisible by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     fun showToastSafe(text: String) {
@@ -79,27 +81,26 @@ fun LoginView(
         }
     }
 
-    // --- INTERFAZ "ASTETIK" V3 ---
+    // --- INTERFAZ CORREGIDA ---
     val swapiBrandColor = Color(0xFF4A8BFF)
-    val elegantGradient = Brush.verticalGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-            MaterialTheme.colorScheme.background,
-            MaterialTheme.colorScheme.background
-        )
-    )
+
+    // ✨ --- CAMBIO 1: Quitamos el gradiente --- ✨
+    // val elegantGradient = Brush.verticalGradient(...)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(elegantGradient)
-            .dismissKeyboardOnClick(), // ✨ --- ¡MODIFIER APLICADO AQUÍ! --- ✨
-        contentAlignment = Alignment.Center
+            // ✨ --- CAMBIO 2: Usamos fondo sólido --- ✨
+            .background(MaterialTheme.colorScheme.background)
+            .dismissKeyboardOnClick(),
+        // Quitamos el contentAlignment para que la columna llene la pantalla
     ) {
         Column(
+            // ✨ --- CAMBIO 3: Hacemos la columna SCROLLABLE --- ✨
             modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .padding(horizontal = 28.dp, vertical = 48.dp),
+                .fillMaxSize() // <-- Que llene todo
+                .verticalScroll(rememberScrollState()) // <-- ¡LA MAGIA!
+                .padding(horizontal = 28.dp, vertical = 48.dp), // <-- Padding
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
@@ -253,7 +254,7 @@ fun LoginView(
 
             // --- BOTÓN SIGNUP ---
             OutlinedButton(
-                onClick = { navHostController.navigate(ScreenNavigation.SignUpEmail.route) }, // <-- Esto ya estaba bien
+                onClick = { navHostController.navigate(ScreenNavigation.SignUpEmail.route) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),

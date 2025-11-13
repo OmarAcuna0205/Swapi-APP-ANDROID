@@ -25,13 +25,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.swapi.swapiV1.navigation.ScreenNavigation
-import com.swapi.swapiV1.utils.dismissKeyboardOnClick // ✨ --- ¡IMPORT NUEVO! --- ✨
+import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpProfileView(
     navHostController: NavHostController,
-    email: String // Recibimos el email verificado
+    email: String
 ) {
     // --- Lógica de UI (sin cambios) ---
     var name by remember { mutableStateOf("") }
@@ -42,23 +42,21 @@ fun SignUpProfileView(
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
 
-    // --- Estilo (sin cambios) ---
+    // --- Estilo ---
     val swapiBrandColor = Color(0xFF4A8BFF)
-    val elegantGradient = Brush.verticalGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-            MaterialTheme.colorScheme.background,
-            MaterialTheme.colorScheme.background
-        )
-    )
+
+    // ✨ --- CAMBIO 1: Quitamos el gradiente --- ✨
+    // val elegantGradient = Brush.verticalGradient(...)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(elegantGradient)
-            .dismissKeyboardOnClick(), // ✨ --- ¡MODIFIER APLICADO AQUÍ! --- ✨
+            // ✨ --- CAMBIO 2: Usamos fondo sólido --- ✨
+            .background(MaterialTheme.colorScheme.background)
+            .dismissKeyboardOnClick(),
     ) {
         Column(
+            // Esta ya era scrollable, ¡bien!
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
