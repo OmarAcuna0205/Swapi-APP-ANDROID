@@ -18,11 +18,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource // <-- IMPORT AÑADIDO
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.swapi.swapiV1.R // <-- IMPORT AÑADIDO
 import com.swapi.swapiV1.home.model.dto.ListingDto
 import java.text.NumberFormat
 import java.util.Locale
@@ -142,7 +144,7 @@ fun SaleProductCard(
                         color = swapiBrandColor
                     )
 
-                    // Botón (Este código ya no tiene sombra, así que está listo)
+                    // Botón
                     Box(
                         modifier = Modifier
                             .size(38.dp)
@@ -152,7 +154,8 @@ fun SaleProductCard(
                     ) {
                         Icon(
                             Icons.Filled.ArrowForward,
-                            contentDescription = "Ver detalles",
+                            // CAMBIO:
+                            contentDescription = stringResource(id = R.string.sales_card_details_cd),
                             tint = swapiBrandColor,
                             modifier = Modifier.size(20.dp)
                         )

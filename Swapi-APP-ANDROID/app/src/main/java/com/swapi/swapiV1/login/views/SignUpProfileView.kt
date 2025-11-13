@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.swapi.swapiV1.R
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
@@ -45,34 +47,29 @@ fun SignUpProfileView(
     // --- Estilo ---
     val swapiBrandColor = Color(0xFF4A8BFF)
 
-    // ✨ --- CAMBIO 1: Quitamos el gradiente --- ✨
-    // val elegantGradient = Brush.verticalGradient(...)
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // ✨ --- CAMBIO 2: Usamos fondo sólido --- ✨
             .background(MaterialTheme.colorScheme.background)
             .dismissKeyboardOnClick(),
     ) {
         Column(
-            // Esta ya era scrollable, ¡bien!
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 28.dp)
-                .padding(top = 120.dp, bottom = 48.dp),
+                // CAMBIO AQUÍ: Ajustado de top=120dp a vertical=48dp para coincidir
+                .padding(horizontal = 28.dp, vertical = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp) // Reducimos el espacio general para que quepa mejor
         ) {
 
             Text(
-                text = "Completa tu perfil",
+                text = stringResource(id = R.string.signup_profile_title),
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center
             )
             Text(
-                text = "Ya casi terminas. Estás registrando la cuenta:\n$email",
+                text = stringResource(id = R.string.signup_profile_subtitle, email),
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                 ),
@@ -85,7 +82,7 @@ fun SignUpProfileView(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Nombre Completo") },
+                label = { Text(stringResource(id = R.string.signup_profile_name_label)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
@@ -102,7 +99,7 @@ fun SignUpProfileView(
             OutlinedTextField(
                 value = phone,
                 onValueChange = { phone = it },
-                label = { Text("Número de celular") },
+                label = { Text(stringResource(id = R.string.signup_profile_phone_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 shape = RoundedCornerShape(14.dp),
@@ -120,14 +117,18 @@ fun SignUpProfileView(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Contraseña") },
+                label = { Text(stringResource(id = R.string.login_password_label)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(icon, "Mostrar", tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+                        Icon(
+                            icon,
+                            contentDescription = stringResource(id = R.string.login_toggle_password_cd),
+                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                        )
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -144,14 +145,18 @@ fun SignUpProfileView(
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                label = { Text("Confirmar contraseña") },
+                label = { Text(stringResource(id = R.string.signup_profile_confirm_password_label)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     val icon = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                        Icon(icon, "Mostrar", tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+                        Icon(
+                            icon,
+                            contentDescription = stringResource(id = R.string.login_toggle_password_cd),
+                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                        )
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -181,21 +186,25 @@ fun SignUpProfileView(
                 colors = ButtonDefaults.buttonColors(containerColor = swapiBrandColor)
             ) {
                 Text(
-                    "Finalizar Registro",
+                    stringResource(id = R.string.signup_profile_button),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 17.sp),
                     color = Color.White
                 )
             }
         }
 
-        // Botón de Volver (sin cambios)
+        // Botón de Volver (Este sí estaba bien, a 48dp)
         IconButton(
             onClick = { navHostController.popBackStack() },
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(top = 48.dp, start = 16.dp)
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = MaterialTheme.colorScheme.onBackground)
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(id = R.string.common_back_button_cd),
+                tint = MaterialTheme.colorScheme.onBackground
+            )
         }
     }
 }

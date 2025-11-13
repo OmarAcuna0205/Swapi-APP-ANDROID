@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource // <-- IMPORT AÑADIDO
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -29,13 +30,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.swapi.swapiV1.R // <-- IMPORT AÑADIDO
 import com.swapi.swapiV1.home.model.network.HomeApiImpl
 import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.viewmodel.HomeUIState
 import com.swapi.swapiV1.home.viewmodel.HomeViewModel
 import com.swapi.swapiV1.home.viewmodel.HomeViewModelFactory
 import com.swapi.swapiV1.navigation.ScreenNavigation
-import com.swapi.swapiV1.utils.dismissKeyboardOnClick // ✨ --- ¡IMPORT NUEVO! --- ✨
+import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,7 +91,8 @@ fun SalesView(navController: NavController) {
                 ) {
                     Icon(
                         Icons.Filled.Add,
-                        contentDescription = "Añadir Venta",
+                        // CAMBIO:
+                        contentDescription = stringResource(id = R.string.sales_fab_add_cd),
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
                     )
@@ -107,7 +110,7 @@ fun SalesView(navController: NavController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .dismissKeyboardOnClick(), // ✨ --- ¡MODIFIER APLICADO AQUÍ! --- ✨
+                    .dismissKeyboardOnClick(),
                 contentAlignment = Alignment.Center
             ) {
                 when (val state = uiState) {
@@ -122,7 +125,8 @@ fun SalesView(navController: NavController) {
                                 color = swapiBrandColor
                             )
                             Text(
-                                "Cargando productos...",
+                                // CAMBIO:
+                                stringResource(id = R.string.sales_loading_text),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -142,7 +146,8 @@ fun SalesView(navController: NavController) {
                                 tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                             )
                             Text(
-                                "Oops... Algo salió mal",
+                                // CAMBIO:
+                                stringResource(id = R.string.sales_error_title),
                                 style = MaterialTheme.typography.headlineSmall.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
@@ -208,14 +213,16 @@ fun SalesView(navController: NavController) {
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                                 Text(
-                                    "Sin resultados",
+                                    // CAMBIO:
+                                    stringResource(id = R.string.sales_search_no_results_title),
                                     style = MaterialTheme.typography.headlineSmall.copy(
                                         fontWeight = FontWeight.Bold
                                     ),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    "Intenta con otros términos de búsqueda.",
+                                    // CAMBIO:
+                                    stringResource(id = R.string.sales_search_no_results_subtitle),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
@@ -263,7 +270,7 @@ private fun SalesTopBar(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        "Ventas",
+                        "Ventas", // NOTA: Esta no estaba en la lista que me diste
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.SemiBold,
                             letterSpacing = 0.5.sp
@@ -271,7 +278,8 @@ private fun SalesTopBar(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        "Descubre productos premium",
+                        // CAMBIO:
+                        stringResource(id = R.string.sales_header_subtitle),
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -292,7 +300,8 @@ private fun SalesTopBar(
                     .padding(horizontal = 24.dp, vertical = 12.dp),
                 placeholder = {
                     Text(
-                        "Buscar productos...",
+                        // CAMBIO:
+                        stringResource(id = R.string.sales_search_placeholder),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
@@ -300,7 +309,8 @@ private fun SalesTopBar(
                 leadingIcon = {
                     Icon(
                         Icons.Default.Search,
-                        contentDescription = "Buscar",
+                        // CAMBIO:
+                        contentDescription = stringResource(id = R.string.sales_search_icon_cd),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier.size(20.dp)
                     )

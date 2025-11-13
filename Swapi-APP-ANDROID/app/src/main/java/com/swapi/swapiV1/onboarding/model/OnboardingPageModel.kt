@@ -1,6 +1,8 @@
+// package com.swapi.swapiV1.onboarding.model
 package com.swapi.swapiV1.onboarding.model
 
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes // <-- AÑADIR esta importación
 
 /**
  * Este será el modelo de datos de nuestro onboarding
@@ -10,6 +12,6 @@ import androidx.annotation.DrawableRes
  */
 data class OnboardingPageModel(
     @DrawableRes val imageRes: Int,
-    val title: String,
-    val description: String
+    @StringRes val titleResId: Int,       // <-- CAMBIO: de 'title: String'
+    @StringRes val descriptionResId: Int  // <-- CAMBIO: de 'description: String'
 )

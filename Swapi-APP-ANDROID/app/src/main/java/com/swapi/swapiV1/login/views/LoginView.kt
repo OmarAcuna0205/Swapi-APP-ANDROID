@@ -4,12 +4,12 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState // ✨ --- ¡IMPORT NUEVO! --- ✨
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll // ✨ --- ¡IMPORT NUEVO! --- ✨
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource // <-- IMPORT AÑADIDO
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -84,30 +85,25 @@ fun LoginView(
     // --- INTERFAZ CORREGIDA ---
     val swapiBrandColor = Color(0xFF4A8BFF)
 
-    // ✨ --- CAMBIO 1: Quitamos el gradiente --- ✨
-    // val elegantGradient = Brush.verticalGradient(...)
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // ✨ --- CAMBIO 2: Usamos fondo sólido --- ✨
             .background(MaterialTheme.colorScheme.background)
             .dismissKeyboardOnClick(),
-        // Quitamos el contentAlignment para que la columna llene la pantalla
     ) {
         Column(
-            // ✨ --- CAMBIO 3: Hacemos la columna SCROLLABLE --- ✨
             modifier = Modifier
-                .fillMaxSize() // <-- Que llene todo
-                .verticalScroll(rememberScrollState()) // <-- ¡LA MAGIA!
-                .padding(horizontal = 28.dp, vertical = 48.dp), // <-- Padding
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 28.dp, vertical = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // --- LOGO ---
             Image(
                 painter = painterResource(id = R.drawable.swapi),
-                contentDescription = "Logo Swapi",
+                // CAMBIO:
+                contentDescription = stringResource(id = R.string.login_logo_cd),
                 modifier = Modifier
                     .size(100.dp)
                     .clip(CircleShape)
@@ -115,7 +111,8 @@ fun LoginView(
 
             // --- TÍTULOS ---
             Text(
-                text = "Bienvenido a Swapi",
+                // CAMBIO:
+                text = stringResource(id = R.string.login_title),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -125,7 +122,8 @@ fun LoginView(
             )
 
             Text(
-                text = "Inicia sesión para acceder a tu comunidad",
+                // CAMBIO:
+                text = stringResource(id = R.string.login_subtitle),
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                     fontSize = 15.sp
@@ -139,7 +137,8 @@ fun LoginView(
             OutlinedTextField(
                 value = ui.email,
                 onValueChange = vm::onEmailChange,
-                label = { Text("Correo institucional") },
+                // CAMBIO: (Usamos el string que ya existía y lo ajustamos)
+                label = { Text(stringResource(id = R.string.login_email_label)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
@@ -156,7 +155,8 @@ fun LoginView(
             OutlinedTextField(
                 value = ui.password,
                 onValueChange = vm::onPasswordChange,
-                label = { Text("Contraseña") },
+                // CAMBIO:
+                label = { Text(stringResource(id = R.string.login_password_label)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -166,7 +166,8 @@ fun LoginView(
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
                             icon,
-                            contentDescription = "Mostrar contraseña",
+                            // CAMBIO:
+                            contentDescription = stringResource(id = R.string.login_toggle_password_cd),
                             tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                         )
                     }
@@ -204,10 +205,12 @@ fun LoginView(
                         color = Color.White
                     )
                     Spacer(Modifier.width(12.dp))
-                    Text("Iniciando...")
+                    // CAMBIO:
+                    Text(stringResource(id = R.string.login_signing_in))
                 } else {
                     Text(
-                        "Iniciar sesión",
+                        // CAMBIO:
+                        stringResource(id = R.string.login_button_text),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 17.sp
@@ -221,7 +224,8 @@ fun LoginView(
             // --- LINK OLVIDASTE CONTRASEÑA ---
             TextButton(onClick = { /* TODO: Implementar */ }) {
                 Text(
-                    "¿Olvidaste tu contraseña?",
+                    // CAMBIO:
+                    stringResource(id = R.string.login_forgot_password),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = swapiBrandColor.copy(alpha = 0.8f)
                     ),
@@ -240,7 +244,8 @@ fun LoginView(
                     thickness = 1.dp
                 )
                 Text(
-                    text = " O ",
+                    // CAMBIO:
+                    text = stringResource(id = R.string.login_divider_or),
                     modifier = Modifier.padding(horizontal = 8.dp),
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                     style = MaterialTheme.typography.bodySmall
@@ -267,7 +272,8 @@ fun LoginView(
                 )
             ) {
                 Text(
-                    "Crear cuenta nueva",
+                    // CAMBIO:
+                    stringResource(id = R.string.login_create_account),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 17.sp

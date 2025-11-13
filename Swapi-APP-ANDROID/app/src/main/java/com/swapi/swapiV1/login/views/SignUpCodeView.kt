@@ -2,9 +2,9 @@ package com.swapi.swapiV1.login.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState // ✨ --- ¡IMPORT NUEVO! --- ✨
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll // ✨ --- ¡IMPORT NUEVO! --- ✨
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -13,11 +13,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource // <-- IMPORT AÑADIDO
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.swapi.swapiV1.R // <-- IMPORT AÑADIDO
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
@@ -30,19 +32,13 @@ fun SignUpCodeView(
     var code by remember { mutableStateOf("") }
     val swapiBrandColor = Color(0xFF4A8BFF)
 
-    // ✨ --- CAMBIO 1: Quitamos el gradiente --- ✨
-    // val elegantGradient = Brush.verticalGradient(...)
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // ✨ --- CAMBIO 2: Usamos fondo sólido --- ✨
             .background(MaterialTheme.colorScheme.background)
             .dismissKeyboardOnClick(),
-        // Quitamos contentAlignment
     ) {
         Column(
-            // ✨ --- CAMBIO 3: Hacemos la columna SCROLLABLE --- ✨
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
@@ -51,12 +47,14 @@ fun SignUpCodeView(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Text(
-                text = "Ingresa tu código",
+                // CAMBIO:
+                text = stringResource(id = R.string.signup_code_title),
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center
             )
             Text(
-                text = "Enviamos un código de 6 dígitos a:\n$email",
+                // CAMBIO: (String con formato)
+                text = stringResource(id = R.string.signup_code_subtitle, email),
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                 ),
@@ -68,7 +66,8 @@ fun SignUpCodeView(
             OutlinedTextField(
                 value = code,
                 onValueChange = { code = it },
-                label = { Text("Código de 6 dígitos") },
+                // CAMBIO:
+                label = { Text(stringResource(id = R.string.signup_code_label)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
@@ -94,7 +93,8 @@ fun SignUpCodeView(
                 colors = ButtonDefaults.buttonColors(containerColor = swapiBrandColor)
             ) {
                 Text(
-                    "Verificar",
+                    // CAMBIO:
+                    stringResource(id = R.string.signup_code_button),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 17.sp),
                     color = Color.White
                 )
@@ -108,7 +108,12 @@ fun SignUpCodeView(
                 .align(Alignment.TopStart)
                 .padding(top = 48.dp, start = 16.dp)
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = MaterialTheme.colorScheme.onBackground)
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                // CAMBIO: (String común)
+                contentDescription = stringResource(id = R.string.common_back_button_cd),
+                tint = MaterialTheme.colorScheme.onBackground
+            )
         }
     }
 }

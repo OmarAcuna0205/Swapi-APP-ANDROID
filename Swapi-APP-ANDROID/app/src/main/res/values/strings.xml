@@ -6,7 +6,8 @@
     <string name="home_title">Home</string>
     <string name="rentas_title">Rentals</string>
     <string name="servicios_title">Services</string>
-    <string name="ventas_title">Sales</string> <string name="tab_ventas">Sales</string>
+    <string name="ventas_title">Sales</string>
+    <string name="tab_ventas">Sales</string>
     <string name="tab_rentas">Rentals</string>
     <string name="tab_home">Home</string>
     <string name="tab_servicios">Services</string>
@@ -26,5 +27,45 @@
     <string name="onboarding_next_button">Next</string>
     <string name="onboarding_start_button">Start</string>
     <string name="onboarding_finished_toast">Onboarding finished</string>
+    <string name="onboarding_page1_title">Your Campus, Your Marketplace!</string>
+    <string name="onboarding_page1_desc">Buy, sell, rent, or share services within your own school community, all in one place.</string>
+    <string name="onboarding_page2_title">Safe and Reliable Environment</string>
+    <string name="onboarding_page2_desc">A trustworthy space just for students and faculty.</string>
+    <string name="onboarding_page3_title">Boost Your Community</string>
+    <string name="onboarding_page3_desc">Support your classmates, discover opportunities, and stay up to date with ads.</string>
+
+    <string name="common_back_button_cd">Back</string>
+    <string name="common_continue">Continue</string>
+
+    <string name="login_title">Welcome Back</string>
+    <string name="login_subtitle">Login to your Swapi account</string>
+    <string name="login_forgot_password">Forgot your password?</string>
+    <string name="login_divider_or">or</string>
+    <string name="login_create_account">Create a new account</string>
+
+    <string name="signup_email_title">What\'s your email?</string>
+    <string name="signup_email_subtitle">We\'ll send a verification code to this email.</string>
+
+    <string name="signup_code_title">Enter Code</string>
+    <string name="signup_code_subtitle">We sent a 6-digit code to %1$s</string>
+    <string name="signup_code_label">Verification Code</string>
+    <string name="signup_code_button">Verify</string>
+
+    <string name="signup_profile_title">Create your Profile</string>
+    <string name="signup_profile_subtitle">You are registering with the email: %1$s</string>
+    <string name="signup_profile_name_label">Full Name</string>
+    <string name="signup_profile_phone_label">Phone Number</string>
+    <string name="signup_profile_confirm_password_label">Confirm Password</string>
+    <string name="signup_profile_button">Sign Up</string>
+
+    <string name="sales_fab_add_cd">Add Sale</string>
+    <string name="sales_loading_text">Loading products...</string>
+    <string name="sales_error_title">Oops... Something went wrong</string>
+    <string name="sales_search_no_results_title">No results</string>
+    <string name="sales_search_no_results_subtitle">Try with different search terms.</string>
+    <string name="sales_header_subtitle">Discover premium products</string>
+    <string name="sales_search_placeholder">Search products...</string>
+    <string name="sales_search_icon_cd">Search</string>
+    <string name="sales_card_details_cd">View details</string>
 
 </resources>

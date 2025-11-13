@@ -1,3 +1,4 @@
+// package com.swapi.swapiV1.onboarding.model
 package com.swapi.swapiV1.onboarding.model
 
 import com.swapi.swapiV1.R
@@ -10,18 +11,21 @@ object OnboardingContent {
     val pages = listOf(
         OnboardingPageModel(
             imageRes = R.drawable.onb_1,
-            title = "¡Tu Campus, Tu Mercado!",
-            description = "Compra, vende, renta o comparte services dentro de tu propia comunidad escolar, todo en un solo lugar"
+            // CAMBIO: Usamos el ID del recurso
+            titleResId = R.string.onboarding_page1_title,
+            descriptionResId = R.string.onboarding_page1_desc
         ),
         OnboardingPageModel(
             imageRes = R.drawable.onb_2,
-            title = "Ambiente seguro y confiable",
-            description = "Un espacio confiable solo para alumnos y docentes"
+            // CAMBIO: Usamos el ID del recurso
+            titleResId = R.string.onboarding_page2_title,
+            descriptionResId = R.string.onboarding_page2_desc
         ),
         OnboardingPageModel(
             imageRes = R.drawable.onb_3,
-            title = "Impulsa a tu comunidad",
-            description = "Apoya a tus compañeros, descubre oportunidades y mantente al día con los ads"
+            // CAMBIO: Usamos el ID del recurso
+            titleResId = R.string.onboarding_page3_title,
+            descriptionResId = R.string.onboarding_page3_desc
         )
     )
 }
