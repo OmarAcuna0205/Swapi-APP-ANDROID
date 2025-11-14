@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Swapi</string>
-
     <string name="anuncios_title">Anuncios</string>
     <string name="home_title">Inicio</string>
     <string name="rentas_title">Rentas</string>
@@ -12,7 +11,6 @@
     <string name="tab_home">Inicio</string>
     <string name="tab_servicios">Servicios</string>
     <string name="tab_anuncios">Anuncios</string>
-
     <string name="login_logo_cd">Logo de la aplicación</string>
     <string name="login_email_label">Correo Electrónico</string>
     <string name="login_password_label">Contraseña</string>
@@ -22,7 +20,6 @@
     <string name="login_face_id_button">Face ID</string>
     <string name="login_face_id_cd">Iniciar sesión con Face ID</string>
     <string name="login_signup_prompt">¿No tienes una cuenta? Regístrate aquí</string>
-
     <string name="onboarding_previous_button">Anterior</string>
     <string name="onboarding_next_button">Siguiente</string>
     <string name="onboarding_start_button">Empezar</string>
@@ -33,31 +30,25 @@
     <string name="onboarding_page2_desc">Un espacio confiable solo para alumnos y docentes.</string>
     <string name="onboarding_page3_title">Impulsa a tu comunidad</string>
     <string name="onboarding_page3_desc">Apoya a tus compañeros, descubre oportunidades y mantente al día con los anuncios.</string>
-
     <string name="common_back_button_cd">Volver</string>
     <string name="common_continue">Continuar</string>
-
     <string name="login_title">Bienvenido de Vuelta</string>
     <string name="login_subtitle">Inicia sesión en tu cuenta de Swapi</string>
     <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="login_divider_or">o</string>
     <string name="login_create_account">Crear una cuenta nueva</string>
-
     <string name="signup_email_title">¿Cuál es tu correo?</string>
     <string name="signup_email_subtitle">Enviaremos un código de verificación a este correo.</string>
-
     <string name="signup_code_title">Ingresa el Código</string>
     <string name="signup_code_subtitle">Enviamos un código de 6 dígitos a %1$s</string>
     <string name="signup_code_label">Código de Verificación</string>
     <string name="signup_code_button">Verificar</string>
-
     <string name="signup_profile_title">Crea tu Perfil</string>
     <string name="signup_profile_subtitle">Te estás registrando con el correo: %1$s</string>
     <string name="signup_profile_name_label">Nombre Completo</string>
     <string name="signup_profile_phone_label">Número de Celular</string>
     <string name="signup_profile_confirm_password_label">Confirmar Contraseña</string>
     <string name="signup_profile_button">Registrarme</string>
-
     <string name="sales_fab_add_cd">Añadir Venta</string>
     <string name="sales_loading_text">Cargando productos...</string>
     <string name="sales_error_title">Oops... Algo salió mal</string>
@@ -67,5 +58,60 @@
     <string name="sales_search_placeholder">Buscar productos...</string>
     <string name="sales_search_icon_cd">Buscar</string>
     <string name="sales_card_details_cd">Ver detalles</string>
+
+    <string name="home_bienvenida">Bienvenido, %1$s</string>
+    <string name="home_ver_mas">Ver más</string>
+    <string name="home_card_avatar_cd">Avatar de %1$s</string>
+    <string name="home_buscar_placeholder">Buscar en Swapi...</string>
+    <string name="home_buscar_limpiar">Limpiar búsqueda</string>
+    <string name="home_buscar_cerrar">Cerrar búsqueda</string>
+    <string name="home_buscar_accion">Buscar</string>
+
+    <string name="detail_titulo">Detalle</string>
+    <string name="detail_guardar">Guardar</string>
+    <string name="detail_descripcion">Descripción</string>
+    <string name="detail_avatar_vendedor_cd">Avatar vendedor</string>
+    <string name="detail_vendedor_verificado">Vendedor verificado</string>
+    <string name="detail_boton_whatsapp">Contactar por WhatsApp</string>
+    <string name="detail_toast_no_numero">El vendedor no especificó un número.</string>
+    <string name="detail_whatsapp_mensaje">Hola, me interesa tu producto \'%1$s\' que vi en Swapi.</string>
+    <string name="detail_toast_no_whatsapp">No se pudo abrir WhatsApp.</string>
+
+    <string name="profile_titulo">Mi Perfil de Swapi</string>
+    <string name="profile_mis_publicaciones">Mis publicaciones</string>
+    <string name="profile_mis_publicaciones_sub">Gestiona todos tus ads</string>
+    <string name="profile_historial">Historial de actividad</string>
+    <string name="profile_historial_sub">Ventas, rents y services pasados</string>
+    <string name="profile_editar">Editar perfil público</string>
+    <string name="profile_seguridad">Seguridad de la cuenta</string>
+    <string name="profile_seguridad_sub">Verifica tu correo institucional</string>
+    <string name="profile_cerrar_sesion">Cerrar Sesión</string>
+    <string name="profile_toast_ir_a">Ir a %1$s</string>
+    <string name="profile_guardados">Guardados</string>
+    <string name="profile_mensajes">Mensajes</string>
+    <string name="profile_calificaciones">Calificaciones</string>
+    <string name="profile_ayuda">Ayuda</string>
+    <string name="profile_seccion_actividad">Mi Actividad</string>
+    <string name="profile_seccion_cuenta">Cuenta y Soporte</string>
+    <string name="profile_foto_cd">Foto de perfil</string>
+    <string name="profile_ver_publico">Ver mi perfil público</string>
+
+    <string name="new_pub_titulo">Crear Publicación</string>
+    <string name="new_pub_titulo_label">Título</string>
+    <string name="new_pub_descripcion_label">Descripción</string>
+    <string name="new_pub_precio_label">Precio</string>
+    <string name="new_pub_categoria_label">Categoría</string>
+    <string name="new_pub_categoria_info">Información</string>
+    <string name="new_pub_imagen_cd">Subir imagen</string>
+    <string name="new_pub_imagen_seleccionada_cd">Imagen seleccionada</string>
+    <string name="new_pub_boton_seleccionar_img">Seleccionar Imagen</string>
+    <string name="new_pub_boton_cambiar_img">Cambiar Imagen</string>
+    <string name="new_pub_boton_publicar">Publicar</string>
+
+    <string name="saved_cargando">Cargando guardados...</string>
+    <string name="saved_error_titulo">Oops... No se cargaron tus guardados</string>
+    <string name="saved_titulo">Guardados</string>
+    <string name="saved_subtitulo">Tus publicaciones guardadas</string>
+    <string name="saved_buscar_placeholder">Buscar en guardados...</string>
 
 </resources>

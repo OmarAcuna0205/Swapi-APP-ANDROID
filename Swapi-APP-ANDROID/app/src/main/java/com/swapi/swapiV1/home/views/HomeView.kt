@@ -1,5 +1,11 @@
 package com.swapi.swapiV1.home.views
 
+// --- CAMBIO: Imports añadidos para la animación y el icono ---
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+// --------------------------------------------------------
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Search // <-- Import añadido
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -21,7 +28,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign // <-- Import añadido
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.swapi.swapiV1.R
 import com.swapi.swapiV1.components.topbar.SwapiTopBar
 import com.swapi.swapiV1.home.model.dto.ListingDto
 import com.swapi.swapiV1.home.model.network.HomeApiImpl
@@ -38,7 +48,7 @@ import com.swapi.swapiV1.home.viewmodel.HomeViewModel
 import com.swapi.swapiV1.home.viewmodel.HomeViewModelFactory
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
-import com.swapi.swapiV1.utils.dismissKeyboardOnClick // ✨ --- ¡IMPORT NUEVO! --- ✨
+import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -47,34 +57,29 @@ fun HomeView(
     navController: NavController,
     dataStore: DataStoreManager
 ) {
-    // Asumo que HomeApiImpl y HomeRepository están correctos
     val factory = HomeViewModelFactory(HomeRepository(HomeApiImpl.retrofitApi))
     val viewModel: HomeViewModel = viewModel(factory = factory)
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    // --- Recolectamos los estados del buscador desde el ViewModel ---
     val showSearchBar by viewModel.showSearchBar.collectAsStateWithLifecycle()
     val searchText by viewModel.searchText.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
-            // --- Conectamos el ViewModel a la TopBar ---
             SwapiTopBar(
                 showSearchBar = showSearchBar,
                 searchText = searchText,
-                onSearchTextChange = viewModel::onSearchTextChange, // Búsqueda "en vivo"
+                onSearchTextChange = viewModel::onSearchTextChange,
                 onToggleSearchBar = viewModel::onToggleSearchBar,
-                onSearchAction = viewModel::onSearchSubmit      // Acción del botón "Enter"
+                onSearchAction = viewModel::onSearchSubmit
             )
-            // ------------------------------------------------
         }
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding) // Aplicamos el padding de la TopBar
-                .dismissKeyboardOnClick(), // ✨ --- ¡MODIFIER APLICADO AQUÍ! --- ✨
+                .padding(innerPadding)
+                .dismissKeyboardOnClick(),
             contentAlignment = Alignment.Center
         ) {
             when (val state = uiState) {
@@ -86,54 +91,93 @@ fun HomeView(
                     modifier = Modifier.padding(16.dp)
                 )
                 is HomeUIState.Success -> {
-
-                    // Leemos el nombre de usuario del DataStore
                     val userName by dataStore.userNameFlow.collectAsState(initial = "...")
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
+                    // --- CAMBIO: Lógica de visibilidad añadida ---
+                    val allListingsEmpty = state.sections.all { it.listings.isEmpty() }
+
+                    // Muestra la lista SÓLO si NO está vacía
+                    AnimatedVisibility(
+                        visible = !allListingsEmpty,
+                        enter = fadeIn(tween(300)),
+                        exit = fadeOut(tween(300))
                     ) {
-
-                        // --- Ocultamos el saludo si se está buscando ---
-                        if (!showSearchBar) {
-                            Text(
-                                text = "Bienvenido, $userName",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-                        // -------------------------------------------------
-
-                        // Resto de la UI (Secciones)
-                        state.sections.forEach { section ->
-                            Column(modifier = Modifier.padding(bottom = 24.dp)) {
-                                SectionHeader(
-                                    title = section.sectionTitle,
-                                    onSeeMoreClicked = {
-                                        when (section.sectionTitle) {
-                                            "Ventas" -> navController.navigate(ScreenNavigation.Sales.route)
-                                            "Rentas" -> navController.navigate(ScreenNavigation.Rents.route)
-                                            "Servicios" -> navController.navigate(ScreenNavigation.Services.route)
-                                            "Anuncios" -> navController.navigate(ScreenNavigation.Ads.route)
-                                        }
-                                    }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            if (!showSearchBar) {
+                                Text(
+                                    text = stringResource(R.string.home_bienvenida, userName),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                LazyRow(
-                                    contentPadding = PaddingValues(horizontal = 16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                ) {
-                                    items(section.listings) { listing ->
-                                        ModernProductCard(listing = listing, navController = navController)
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+
+                            state.sections.forEach { section ->
+                                Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                                    SectionHeader(
+                                        title = section.sectionTitle,
+                                        onSeeMoreClicked = {
+                                            when (section.sectionTitle) {
+                                                "Ventas" -> navController.navigate(ScreenNavigation.Sales.route) // Idealmente, esto usaría una key, no "Ventas"
+                                                "Rentas" -> navController.navigate(ScreenNavigation.Rents.route)
+                                                "Servicios" -> navController.navigate(ScreenNavigation.Services.route)
+                                                "Anuncios" -> navController.navigate(ScreenNavigation.Ads.route)
+                                            }
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    LazyRow(
+                                        contentPadding = PaddingValues(horizontal = 16.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        items(section.listings) { listing ->
+                                            ModernProductCard(listing = listing, navController = navController)
+                                        }
                                     }
                                 }
                             }
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    // Muestra "Sin Resultados" SÓLO si la lista está vacía Y la barra de búsqueda está activa
+                    AnimatedVisibility(
+                        visible = allListingsEmpty && showSearchBar,
+                        enter = fadeIn(tween(300)),
+                        exit = fadeOut(tween(300))
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier
+                                .padding(32.dp)
+                                .align(Alignment.Center) // Centra el mensaje
+                        ) {
+                            Icon(
+                                Icons.Filled.Search,
+                                contentDescription = null,
+                                modifier = Modifier.size(72.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                            Text(
+                                stringResource(id = R.string.sales_search_no_results_title),
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                stringResource(id = R.string.sales_search_no_results_subtitle),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
             }
@@ -141,8 +185,7 @@ fun HomeView(
     }
 }
 
-// --- El resto del archivo no necesita cambios ---
-
+// ... (SectionHeader y ModernProductCard se quedan igual que en tu archivo original)
 @Composable
 fun SectionHeader(title: String, onSeeMoreClicked: () -> Unit) {
     Row(
@@ -158,7 +201,7 @@ fun SectionHeader(title: String, onSeeMoreClicked: () -> Unit) {
             fontWeight = FontWeight.ExtraBold
         )
         TextButton(onClick = onSeeMoreClicked) {
-            Text("Ver más", fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.home_ver_mas), fontWeight = FontWeight.SemiBold)
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -231,7 +274,7 @@ fun ModernProductCard(listing: ListingDto, navController: NavController) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     AsyncImage(
                         model = listing.user.avatarUrl,
-                        contentDescription = "Avatar de ${listing.user.name}",
+                        contentDescription = stringResource(R.string.home_card_avatar_cd, listing.user.name),
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)

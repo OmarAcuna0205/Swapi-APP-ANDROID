@@ -105,7 +105,6 @@ class MainActivity : ComponentActivity() {
                                         dataStore.setLoggedIn(false)
                                         dataStore.setUserName("Usuario") // Resetea el nombre
                                     }
-                                    // Navega al login y BORRA todo el historial
                                     navController.navigate(ScreenNavigation.Login.route) {
                                         popUpTo(0) { inclusive = true }
                                     }

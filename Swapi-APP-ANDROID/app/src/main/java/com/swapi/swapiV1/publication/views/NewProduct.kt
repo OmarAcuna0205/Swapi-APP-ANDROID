@@ -1,4 +1,4 @@
-package com.swapi.swapiV1.publication.views // (Ojo, revisa si este paquete es correcto)
+package com.swapi.swapiV1.publication.views // <-- ¡Asegúrate que la ruta sea correcta!
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -9,21 +9,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState // ✨ --- ¡IMPORT NUEVO! (Para el scroll) --- ✨
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll // ✨ --- ¡IMPORT NUEVO! (Para el scroll) --- ✨
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults // ✨ --- IMPORT NUEVO para ButtonDefaults --- ✨
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -47,11 +43,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.swapi.swapiV1.utils.dismissKeyboardOnClick // ✨ --- ¡IMPORT YA EXISTENTE! --- ✨
+import com.swapi.swapiV1.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +59,6 @@ fun NewPublicationView(navController: NavController) {
     var precio by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
-
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -74,20 +70,24 @@ fun NewPublicationView(navController: NavController) {
         }
     )
 
-    val categorias = listOf("Ventas", "Rentas", "Información", "Servicios")
-
-    val scrollState = rememberScrollState()
-
-    // ✨ Definimos tu color de marca aquí para reusarlo
-    val swapiBrandColor = Color(0xFF4A8BFF)
+    // --- CAMBIO: Strings movidas a resources ---
+    val categorias = listOf(
+        stringResource(R.string.ventas_title),
+        stringResource(R.string.rentas_title),
+        stringResource(R.string.new_pub_categoria_info),
+        stringResource(R.string.servicios_title)
+    )
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Crear Publicación") },
+                title = { Text(stringResource(R.string.new_pub_titulo)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back_button_cd)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -109,28 +109,26 @@ fun NewPublicationView(navController: NavController) {
                     )
                 )
                 .padding(padding)
-                .dismissKeyboardOnClick()
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
-                    .verticalScroll(scrollState),
+                    .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // --- CAMBIOS: Labels con stringResource ---
                 OutlinedTextField(
                     value = titulo,
                     onValueChange = { titulo = it },
-                    label = { Text("Título") },
+                    label = { Text(stringResource(R.string.new_pub_titulo_label)) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
+                    shape = RoundedCornerShape(12.dp)
                 )
 
                 OutlinedTextField(
                     value = descripcion,
                     onValueChange = { descripcion = it },
-                    label = { Text("Descripción") },
+                    label = { Text(stringResource(R.string.new_pub_descripcion_label)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 120.dp),
@@ -142,11 +140,10 @@ fun NewPublicationView(navController: NavController) {
                 OutlinedTextField(
                     value = precio,
                     onValueChange = { precio = it },
-                    label = { Text("Precio") },
+                    label = { Text(stringResource(R.string.new_pub_precio_label)) },
                     prefix = { Text("$") },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
+                    shape = RoundedCornerShape(12.dp)
                 )
 
                 ExposedDropdownMenuBox(
@@ -157,7 +154,7 @@ fun NewPublicationView(navController: NavController) {
                         value = categoria,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Categoría") },
+                        label = { Text(stringResource(R.string.new_pub_categoria_label)) },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                         },
@@ -182,6 +179,7 @@ fun NewPublicationView(navController: NavController) {
                     }
                 }
 
+                // --- CAMBIOS: Lógica de imagen con stringResource ---
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -200,36 +198,32 @@ fun NewPublicationView(navController: NavController) {
                     if (selectedImageUri == null) {
                         Icon(
                             Icons.Default.CameraAlt,
-                            contentDescription = "Subir imagen",
+                            contentDescription = stringResource(R.string.new_pub_imagen_cd),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             modifier = Modifier.size(48.dp)
                         )
                     } else {
                         AsyncImage(
                             model = selectedImageUri,
-                            contentDescription = "Imagen seleccionada",
+                            contentDescription = stringResource(R.string.new_pub_imagen_seleccionada_cd),
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
                     }
                 }
 
-                // 🚀 Botón publicar - ¡AHORA AZUL SWAPI!
                 Button(
                     onClick = { /* acción futura */ },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(55.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors( // ✨ Aplicamos los colores
-                        containerColor = swapiBrandColor, // Tu color azul
-                        contentColor = Color.White        // Texto blanco
-                    )
+                    shape = RoundedCornerShape(14.dp)
                 ) {
-                    Text("Publicar", fontSize = 18.sp)
+                    Text(
+                        stringResource(R.string.new_pub_boton_publicar),
+                        fontSize = 18.sp
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }

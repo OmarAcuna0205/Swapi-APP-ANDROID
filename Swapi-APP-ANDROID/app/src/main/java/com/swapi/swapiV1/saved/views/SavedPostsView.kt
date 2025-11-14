@@ -2,7 +2,7 @@ package com.swapi.swapiV1.saved.views
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image // <-- IMPORT AÑADIDO
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,7 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale // <-- IMPORT AÑADIDO
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource // <-- IMPORT AÑADIDO
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -28,7 +29,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter // <-- IMPORT AÑADIDO
+import coil.compose.rememberAsyncImagePainter
+import com.swapi.swapiV1.R // <-- IMPORT AÑADIDO
 import com.swapi.swapiV1.home.model.network.HomeApiImpl
 import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.viewmodel.HomeUIState
@@ -89,7 +91,8 @@ fun SavedPostsView(navController: NavController) {
                                 color = swapiBrandColor
                             )
                             Text(
-                                "Cargando guardados...",
+                                // --- CAMBIO ---
+                                stringResource(R.string.saved_cargando),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -109,14 +112,16 @@ fun SavedPostsView(navController: NavController) {
                                 tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                             )
                             Text(
-                                "Oops... No se cargaron tus guardados",
+                                // --- CAMBIO ---
+                                stringResource(R.string.saved_error_titulo),
                                 style = MaterialTheme.typography.headlineSmall.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
-                                color = MaterialTheme.colorScheme.error
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
                             )
                             Text(
-                                state.message,
+                                state.message, // Dinámico
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
@@ -147,19 +152,16 @@ fun SavedPostsView(navController: NavController) {
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 items(filteredListings, key = { it.id }) { listing ->
-                                    // --- INICIO DEL CAMBIO ---
-                                    // Llamamos a la tarjeta actualizada y le pasamos la imageUrl
                                     SavedItemCard(
                                         title = listing.title,
                                         price = "$${listing.price} ${listing.currency}",
-                                        imageUrl = listing.imageUrl, // <-- Se la pasamos aquí
+                                        imageUrl = listing.imageUrl,
                                         onClick = {
                                             navController.navigate(
                                                 ScreenNavigation.ProductDetail.createRoute(listing.id)
                                             )
                                         }
                                     )
-                                    // --- FIN DEL CAMBIO ---
                                 }
                             }
                         }
@@ -181,14 +183,16 @@ fun SavedPostsView(navController: NavController) {
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                                 Text(
-                                    "Sin resultados",
+                                    // --- CAMBIO (Reutilizamos la string de Sales) ---
+                                    stringResource(R.string.sales_search_no_results_title),
                                     style = MaterialTheme.typography.headlineSmall.copy(
                                         fontWeight = FontWeight.Bold
                                     ),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    "Intenta con otros términos de búsqueda.",
+                                    // --- CAMBIO (Reutilizamos la string de Sales) ---
+                                    stringResource(R.string.sales_search_no_results_subtitle),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
@@ -211,7 +215,9 @@ private fun SavedTopBar(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp)),
+            .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
+            // --- CAMBIO: Añadido padding para la barra de estado ---
+            .windowInsetsPadding(WindowInsets.statusBars),
         shadowElevation = 10.dp,
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
     ) {
@@ -230,13 +236,15 @@ private fun SavedTopBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, top = 40.dp, bottom = 20.dp),
+                    // --- CAMBIO: Quitado el padding 'top = 40.dp' ---
+                    .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        "Guardados",
+                        // --- CAMBIO ---
+                        stringResource(R.string.saved_titulo),
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.SemiBold,
                             letterSpacing = 0.5.sp
@@ -244,7 +252,8 @@ private fun SavedTopBar(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        "Tus publicaciones guardadas",
+                        // --- CAMBIO ---
+                        stringResource(R.string.saved_subtitulo),
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -265,7 +274,8 @@ private fun SavedTopBar(
                     .padding(horizontal = 24.dp, vertical = 12.dp),
                 placeholder = {
                     Text(
-                        "Buscar en guardados...",
+                        // --- CAMBIO ---
+                        stringResource(R.string.saved_buscar_placeholder),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
@@ -273,7 +283,8 @@ private fun SavedTopBar(
                 leadingIcon = {
                     Icon(
                         Icons.Default.Search,
-                        contentDescription = "Buscar",
+                        // --- CAMBIO (Reutilizamos la string de Sales) ---
+                        contentDescription = stringResource(R.string.sales_search_icon_cd),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier.size(20.dp)
                     )
@@ -295,16 +306,11 @@ private fun SavedTopBar(
     }
 }
 
-
-/**
- * --- ¡AQUÍ ESTÁ EL CAMBIO! ---
- * Esta es la tarjeta actualizada que ahora carga la imagen desde una URL.
- */
 @Composable
 private fun SavedItemCard(
     title: String,
     price: String,
-    imageUrl: String, // <-- Aceptamos la URL
+    imageUrl: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -314,15 +320,14 @@ private fun SavedItemCard(
         shape = RoundedCornerShape(16.dp)
     ) {
         Column {
-            // Reemplazamos el Box/Icon con un Image Composable de Coil
             Image(
-                painter = rememberAsyncImagePainter(model = imageUrl), // Carga la imagen
-                contentDescription = title, // Descripción para accesibilidad
+                painter = rememberAsyncImagePainter(model = imageUrl),
+                contentDescription = title, // Dinámico, está bien
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant), // Fondo mientras carga
-                contentScale = ContentScale.Crop // Para que la imagen llene el espacio
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentScale = ContentScale.Crop
             )
 
             Column(
@@ -330,13 +335,13 @@ private fun SavedItemCard(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = title,
+                    text = title, // Dinámico
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2
                 )
                 Text(
-                    text = price,
+                    text = price, // Dinámico
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold

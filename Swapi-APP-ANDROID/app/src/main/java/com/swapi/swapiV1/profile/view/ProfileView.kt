@@ -24,18 +24,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-// --- CAMBIO AQUÍ: Import añadido ---
+import com.swapi.swapiV1.R
 import com.swapi.swapiV1.navigation.ScreenNavigation
-// --- FIN DEL CAMBIO ---
 import com.swapi.swapiV1.profile.viewmodel.ProfileUiState
 import com.swapi.swapiV1.profile.viewmodel.ProfileViewModel
 
-// Estructura de datos para simplificar la creación de menús
+// (Esta data class estaba en tu archivo original, la dejamos)
 data class MenuItem(
     val icon: ImageVector,
     val title: String,
@@ -53,25 +53,50 @@ fun ProfileView(
     val uiState by vm.uiState.collectAsState()
     val context = LocalContext.current
 
-    // Definimos las nuevas secciones relevantes para Swapi
     val activityItems = listOf(
-        MenuItem(Icons.Default.ListAlt, "Mis publicaciones", "Gestiona todos tus ads", "my_posts"),
-        MenuItem(Icons.Default.History, "Historial de actividad", "Ventas, rents y services pasados", "history")
+        MenuItem(
+            Icons.Default.ListAlt,
+            stringResource(R.string.profile_mis_publicaciones),
+            stringResource(R.string.profile_mis_publicaciones_sub),
+            "my_posts"
+        ),
+        MenuItem(
+            Icons.Default.History,
+            stringResource(R.string.profile_historial),
+            stringResource(R.string.profile_historial_sub),
+            "history"
+        )
     )
 
     val accountItems = listOf(
-        MenuItem(Icons.Default.Edit, "Editar perfil público", route = "edit_profile"),
-        MenuItem(Icons.Default.Shield, "Seguridad de la cuenta", "Verifica tu correo institucional", "account_security"),
-        MenuItem(Icons.AutoMirrored.Filled.Logout, "Cerrar Sesión", route = "logout")
+        MenuItem(
+            Icons.Default.Edit,
+            stringResource(R.string.profile_editar),
+            route = "edit_profile"
+        ),
+        MenuItem(
+            Icons.Default.Shield,
+            stringResource(R.string.profile_seguridad),
+            stringResource(R.string.profile_seguridad_sub),
+            "account_security"
+        ),
+        MenuItem(
+            Icons.AutoMirrored.Filled.Logout,
+            stringResource(R.string.profile_cerrar_sesion),
+            route = "logout"
+        )
     )
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mi Perfil de Swapi") },
+                title = { Text(stringResource(R.string.profile_titulo)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back_button_cd)
+                        )
                     }
                 }
             )
@@ -88,28 +113,28 @@ fun ProfileView(
                     .padding(paddingValues)
             ) {
                 item { ProfileHeader(uiState) }
-                item { ActionsGrid(navController) } // Pasamos el navController
+                item { ActionsGrid(navController) } // <-- Error arreglado
 
-                // Sección "Mi Actividad"
-                item { SectionHeader("Mi Actividad") }
+                item { SectionHeader(stringResource(R.string.profile_seccion_actividad)) } // <-- Error arreglado
                 items(activityItems.size) { index ->
                     val item = activityItems[index]
-                    ProfileListItem(icon = item.icon, title = item.title, subtitle = item.subtitle) {
-                        Toast.makeText(context, "Ir a ${item.title}", Toast.LENGTH_SHORT).show()
+                    val msgIrA = stringResource(R.string.profile_toast_ir_a, item.title)
+                    ProfileListItem(icon = item.icon, title = item.title, subtitle = item.subtitle) { // <-- Error arreglado
+                        Toast.makeText(context, msgIrA, Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 item { Divider(Modifier.padding(horizontal = 16.dp)) }
 
-                // Sección "Cuenta"
-                item { SectionHeader("Cuenta y Soporte") }
+                item { SectionHeader(stringResource(R.string.profile_seccion_cuenta)) } // <-- Error arreglado
                 items(accountItems.size) { index ->
                     val item = accountItems[index]
-                    ProfileListItem(icon = item.icon, title = item.title, subtitle = item.subtitle) {
+                    val msgIrA = stringResource(R.string.profile_toast_ir_a, item.title)
+                    ProfileListItem(icon = item.icon, title = item.title, subtitle = item.subtitle) { // <-- Error arreglado
                         if (item.route == "logout") {
                             onLogout()
                         } else {
-                            Toast.makeText(context, "Ir a ${item.title}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, msgIrA, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -118,42 +143,42 @@ fun ProfileView(
     }
 }
 
+// --- ¡AQUÍ ESTÁN LOS AYUDANTES QUE FALTABAN! ---
+
 @Composable
 private fun ActionsGrid(navController: NavHostController) {
     val context = LocalContext.current
-    // Nuevas acciones principales para Swapi
+
     val actions = listOf(
-        "Guardados" to Icons.Default.BookmarkBorder,
-        "Mensajes" to Icons.Default.ChatBubbleOutline,
-        "Calificaciones" to Icons.Default.StarBorder,
-        "Ayuda" to Icons.Default.HelpOutline
+        stringResource(R.string.profile_guardados) to Icons.Default.BookmarkBorder,
+        stringResource(R.string.profile_mensajes) to Icons.Default.ChatBubbleOutline,
+        stringResource(R.string.profile_calificaciones) to Icons.Default.StarBorder,
+        stringResource(R.string.profile_ayuda) to Icons.Default.HelpOutline
     )
+    val msgIrA1 = stringResource(R.string.profile_toast_ir_a, actions[1].first)
+    val msgIrA2 = stringResource(R.string.profile_toast_ir_a, actions[2].first)
+    val msgIrA3 = stringResource(R.string.profile_toast_ir_a, actions[3].first)
 
     Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            ActionCard(title = actions[0].first, icon = actions[0].second, modifier = Modifier.weight(1f)) {
-                // --- CAMBIO AQUÍ: Se reemplazó el Toast por la navegación ---
+            ActionCard(title = actions[0].first, icon = actions[0].second, modifier = Modifier.weight(1f)) { // <-- Error arreglado
                 navController.navigate(ScreenNavigation.SavedPosts.route)
-                // --- FIN DEL CAMBIO ---
             }
-            ActionCard(title = actions[1].first, icon = actions[1].second, modifier = Modifier.weight(1f)) {
-                Toast.makeText(context, "Ir a ${actions[1].first}", Toast.LENGTH_SHORT).show()
+            ActionCard(title = actions[1].first, icon = actions[1].second, modifier = Modifier.weight(1f)) { // <-- Error arreglado
+                Toast.makeText(context, msgIrA1, Toast.LENGTH_SHORT).show()
             }
         }
         Spacer(Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            ActionCard(title = actions[2].first, icon = actions[2].second, modifier = Modifier.weight(1f)) {
-                Toast.makeText(context, "Ir a ${actions[2].first}", Toast.LENGTH_SHORT).show()
+            ActionCard(title = actions[2].first, icon = actions[2].second, modifier = Modifier.weight(1f)) { // <-- Error arreglado
+                Toast.makeText(context, msgIrA2, Toast.LENGTH_SHORT).show()
             }
-            ActionCard(title = actions[3].first, icon = actions[3].second, modifier = Modifier.weight(1f)) {
-                Toast.makeText(context, "Ir a ${actions[3].first}", Toast.LENGTH_SHORT).show()
+            ActionCard(title = actions[3].first, icon = actions[3].second, modifier = Modifier.weight(1f)) { // <-- Error arreglado
+                Toast.makeText(context, msgIrA3, Toast.LENGTH_SHORT).show()
             }
         }
     }
 }
-
-// El resto de componentes reutilizables (ProfileHeader, ActionCard, SectionHeader, ProfileListItem)
-// se quedan exactamente igual.
 
 @Composable
 private fun ProfileHeader(state: ProfileUiState) {
@@ -170,16 +195,16 @@ private fun ProfileHeader(state: ProfileUiState) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.AccountCircle, // Icono de perfil
-                contentDescription = "Foto de perfil",
-                modifier = Modifier.size(64.dp), // Tamaño del icono dentro del círculo
-                tint = MaterialTheme.colorScheme.onSurfaceVariant // Color del icono
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = stringResource(R.string.profile_foto_cd),
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Spacer(Modifier.height(8.dp))
         Text(state.userName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         TextButton(onClick = { /* TODO: Navegar al perfil público */ }) {
-            Text("Ver mi perfil público")
+            Text(stringResource(R.string.profile_ver_publico))
         }
     }
 }

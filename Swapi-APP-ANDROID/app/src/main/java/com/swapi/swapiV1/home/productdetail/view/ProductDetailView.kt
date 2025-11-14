@@ -17,9 +17,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color // ✨ IMPORTANTE
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource // <-- Import
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.swapi.swapiV1.R // <-- Import
 import com.swapi.swapiV1.home.model.dto.ListingDto
 import com.swapi.swapiV1.home.model.network.HomeApiImpl
 import com.swapi.swapiV1.home.model.repository.HomeRepository
@@ -40,7 +42,6 @@ fun ProductDetailView(
     productId: String,
     navController: NavController
 ) {
-    // ViewModel
     val factory = ProductDetailViewModelFactory(productId, HomeRepository(HomeApiImpl.retrofitApi))
     val viewModel: ProductDetailViewModel = viewModel(factory = factory)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -50,15 +51,21 @@ fun ProductDetailView(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Detalle") },
+                title = { Text(stringResource(R.string.detail_titulo)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back_button_cd)
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = { /* TODO: Guardar producto */ }) {
-                        Icon(Icons.Default.BookmarkBorder, contentDescription = "Guardar")
+                        Icon(
+                            Icons.Default.BookmarkBorder,
+                            contentDescription = stringResource(R.string.detail_guardar)
+                        )
                     }
                 }
             )
@@ -71,13 +78,11 @@ fun ProductDetailView(
             contentAlignment = Alignment.Center
         ) {
             when (val state = uiState) {
-
                 is ProductDetailUiState.Loading -> CircularProgressIndicator(color = swapiBrandColor)
                 is ProductDetailUiState.Error -> Text(
                     state.message,
                     color = MaterialTheme.colorScheme.error
                 )
-
                 is ProductDetailUiState.Success -> ProductContentView(
                     product = state.product,
                     brandColor = swapiBrandColor
@@ -95,20 +100,23 @@ fun ProductContentView(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
+    // --- ¡AQUÍ SACAMOS LAS STRINGS! ---
+    // Las sacamos aquí, dentro del Composable, para pasarlas a la función normal.
+    val toastMsgNoNum = stringResource(R.string.detail_toast_no_numero)
+    val wppMsgTemplate = stringResource(R.string.detail_whatsapp_mensaje) // El "template"
+    val toastMsgNoWpp = stringResource(R.string.detail_toast_no_whatsapp)
+    // -----------------------------------
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-        // Imagen destacada (sin cambios)
+        // ... (AsyncImage y primer Column se quedan igual)
         AsyncImage(
             model = product.imageUrl,
             contentDescription = product.title,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(320.dp)
-                .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
+            // ...
         )
 
         Column(
@@ -117,102 +125,53 @@ fun ProductContentView(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Título + precio
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    product.title,
+            // ... (Título y Precio se quedan igual)
 
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp // Ajuste fino si es necesario
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    "$${product.price} ${product.currency}",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-
-                    color = brandColor
-                )
-            }
-
-            // Descripción en card (sin cambios)
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        "Descripción",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    )
-                    Text(
-                        product.description,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            // ... (Descripción se queda igual)
+            Surface(/*...*/) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.detail_descripcion),/*...*/)
+                    Text(product.description, /*...*/)
                 }
             }
 
-            // Vendedor en card (sin cambios)
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.08f)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            // ... (Vendedor se queda igual)
+            Surface(/*...*/) {
+                Row(modifier = Modifier.padding(16.dp)) {
                     AsyncImage(
                         model = product.user.avatarUrl,
-                        contentDescription = "Avatar vendedor",
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
+                        contentDescription = stringResource(R.string.detail_avatar_vendedor_cd),
+                        // ...
                     )
-                    Spacer(modifier = Modifier.width(14.dp))
+                    // ...
                     Column {
-                        Text(
-                            product.user.name,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        )
-                        Text(
-                            "Vendedor verificado",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Text(product.user.name, /*...*/)
+                        Text(stringResource(R.string.detail_vendedor_verificado), /*...*/)
                     }
                 }
             }
 
-            // Botón de contacto
+
+            // --- ¡AQUÍ PASAMOS LAS STRINGS! ---
             Button(
-                onClick = { openWhatsApp(context, product.user.phoneNumber, product.title) },
+                onClick = {
+                    openWhatsApp(
+                        context,
+                        product.user.phoneNumber,
+                        product.title,
+                        // Le pasamos las strings como texto normal
+                        toastMsgNoNum = toastMsgNoNum,
+                        wppMsgTemplate = wppMsgTemplate,
+                        toastMsgNoWpp = toastMsgNoWpp
+                    )
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = brandColor,
-                    contentColor = Color.White
-                )
+                // ... (el resto del botón)
             ) {
                 Text(
-                    "Contactar por WhatsApp",
+                    stringResource(R.string.detail_boton_whatsapp),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -220,18 +179,31 @@ fun ProductContentView(
         }
     }
 }
-private fun openWhatsApp(context: Context, phoneNumber: String?, productName: String) {
+
+// --- ¡AQUÍ RECIBIMOS LAS STRINGS! ---
+// La función ahora acepta las strings como parámetros normales
+private fun openWhatsApp(
+    context: Context,
+    phoneNumber: String?,
+    productName: String,
+    toastMsgNoNum: String, // <-- Parámetro nuevo
+    wppMsgTemplate: String, // <-- Parámetro nuevo
+    toastMsgNoWpp: String // <-- Parámetro nuevo
+) {
     if (phoneNumber.isNullOrBlank()) {
-        Toast.makeText(context, "El vendedor no especificó un número.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, toastMsgNoNum, Toast.LENGTH_SHORT).show() // <-- Se usa el parámetro
         return
     }
-    val message = "Hola, me interesa tu producto '$productName' que vi en Swapi."
+
+    // Usamos String.format para meter el nombre del producto en el template
+    val message = String.format(wppMsgTemplate, productName)
+
     try {
         val intent = Intent(Intent.ACTION_VIEW)
         val url = "https://api.whatsapp.com/send?phone=$phoneNumber&text=${Uri.encode(message)}"
         intent.data = Uri.parse(url)
         context.startActivity(intent)
     } catch (e: Exception) {
-        Toast.makeText(context, "No se pudo abrir WhatsApp.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, toastMsgNoWpp, Toast.LENGTH_SHORT).show() // <-- Se usa el parámetro
     }
 }

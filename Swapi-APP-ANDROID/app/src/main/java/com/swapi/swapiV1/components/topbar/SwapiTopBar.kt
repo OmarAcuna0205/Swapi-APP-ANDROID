@@ -19,25 +19,23 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource // <-- IMPORT AÑADIDO
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.swapi.swapiV1.R // <-- IMPORT AÑADIDO
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SwapiTopBar(
-    // --- CAMBIO: Acepta todos los estados y eventos como parámetros ---
     showSearchBar: Boolean,
     searchText: String,
     onSearchTextChange: (String) -> Unit,
     onToggleSearchBar: () -> Unit,
-    onSearchAction: () -> Unit // <-- Para el botón "Enter" del teclado
-    // --------------------------------------------------------
+    onSearchAction: () -> Unit
 ) {
-    // Ya no tiene estado interno (var showSearchBar by remember...)
-
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val SwapiBlue = Color(0xFF448AFF)
@@ -49,20 +47,20 @@ fun SwapiTopBar(
                     focusRequester.requestFocus()
                 }
                 BasicTextField(
-                    value = searchText, // <-- Usa el parámetro
-                    onValueChange = onSearchTextChange, // <-- Llama a la función del VM
+                    value = searchText,
+                    onValueChange = onSearchTextChange,
                     modifier = Modifier
                         .fillMaxWidth(0.9f)
                         .focusRequester(focusRequester),
                     singleLine = true,
                     textStyle = TextStyle(
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 10.sp
+                        fontSize = 16.sp // <-- Lo subí de 10sp, se veía muy pequeño
                     ),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = {
-                        onSearchAction() // <-- Llama a la función del VM
+                        onSearchAction()
                         keyboardController?.hide()
                     }),
                     decorationBox = { innerTextField ->
@@ -78,7 +76,8 @@ fun SwapiTopBar(
                             Box(modifier = Modifier.weight(1f)) {
                                 if (searchText.isEmpty()) {
                                     Text(
-                                        text = "Buscar en Swapi...",
+                                        // --- CAMBIO ---
+                                        text = stringResource(R.string.home_buscar_placeholder),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -86,12 +85,13 @@ fun SwapiTopBar(
                             }
                             if (searchText.isNotEmpty()) {
                                 IconButton(
-                                    onClick = { onSearchTextChange("") }, // Limpia el texto
+                                    onClick = { onSearchTextChange("") },
                                     modifier = Modifier.size(24.dp)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Close,
-                                        contentDescription = "Limpiar búsqueda"
+                                        // --- CAMBIO ---
+                                        contentDescription = stringResource(R.string.home_buscar_limpiar)
                                     )
                                 }
                             }
@@ -100,7 +100,8 @@ fun SwapiTopBar(
                 )
             } else {
                 Text(
-                    text = "Swapi",
+                    // --- CAMBIO ---
+                    text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = SwapiBlue
@@ -109,15 +110,23 @@ fun SwapiTopBar(
         },
         navigationIcon = {
             if (showSearchBar) {
-                IconButton(onClick = onToggleSearchBar) { // <-- Llama a la función del VM
-                    Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Cerrar búsqueda")
+                IconButton(onClick = onToggleSearchBar) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        // --- CAMBIO ---
+                        contentDescription = stringResource(R.string.home_buscar_cerrar)
+                    )
                 }
             }
         },
         actions = {
             if (!showSearchBar) {
-                IconButton(onClick = onToggleSearchBar) { // <-- Llama a la función del VM
-                    Icon(imageVector = Icons.Default.Search, contentDescription = "Buscar")
+                IconButton(onClick = onToggleSearchBar) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        // --- CAMBIO ---
+                        contentDescription = stringResource(R.string.home_buscar_accion)
+                    )
                 }
             }
         },
