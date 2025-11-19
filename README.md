@@ -1,101 +1,88 @@
-# **Swapi**
+# Swapi
 
-**A private digital marketplace for university communities.**
+A private digital marketplace for university communities.
 
-Swapi is a digital platform designed for university communities to buy, sell, rent, and offer services in a secure and private environment. The initial deployment is planned for **La Salle University in Chihuahua, Mexico**, but the system is built with scalability in mind.
+Swapi is a digital platform designed for university students and faculty to buy, sell, rent, offer services, and share university-related announcements in a secure and private environment.  
+The first deployment is focused on La Salle University in Chihuahua, Mexico, with future scalability to other institutions.
 
----
+## 1. Project Description
 
-## **About the Project**
+Swapi functions as a private online marketplace exclusively for members of the university community.  
+The main goal is to provide a safe and reliable digital space where users can interact using their institutional email accounts, ensuring that every participant belongs to the same academic environment.
 
-Swapi functions as a **private marketplace** exclusive to students and faculty members. Its goal is to create a trusted community where users can interact through verified university accounts.
+The system currently includes:
+- A backend implemented with Node.js and Express.js following REST API principles.
+- A MongoDB database managed through Mongoose for flexible and scalable data storage.
+- A web frontend developed in React connected to the same backend.
+- An Android app created with Kotlin and Jetpack Compose that also consumes the same API.
 
-Users will be able to:
+## 2. Objective and Current Scope
 
-* Post listings for products, rentals, and services.  
-* Search and filter through categories.  
-* Manage their own listings and profiles.
+The current objective of Swapi is to establish the first fully functional version of a university-exclusive marketplace.  
+This version includes secure authentication, email verification, and full management of user-generated announcements.
 
-The project includes both a **mobile application (Android)** and a **web platform**, which share a single backend and database.
+Scope of the current implementation:
+- Backend implemented with REST API endpoints for authentication, users, categories, and posts.
+- Secure authentication using JWT.
+- Email verification system using Nodemailer.
+- CRUD operations for user announcements.
+- Web platform in React connected to the API.
+- Mobile version in Android using the same backend.
+- Database designed with a document-oriented structure in MongoDB.
 
----
+## 3. Implemented Functionalities
 
-## **Architecture**
+### User Features
+- Registration and account verification via institutional email.
+- Login with JWT-based authentication.
+- Creation, editing, and deletion of announcements.
+- Viewing and searching through all announcements.
+- Filtering by category (Sales, Rentals, Services, Information, University Announcements).
+- Profile management.
 
-Swapi follows a **client-server architecture** divided into three main components. Both clients (web and mobile) communicate with the same backend API via **GraphQL**.
+### Admin Features
+- Viewing all registered users.
+- Deleting or disabling user accounts.
+- Reviewing and moderating user announcements.
+- Accessing basic analytics about users and posts.
 
-swapi-project/  
-├─ backend/       → Node.js \+ Apollo Server (GraphQL) \+ MongoDB  
-├─ web-frontend/  → React (in development)  
-└─ mobile-app/    → Android (Jetpack Compose \+ MVVM, separate repo)
+## 4. Architecture
 
----
+Swapi follows a client-server architecture divided into three main layers:
 
-## **Tech Stack**
+swapi-project/
+├─ backend/       → Node.js + Express.js (REST API) + MongoDB (Mongoose)
+├─ web-frontend/  → React.js (connected to API)
+└─ mobile-app/    → Android (Kotlin + Jetpack Compose + MVVM)
 
-The development environment consists of:
+All clients communicate through the same REST API, ensuring consistency between platforms.
 
-### **Backend**
+## 5. Git Workflow
 
-* Node.js (v18+)  
-* Apollo Server (GraphQL)  
-* MongoDB (via Mongoose)  
-* JWT Authentication  
-* Express.js  
-* Docker (optional for local MongoDB setup)
+The team follows a feature-branch Git workflow:
 
-### **Frontend (Web)**
+1. The main branch (main) contains the stable production code.
+2. Development is done in feature branches named with the following pattern:
+   - feat/feature-name
+3. Pull requests are reviewed before merging into main.
+4. Commit messages follow a descriptive and consistent format.
 
-* React.js or Next.js (TBD)  
-* Apollo Client for GraphQL  
-* Deployment on Netlify or Vercel
+## 6. Team Roles
 
-### **Frontend (Mobile)**
+| Member | Role | Responsibilities              |
+|--------|------|-------------------------------|
+| Ian |  | Full Stack & Mobile Developer |
+| Omar |  | Full Stack & Mobile Developer |
 
-* Android Studio  
-* Kotlin \+ Jetpack Compose  
-* MVVM Architecture  
-* Consumes the same GraphQL API
+## 7. Current Progress Screenshots
 
----
+### Mobile App – Login Screen
+![Login Screen](./screenshots/login-mobile.png)
+![Home Screen](./screenshots/home-mobile.png)
+![Vents Screen](./screenshots/vents-mobile.png)
 
-## **Getting Started (Backend)**
+## 8. License
 
-Follow these steps to get the backend development environment running:
-
-1. Navigate to the backend directory:  
-   Bash  
-   cd backend
-
-2. Install dependencies:  
-   Bash  
-   npm install
-
-3. Create a .env file based on .env.example and fill in your credentials:  
-   Fragmento de código  
-   MONGODB\_URI=your\_mongo\_uri\_here  
-   JWT\_SECRET=your\_secret\_key
-
-4. Start the development server:  
-   Bash  
-   npm run dev
-
-5. You can access the GraphQL playground at:  
-   http://localhost:4000/graphql
-
----
-
-## **Future Goals**
-
-* Implement user-to-user messaging.  
-* Add file/image uploading for product listings.  
-* Expand to more universities.  
-* Integrate GraphQL subscriptions for real-time updates.  
-* Deploy the backend to Render and the web frontend to Netlify.
-
----
-
-## **License**
-
-This project is being developed for educational purposes as part of a university software engineering course.  
-All rights reserved to the Swapi development team.
+This project was developed as part of the Mobile programming I course at Universidad La Salle Chihuahua.  
+All rights reserved to the Swapi Development Team.  
+For academic and educational use only.
