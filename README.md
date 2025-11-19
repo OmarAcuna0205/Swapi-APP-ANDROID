@@ -69,10 +69,10 @@ The team follows a feature-branch Git workflow:
 
 ## 6. Team Roles
 
-| Member | Role | Responsibilities              |
-|--------|------|-------------------------------|
-| Ian |  | Full Stack & Mobile Developer |
-| Omar |  | Full Stack & Mobile Developer |
+| Member | Role |
+|--------|------|
+| Ian | Full Stack & Mobile Developer | 
+| Omar | Full Stack & Mobile Developer |
 
 ## 7. Current Progress Screenshots
 
