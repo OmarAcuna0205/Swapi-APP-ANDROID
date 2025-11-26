@@ -13,9 +13,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SwapiApp"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
-        <!-- SplashActivity en el paquete utils como punto de entrada -->
         <activity
             android:name=".utils.SplashActivity"
             android:exported="true"
@@ -26,7 +26,6 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity (ya sin launcher) -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

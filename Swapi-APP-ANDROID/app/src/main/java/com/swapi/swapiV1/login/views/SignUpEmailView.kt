@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -11,25 +12,30 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource // <-- IMPORT AÑADIDO
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.swapi.swapiV1.R // <-- IMPORT AÑADIDO
+import com.swapi.swapiV1.R
+import com.swapi.swapiV1.login.viewmodel.LoginViewModel
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpEmailView(
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    viewModel: LoginViewModel // Inyectamos el ViewModel
 ) {
     var email by remember { mutableStateOf("") }
     val swapiBrandColor = Color(0xFF4A8BFF)
+
+    // Escuchar eventos de navegación (opcional si la navegación es directa aquí)
+    // En este caso, como solo guardamos dato local, navegamos directo.
 
     Box(
         modifier = Modifier
@@ -46,13 +52,11 @@ fun SignUpEmailView(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Text(
-                // CAMBIO:
                 text = stringResource(id = R.string.signup_email_title),
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center
             )
             Text(
-                // CAMBIO:
                 text = stringResource(id = R.string.signup_email_subtitle),
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
@@ -64,10 +68,13 @@ fun SignUpEmailView(
 
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
-                // CAMBIO: (Reutilizamos el de Login)
+                onValueChange = {
+                    email = it
+                    viewModel.onRegisterEmailChange(it) // Guardamos en ViewModel
+                },
                 label = { Text(stringResource(id = R.string.login_email_label)) },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -83,7 +90,10 @@ fun SignUpEmailView(
 
             Button(
                 onClick = {
-                    navHostController.navigate(ScreenNavigation.SignUpCode.createRoute(email.ifBlank { "demo" }))
+                    if (email.isNotBlank()) {
+                        // Navegamos a la siguiente pantalla pasando el email en la ruta (opcional, ya está en VM)
+                        navHostController.navigate(ScreenNavigation.SignUpProfile.createRoute(email))
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -92,7 +102,6 @@ fun SignUpEmailView(
                 colors = ButtonDefaults.buttonColors(containerColor = swapiBrandColor)
             ) {
                 Text(
-                    // CAMBIO: (String común)
                     stringResource(id = R.string.common_continue),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 17.sp),
                     color = Color.White
@@ -100,7 +109,6 @@ fun SignUpEmailView(
             }
         }
 
-        // Botón de Volver
         IconButton(
             onClick = { navHostController.popBackStack() },
             modifier = Modifier
@@ -109,7 +117,6 @@ fun SignUpEmailView(
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowBack,
-                // CAMBIO: (String común)
                 contentDescription = stringResource(id = R.string.common_back_button_cd),
                 tint = MaterialTheme.colorScheme.onBackground
             )

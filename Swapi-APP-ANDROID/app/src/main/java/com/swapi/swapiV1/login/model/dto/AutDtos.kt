@@ -26,7 +26,36 @@ data class LoginResponse(
  * Modela la estructura de los datos del usuario.
  */
 data class User(
-    val id: String,
-    val name: String,
-    val email: String
+    val _id: String,           // Mongo usa _id, no id
+    val firstName: String,     // Coincide con backend
+    val paternalSurname: String, // Coincide con backend
+    val email: String,
+    val role: String? = "student"
+)
+
+// En login/model/dto/AutDtos.kt
+
+// 1. Lo que enviamos para registrarnos
+data class RegisterRequest(
+    val email: String,
+    val firstName: String,
+    val paternalSurname: String,
+    val maternalSurname: String,
+    val password: String,
+    val age: Int,
+    val gender: String,
+    val phone: String
+)
+
+// 2. La respuesta del registro (backend devuelve user y message)
+data class RegisterResponse(
+    val success: Boolean?, // Lo agregamos opcional por si el backend no lo manda aun
+    val message: String,
+    val user: User?
+)
+
+// 3. Lo que enviamos para verificar el código
+data class VerifyRequest(
+    val email: String,
+    val code: String
 )

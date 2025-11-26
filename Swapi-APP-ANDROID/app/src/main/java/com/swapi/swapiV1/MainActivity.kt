@@ -10,9 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavType // <-- Asegúrate de tener este
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
-import androidx.navigation.navArgument // <-- Y este
+import androidx.navigation.navArgument
+import com.swapi.swapiV1.login.model.network.AuthApiImpl
+import com.swapi.swapiV1.login.model.repository.AuthRepository
+import com.swapi.swapiV1.login.viewmodel.LoginViewModel
+import com.swapi.swapiV1.login.viewmodel.LoginViewModelFactory
 import com.swapi.swapiV1.login.views.LoginView
 import com.swapi.swapiV1.login.views.SignUpCodeView
 import com.swapi.swapiV1.login.views.SignUpEmailView
@@ -30,72 +35,86 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // El DataStore se crea una vez aquí y se comparte
         val dataStore = DataStoreManager(this)
 
         setContent {
             SwapiTheme {
                 val navController = rememberNavController()
                 val scope = rememberCoroutineScope()
-                val onboardingViewModel: OnboardingViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
-                // Leemos AMBOS flujos
+                // ViewModels
+                val onboardingViewModel: OnboardingViewModel = viewModel()
+
+                // --- INYECCIÓN DEL LOGIN VIEWMODEL ---
+                // Creamos el repositorio y la factory aquí para inyectarlo
+                val authRepository = AuthRepository(AuthApiImpl.service)
+                val loginViewModel: LoginViewModel = viewModel(
+                    factory = LoginViewModelFactory(authRepository)
+                )
+
+                // DataStore States
                 val onboardingDone: Boolean? by dataStore.onboardingDoneFlow.collectAsState(initial = null)
                 val isLoggedIn: Boolean? by dataStore.isLoggedInFlow.collectAsState(initial = null)
 
                 if (onboardingDone == null || isLoggedIn == null) {
                     SplashLoader()
-                }
-
-                else if (onboardingDone == false) {
+                } else if (onboardingDone == false) {
                     OnboardingView(
                         viewModel = onboardingViewModel,
                         onFinish = { scope.launch { dataStore.setOnboardingDone(true) } }
                     )
-                }
-
-                else {
-
+                } else {
                     val startDestination = if (isLoggedIn == true) "tabbar" else ScreenNavigation.Login.route
 
                     NavHost(
                         navController = navController,
-                        startDestination = startDestination // Asignación segura
+                        startDestination = startDestination
                     ) {
-
                         // --- RUTA 1: LOGIN ---
                         composable(ScreenNavigation.Login.route) {
+                            // LoginView también debería usar el viewModel eventualmente para compartir lógica,
+                            // pero por ahora lo dejamos como lo tienes si funciona.
+                            // Idealmente: LoginView(navController, loginViewModel)
                             LoginView(navController, dataStore)
                         }
 
-                        // --- INICIO DEL FLUJO DE REGISTRO ---
+                        // --- RUTAS DE REGISTRO (Aquí usamos el Shared ViewModel) ---
 
-                        // RUTA 2: REGISTRO (Paso 1: Email)
+                        // Paso 1: Email
                         composable(ScreenNavigation.SignUpEmail.route) {
-                            SignUpEmailView(navHostController = navController)
+                            SignUpEmailView(
+                                navHostController = navController,
+                                viewModel = loginViewModel // <--- Pasamos el VM compartido
+                            )
                         }
 
-                        // RUTA 3: REGISTRO (Paso 2: Código)
+                        // Paso 2: Código
                         composable(
                             route = ScreenNavigation.SignUpCode.route,
                             arguments = listOf(navArgument("email") { type = NavType.StringType })
                         ) { backStackEntry ->
-                            val email = backStackEntry.arguments?.getString("email") ?: "error@swapi.com"
-                            SignUpCodeView(navHostController = navController, email = email)
+                            val email = backStackEntry.arguments?.getString("email") ?: ""
+                            SignUpCodeView(
+                                navHostController = navController,
+                                viewModel = loginViewModel, // <--- Pasamos el VM compartido
+                                email = email
+                            )
                         }
 
-                        // RUTA 4: REGISTRO (Paso 3: Perfil)
+                        // Paso 3: Perfil
                         composable(
                             route = ScreenNavigation.SignUpProfile.route,
                             arguments = listOf(navArgument("email") { type = NavType.StringType })
                         ) { backStackEntry ->
-                            val email = backStackEntry.arguments?.getString("email") ?: "error@swapi.com"
-                            SignUpProfileView(navHostController = navController, email = email)
+                            val email = backStackEntry.arguments?.getString("email") ?: ""
+                            SignUpProfileView(
+                                navHostController = navController,
+                                viewModel = loginViewModel, // <--- Pasamos el VM compartido
+                                email = email
+                            )
                         }
 
-                        // --- FIN DEL FLUJO DE REGISTRO ---
-
-                        // --- RUTA 5: LA APP INTERNA ---
+                        // --- APP PRINCIPAL ---
                         composable("tabbar") {
                             TabBarNavigationView(
                                 dataStore = dataStore,
@@ -103,7 +122,7 @@ class MainActivity : ComponentActivity() {
                                 onLogout = {
                                     scope.launch {
                                         dataStore.setLoggedIn(false)
-                                        dataStore.setUserName("Usuario") // Resetea el nombre
+                                        dataStore.setUserName("Usuario")
                                     }
                                     navController.navigate(ScreenNavigation.Login.route) {
                                         popUpTo(0) { inclusive = true }
@@ -111,6 +130,8 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
+                        // ... Aquí irían tus otras rutas (Sales, Rents, etc) si no están dentro del TabBar ...
                     }
                 }
             }
