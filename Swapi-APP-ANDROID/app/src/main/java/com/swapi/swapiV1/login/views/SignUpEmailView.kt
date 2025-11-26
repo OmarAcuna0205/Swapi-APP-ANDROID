@@ -1,5 +1,6 @@
 package com.swapi.swapiV1.login.views
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -29,13 +31,13 @@ import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 @Composable
 fun SignUpEmailView(
     navHostController: NavHostController,
-    viewModel: LoginViewModel // Inyectamos el ViewModel
+    viewModel: LoginViewModel
 ) {
     var email by remember { mutableStateOf("") }
     val swapiBrandColor = Color(0xFF4A8BFF)
 
-    // Escuchar eventos de navegación (opcional si la navegación es directa aquí)
-    // En este caso, como solo guardamos dato local, navegamos directo.
+    // 1. Obtenemos el contexto aquí para poder usar el Toast
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -70,7 +72,7 @@ fun SignUpEmailView(
                 value = email,
                 onValueChange = {
                     email = it
-                    viewModel.onRegisterEmailChange(it) // Guardamos en ViewModel
+                    viewModel.onRegisterEmailChange(it) // Seguimos actualizando el VM
                 },
                 label = { Text(stringResource(id = R.string.login_email_label)) },
                 singleLine = true,
@@ -88,11 +90,22 @@ fun SignUpEmailView(
 
             Spacer(Modifier.height(12.dp))
 
+            // 2. Aquí aplicamos la validación en el botón
             Button(
                 onClick = {
-                    if (email.isNotBlank()) {
-                        // Navegamos a la siguiente pantalla pasando el email en la ruta (opcional, ya está en VM)
+                    // --- VALIDACIÓN ---
+                    // Usamos trim() para quitar espacios accidentales
+                    if (email.trim().endsWith("@ulsachihuahua.edu.mx")) {
+                        // SI ES CORRECTO: Avanzamos a la siguiente pantalla
+                        // Nota: Usé tu ruta original ScreenNavigation.SignUpProfile
                         navHostController.navigate(ScreenNavigation.SignUpProfile.createRoute(email))
+                    } else {
+                        // SI ES INCORRECTO: Mostramos el mensaje de error
+                        Toast.makeText(
+                            context,
+                            "Solo se permiten correos institucionales (@ulsachihuahua.edu.mx)",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 },
                 modifier = Modifier
