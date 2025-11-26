@@ -1,7 +1,6 @@
 package com.swapi.swapiV1.login.model.repository
 
-import com.swapi.swapiV1.login.model.dto.LoginRequest
-import com.swapi.swapiV1.login.model.dto.LoginResponse
+import com.swapi.swapiV1.login.model.dto.*
 import com.swapi.swapiV1.login.model.network.AuthApi
 import org.json.JSONObject
 import java.io.IOException
@@ -9,27 +8,83 @@ import java.io.IOException
 // Repositorio que maneja la lógica de autenticación.
 class AuthRepository(private val api: AuthApi) {
 
-    // Función 'suspend' para realizar la llamada de red sin bloquear el hilo UI.
+    // ---------------- LOGIN ----------------
     suspend fun login(email: String, password: String): LoginResponse {
         return try {
-            // Realiza la llamada de red.
             val resp = api.login(LoginRequest(email, password))
 
             if (resp.isSuccessful) {
-                // Caso de éxito (HTTP 2xx): devuelve el cuerpo o un error si está vacío.
                 resp.body() ?: LoginResponse(false, "Respuesta vacía del servidor")
             } else {
-                // Caso de error (HTTP 4xx, 5xx): intenta parsear el mensaje de error.
                 val msg = resp.errorBody()?.string().orEmpty()
-                val parsed = try { JSONObject(msg).optString("message", "") } catch (_: Exception) { "" }
-                LoginResponse(false, parsed.ifBlank { "Credenciales inválidas" })
+                val parsed = try {
+                    JSONObject(msg).optString("message", "")
+                } catch (_: Exception) {
+                    ""
+                }
+
+                LoginResponse(
+                    success = false,
+                    message = parsed.ifBlank { "Credenciales inválidas" }
+                )
             }
         } catch (_: IOException) {
-            // Error de conexión (sin internet).
             LoginResponse(false, "Sin conexión. Verifica tu red.")
         } catch (_: Exception) {
-            // Cualquier otro error inesperado.
             LoginResponse(false, "Error inesperado")
+        }
+    }
+
+    // ---------------- REGISTER ----------------
+    suspend fun register(request: RegisterRequest): Result<RegisterResponse> {
+        return try {
+            val resp = api.register(request)
+
+            if (resp.isSuccessful && resp.body() != null) {
+                Result.success(resp.body()!!)
+            } else {
+                val errorMsg = resp.errorBody()?.string().orEmpty()
+                val parsed = try {
+                    JSONObject(errorMsg).optString("message", "")
+                } catch (_: Exception) {
+                    ""
+                }
+
+                Result.failure(
+                    Exception(parsed.ifBlank { "Error en registro" })
+                )
+            }
+        } catch (_: IOException) {
+            Result.failure(Exception("Sin conexión. Verifica tu red."))
+        } catch (e: Exception) {
+            Result.failure(Exception("Error inesperado"))
+        }
+    }
+
+    // ---------------- VERIFICAR CÓDIGO ----------------
+    suspend fun verifyCode(email: String, code: String): Result<Boolean> {
+        return try {
+            val request = VerifyRequest(email, code)
+            val resp = api.verify(request)
+
+            if (resp.isSuccessful) {
+                Result.success(true)
+            } else {
+                val errorMsg = resp.errorBody()?.string().orEmpty()
+                val parsed = try {
+                    JSONObject(errorMsg).optString("message", "")
+                } catch (_: Exception) {
+                    ""
+                }
+
+                Result.failure(
+                    Exception(parsed.ifBlank { "Código incorrecto" })
+                )
+            }
+        } catch (_: IOException) {
+            Result.failure(Exception("Sin conexión. Verifica tu red."))
+        } catch (e: Exception) {
+            Result.failure(Exception("Error inesperado"))
         }
     }
 }

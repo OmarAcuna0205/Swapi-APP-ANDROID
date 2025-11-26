@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 // Objeto singleton que configura y provee una única instancia de Retrofit para toda la app.
 object RetrofitProvider {
     // URL base para todas las peticiones de la API.
-    private const val BASE_URL = "https://eleventenbackend.onrender.com"
+    private const val BASE_URL = "http://10.0.2.2:3000/"
 
     // Interceptor para registrar en Logcat los detalles de las peticiones y respuestas HTTP.
     // Es muy útil para depurar (debug).

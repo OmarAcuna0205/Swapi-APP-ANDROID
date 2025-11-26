@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource // <-- IMPORT AÑADIDO
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -51,6 +51,8 @@ fun LoginView(
 ) {
     // --- LÓGICA (Sin cambios) ---
     val context = LocalContext.current.applicationContext
+
+    // IMPORTANTE: Asegúrate de que RetrofitProvider tenga authApi accesible
     val repo = remember { AuthRepository(RetrofitProvider.authApi) }
     val vm: LoginViewModel = viewModel(factory = LoginViewModelFactory(repo))
     val ui by vm.ui.collectAsState()
@@ -65,6 +67,7 @@ fun LoginView(
         vm.toastEvents.collectLatest { msg -> showToastSafe(msg) }
     }
 
+    // --- AQUÍ ESTABA EL ERROR ---
     LaunchedEffect(Unit) {
         vm.navEvents.collectLatest { event ->
             when (event) {
@@ -78,11 +81,13 @@ fun LoginView(
                         launchSingleTop = true
                     }
                 }
+                // Agregamos 'else' para cubrir GoVerifyCode y GoLogin que no se usan aquí
+                else -> {}
             }
         }
     }
 
-    // --- INTERFAZ CORREGIDA ---
+    // --- INTERFAZ ---
     val swapiBrandColor = Color(0xFF4A8BFF)
 
     Box(
@@ -102,7 +107,6 @@ fun LoginView(
             // --- LOGO ---
             Image(
                 painter = painterResource(id = R.drawable.swapi),
-                // CAMBIO:
                 contentDescription = stringResource(id = R.string.login_logo_cd),
                 modifier = Modifier
                     .size(100.dp)
@@ -111,7 +115,6 @@ fun LoginView(
 
             // --- TÍTULOS ---
             Text(
-                // CAMBIO:
                 text = stringResource(id = R.string.login_title),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
@@ -122,7 +125,6 @@ fun LoginView(
             )
 
             Text(
-                // CAMBIO:
                 text = stringResource(id = R.string.login_subtitle),
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
@@ -137,7 +139,6 @@ fun LoginView(
             OutlinedTextField(
                 value = ui.email,
                 onValueChange = vm::onEmailChange,
-                // CAMBIO: (Usamos el string que ya existía y lo ajustamos)
                 label = { Text(stringResource(id = R.string.login_email_label)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
@@ -155,18 +156,15 @@ fun LoginView(
             OutlinedTextField(
                 value = ui.password,
                 onValueChange = vm::onPasswordChange,
-                // CAMBIO:
                 label = { Text(stringResource(id = R.string.login_password_label)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val icon =
-                        if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                    val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
                             icon,
-                            // CAMBIO:
                             contentDescription = stringResource(id = R.string.login_toggle_password_cd),
                             tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                         )
@@ -205,11 +203,9 @@ fun LoginView(
                         color = Color.White
                     )
                     Spacer(Modifier.width(12.dp))
-                    // CAMBIO:
                     Text(stringResource(id = R.string.login_signing_in))
                 } else {
                     Text(
-                        // CAMBIO:
                         stringResource(id = R.string.login_button_text),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold,
@@ -224,7 +220,6 @@ fun LoginView(
             // --- LINK OLVIDASTE CONTRASEÑA ---
             TextButton(onClick = { /* TODO: Implementar */ }) {
                 Text(
-                    // CAMBIO:
                     stringResource(id = R.string.login_forgot_password),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = swapiBrandColor.copy(alpha = 0.8f)
@@ -244,7 +239,6 @@ fun LoginView(
                     thickness = 1.dp
                 )
                 Text(
-                    // CAMBIO:
                     text = stringResource(id = R.string.login_divider_or),
                     modifier = Modifier.padding(horizontal = 8.dp),
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
@@ -272,7 +266,6 @@ fun LoginView(
                 )
             ) {
                 Text(
-                    // CAMBIO:
                     stringResource(id = R.string.login_create_account),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold,
