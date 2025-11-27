@@ -23,3 +23,11 @@ data class AuthorDto(
     val phone: String? = null,
     val paternalSurname: String? = null
 )
+
+// --- AGREGA ESTA NUEVA CLASE ---
+data class UpdatePostRequest(
+    val title: String,
+    val description: String,
+    val price: Double,
+    val category: String
+)

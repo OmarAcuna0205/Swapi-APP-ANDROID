@@ -153,7 +153,9 @@ fun SavedPostsView(navController: NavController) {
                             ) {
                                 items(filteredListings, key = { it.id }) { product ->
                                     // Construimos URL de imagen
-                                    val baseUrl = "http://192.168.1.69:3000/storage/"
+                                    // val baseUrl = "http://192.168.1.69:3000/storage/"
+                                    val baseUrl = "http://10.0.2.2:3000/storage/"
+
                                     val imageUrl = if (product.images.isNotEmpty()) baseUrl + product.images[0] else ""
 
                                     // Formateamos precio

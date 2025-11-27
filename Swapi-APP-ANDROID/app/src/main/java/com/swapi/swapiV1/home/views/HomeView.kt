@@ -17,15 +17,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,8 +39,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.swapi.swapiV1.R
 import com.swapi.swapiV1.components.topbar.SwapiTopBar
-import com.swapi.swapiV1.home.model.dto.Product // <--- USAMOS PRODUCT
-import com.swapi.swapiV1.home.model.network.HomeApiImpl
+import com.swapi.swapiV1.home.model.dto.Product
 import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.viewmodel.HomeUIState
 import com.swapi.swapiV1.home.viewmodel.HomeViewModel
@@ -51,50 +50,65 @@ import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 import java.text.NumberFormat
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeView(
     navController: NavController,
     dataStore: DataStoreManager
 ) {
-    // Inicializamos el ViewModel (sin parámetros en el Repo si usas la versión simple)
     val factory = HomeViewModelFactory(HomeRepository())
     val viewModel: HomeViewModel = viewModel(factory = factory)
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val showSearchBar by viewModel.showSearchBar.collectAsStateWithLifecycle()
     val searchText by viewModel.searchText.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+
+    // Configuración del Pull to Refresh
+    val pullRefreshState = rememberPullToRefreshState()
+    if (pullRefreshState.isRefreshing) {
+        LaunchedEffect(true) {
+            viewModel.onRefresh()
+        }
+    }
+    LaunchedEffect(isRefreshing) {
+        if (!isRefreshing) {
+            pullRefreshState.endRefresh()
+        } else {
+            pullRefreshState.startRefresh()
+        }
+    }
 
     Scaffold(
-        topBar = {
-            SwapiTopBar(
-                showSearchBar = showSearchBar,
-                searchText = searchText,
-                onSearchTextChange = viewModel::onSearchTextChange,
-                onToggleSearchBar = viewModel::onToggleSearchBar,
-                onSearchAction = viewModel::onSearchSubmit
-            )
-        }
+        // Ya NO le pasamos topBar aquí, para que no quede fija
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .dismissKeyboardOnClick(),
-            contentAlignment = Alignment.Center
+                .dismissKeyboardOnClick()
+                .nestedScroll(pullRefreshState.nestedScrollConnection),
+            contentAlignment = Alignment.TopCenter
         ) {
             when (val state = uiState) {
-                is HomeUIState.Loading -> CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                is HomeUIState.Error -> Text(
-                    text = state.message,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(16.dp)
-                )
+                is HomeUIState.Loading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                is HomeUIState.Error -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = state.message,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
                 is HomeUIState.Success -> {
                     val userName by dataStore.userNameFlow.collectAsState(initial = "...")
                     val allProducts = state.products
 
-                    // --- FILTRADO LOCAL (Búsqueda) ---
                     val filteredProducts = if (searchText.isNotBlank()) {
                         allProducts.filter {
                             it.title.contains(searchText, ignoreCase = true) ||
@@ -104,45 +118,44 @@ fun HomeView(
                         allProducts
                     }
 
-                    // --- AGRUPADO POR CATEGORÍAS ---
-                    // El backend devuelve una lista plana, aquí la organizamos para que se vea bonita
-                    // Definimos el orden que queremos mostrar
                     val categoriesOrder = listOf("ventas", "rentas", "servicios", "anuncios")
-
-                    // Agrupamos los productos
                     val productsByCategory = remember(filteredProducts) {
                         filteredProducts.groupBy { it.category.lowercase() }
                     }
-
                     val isEmpty = filteredProducts.isEmpty()
 
-                    // Muestra la lista SÓLO si NO está vacía
-                    AnimatedVisibility(
-                        visible = !isEmpty,
-                        enter = fadeIn(tween(300)),
-                        exit = fadeOut(tween(300))
+                    // --- CONTENIDO SCROLLEABLE ---
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .verticalScroll(rememberScrollState())
-                        ) {
-                            if (!showSearchBar) {
+                        // 1. BARRA DE BÚSQUEDA (Ahora es parte del contenido y hace scroll)
+                        Spacer(modifier = Modifier.height(8.dp)) // Un poco de aire arriba
+                        SwapiTopBar(
+                            searchText = searchText,
+                            onSearchTextChange = viewModel::onSearchTextChange
+                        )
+
+                        // 2. BIENVENIDA (Más grande y visible solo si no buscas)
+                        AnimatedVisibility(visible = !isEmpty) {
+                            if (searchText.isBlank()) {
                                 Text(
                                     text = stringResource(R.string.home_bienvenida, userName),
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                    // CAMBIO: De headlineSmall a headlineMedium para que se vea más grande
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp)
                                 )
-                                Spacer(modifier = Modifier.height(16.dp))
                             }
+                        }
 
-                            // Iteramos sobre las categorías en orden
+                        // 3. CATEGORÍAS
+                        if (!isEmpty) {
                             categoriesOrder.forEach { categoryKey ->
                                 val productsInCat = productsByCategory[categoryKey] ?: emptyList()
 
                                 if (productsInCat.isNotEmpty()) {
-                                    // Convertimos "ventas" a "Ventas" para el título
                                     val title = categoryKey.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
                                     Column(modifier = Modifier.padding(bottom = 24.dp)) {
@@ -170,47 +183,50 @@ fun HomeView(
                                 }
                             }
                             Spacer(modifier = Modifier.height(16.dp))
-                        }
-                    }
-
-                    // Muestra "Sin Resultados"
-                    AnimatedVisibility(
-                        visible = isEmpty && showSearchBar,
-                        enter = fadeIn(tween(300)),
-                        exit = fadeOut(tween(300))
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier
-                                .padding(32.dp)
-                                .align(Alignment.Center)
-                        ) {
-                            Icon(
-                                Icons.Filled.Search,
-                                contentDescription = null,
-                                modifier = Modifier.size(72.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                            Text(
-                                stringResource(id = R.string.sales_search_no_results_title),
-                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                stringResource(id = R.string.sales_search_no_results_subtitle),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
+                        } else {
+                            // Estado Vacío (Sin resultados)
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                modifier = Modifier
+                                    .padding(32.dp)
+                                    .padding(top = 40.dp)
+                            ) {
+                                Icon(
+                                    Icons.Filled.Search,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(72.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
+                                Text(
+                                    stringResource(id = R.string.sales_search_no_results_title),
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    stringResource(id = R.string.sales_search_no_results_subtitle),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     }
                 }
             }
+
+            // Indicador de Refresh
+            PullToRefreshContainer(
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
 
+// ... (El resto de funciones auxiliares: SectionHeader y ModernProductCard se mantienen igual)
 @Composable
 fun SectionHeader(title: String, onSeeMoreClicked: () -> Unit) {
     Row(
@@ -241,9 +257,7 @@ fun SectionHeader(title: String, onSeeMoreClicked: () -> Unit) {
 fun ModernProductCard(product: Product, navController: NavController) {
     val priceColor = Color(0xFF448AFF)
     val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
-
-    // Construimos la URL de la imagen (Asegúrate que esta IP sea la de tu compu)
-    val baseUrl = "http://192.168.1.69:3000/storage/"
+    val baseUrl = "http://10.0.2.2:3000/storage/"
     val imageUrl = if (product.images.isNotEmpty()) baseUrl + product.images[0] else ""
 
     Card(
@@ -300,7 +314,6 @@ fun ModernProductCard(product: Product, navController: NavController) {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Sección del Autor (Avatar con inicial)
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(
                         modifier = Modifier
@@ -327,7 +340,6 @@ fun ModernProductCard(product: Product, navController: NavController) {
                 }
             }
 
-            // Etiqueta de Categoría
             if (product.category.isNotBlank()) {
                 Surface(
                     color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.9f),

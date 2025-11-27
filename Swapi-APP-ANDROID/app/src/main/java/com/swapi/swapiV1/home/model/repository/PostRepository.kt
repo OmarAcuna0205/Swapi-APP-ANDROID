@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.swapi.swapiV1.home.model.dto.Product
+import com.swapi.swapiV1.home.model.dto.UpdatePostRequest // <--- ¡IMPORTANTE IMPORTAR ESTO!
 import com.swapi.swapiV1.home.model.network.PostApiImpl
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -15,6 +16,56 @@ import java.io.FileOutputStream
 class PostRepository {
     private val api = PostApiImpl.service
 
+    suspend fun getMyPosts(): List<Product>? {
+        return try {
+            val response = api.getMyPosts()
+            if (response.isSuccessful) response.body() ?: emptyList() else null
+        } catch (e: Exception) {
+            Log.e("PostRepo", "Exception getMyPosts: ${e.message}")
+            null
+        }
+    }
+
+    suspend fun deletePost(id: String): Boolean {
+        return try {
+            val response = api.deletePost(id)
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e("PostRepo", "Exception deletePost: ${e.message}")
+            false
+        }
+    }
+
+    // --- CORREGIDO: Usamos UpdatePostRequest en vez de Map ---
+    suspend fun updatePost(
+        id: String,
+        title: String,
+        description: String,
+        price: Double,
+        category: String
+    ): Boolean {
+        return try {
+            // AQUÍ ESTABA EL ERROR: Usamos la clase, no un mapa
+            val requestBody = UpdatePostRequest(
+                title = title,
+                description = description,
+                price = price,
+                category = category.lowercase()
+            )
+
+            val response = api.updatePost(id, requestBody)
+
+            if (!response.isSuccessful) {
+                // Logueamos el error del servidor si falla
+                Log.e("PostRepo", "Error update: ${response.code()} - ${response.errorBody()?.string()}")
+            }
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e("PostRepo", "Exception updatePost: ${e.message}")
+            false
+        }
+    }
+
     suspend fun createPost(
         context: Context,
         title: String,
@@ -24,40 +75,28 @@ class PostRepository {
         imageUri: Uri?
     ): Boolean {
         return try {
-            // 1. Convertir textos a RequestBody
             val titlePart = title.toRequestBody("text/plain".toMediaTypeOrNull())
             val descPart = description.toRequestBody("text/plain".toMediaTypeOrNull())
             val pricePart = price.toRequestBody("text/plain".toMediaTypeOrNull())
-            // Convertimos la categoría a minúsculas para que coincida con el backend ("Ventas" -> "ventas")
             val catPart = category.lowercase().toRequestBody("text/plain".toMediaTypeOrNull())
 
-            // 2. Convertir imagen a Multipart (Si existe)
             var imagePart: MultipartBody.Part? = null
             if (imageUri != null) {
-                val file = uriToFile(context, imageUri) // Función auxiliar abajo
+                val file = uriToFile(context, imageUri)
                 if (file != null) {
                     val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
                     imagePart = MultipartBody.Part.createFormData("image", file.name, requestFile)
                 }
             }
 
-            // 3. Enviar al backend
             val response = api.createPost(imagePart, titlePart, descPart, pricePart, catPart)
-
-            if (response.isSuccessful) {
-                Log.d("PostRepo", "Publicación creada: ${response.body()}")
-                true
-            } else {
-                Log.e("PostRepo", "Error: ${response.code()} - ${response.errorBody()?.string()}")
-                false
-            }
+            response.isSuccessful
         } catch (e: Exception) {
-            Log.e("PostRepo", "Excepción: ${e.message}")
+            Log.e("PostRepo", "Exception createPost: ${e.message}")
             false
         }
     }
 
-    // Función auxiliar para convertir URI a File real (Android es complicado con esto)
     private fun uriToFile(context: Context, uri: Uri): File? {
         return try {
             val contentResolver = context.contentResolver

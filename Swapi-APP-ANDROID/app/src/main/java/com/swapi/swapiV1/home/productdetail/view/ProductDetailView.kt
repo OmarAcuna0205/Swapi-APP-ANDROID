@@ -36,6 +36,7 @@ import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.productdetail.viewmodel.ProductDetailUiState
 import com.swapi.swapiV1.home.productdetail.viewmodel.ProductDetailViewModel
 import com.swapi.swapiV1.home.productdetail.viewmodel.ProductDetailViewModelFactory
+import com.swapi.swapiV1.utils.Constants // Recomendado usar tus constantes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,11 +48,10 @@ fun ProductDetailView(
     val viewModel: ProductDetailViewModel = viewModel(factory = factory)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Color de marca (Azul FB/Swapi)
     val brandColor = Color(0xFF0064E0)
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background, // Se adapta a modo oscuro
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {},
@@ -60,12 +60,11 @@ fun ProductDetailView(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Atrás",
-                            tint = MaterialTheme.colorScheme.onBackground // Se adapta (Negro/Blanco)
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 actions = {
-                    // BOTÓN DE GUARDADO (Bookmark)
                     IconButton(onClick = { /* TODO: Guardar */ }) {
                         Icon(
                             Icons.Default.BookmarkBorder,
@@ -79,7 +78,6 @@ fun ProductDetailView(
                 )
             )
         },
-        // BOTÓN FIJO HASTA ABAJO
         bottomBar = {
             if (uiState is ProductDetailUiState.Success) {
                 val product = (uiState as ProductDetailUiState.Success).product
@@ -96,7 +94,7 @@ fun ProductDetailView(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
-                            .navigationBarsPadding() // Para que no lo tape la barra de gestos
+                            .navigationBarsPadding()
                     ) {
                         Button(
                             onClick = {
@@ -152,10 +150,12 @@ fun ProductContentView(
 ) {
     val scrollState = rememberScrollState()
 
-    // URL de tu backend local
-    val baseUrl = "http://192.168.1.69:3000/storage/"
+    // Si ya creaste Constants.kt, usa esto:
+    // val mainImage = if (product.images.isNotEmpty()) Constants.BASE_URL + "storage/" + product.images[0] else ""
+
+    // Si NO has creado Constants.kt, usa tu url temporal:
+    val baseUrl = "http://10.0.2.2:3000/storage/"
     val mainImage = if (product.images.isNotEmpty()) baseUrl + product.images[0] else ""
-    val imageCount = product.images.size
 
     Column(
         modifier = Modifier
@@ -163,33 +163,19 @@ fun ProductContentView(
             .verticalScroll(scrollState)
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // 1. IMAGEN
+        // 1. IMAGEN (Limpia, sin contador)
         Box(modifier = Modifier
             .height(350.dp)
-            .fillMaxWidth()) {
+            .fillMaxWidth()
+            .background(Color.LightGray.copy(alpha = 0.2f)) // Placeholder sutil
+        ) {
             AsyncImage(
                 model = mainImage,
                 contentDescription = product.title,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-            // Indicador de fotos
-            if (imageCount > 0) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(16.dp)
-                        .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = "1 / $imageCount",
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
+            // AQUÍ BORRAMOS EL INDICADOR "1 / X"
         }
 
         Column(
@@ -202,7 +188,7 @@ fun ProductContentView(
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp
                 ),
-                color = MaterialTheme.colorScheme.onBackground // Adaptable
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -211,7 +197,7 @@ fun ProductContentView(
             Text(
                 text = "$${product.price}",
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
-                color = MaterialTheme.colorScheme.onBackground // Adaptable
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             // Ubicación
@@ -220,14 +206,14 @@ fun ProductContentView(
                 Icon(
                     Icons.Default.LocationOn,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant, // Gris adaptable
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Chihuahua, Chih.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant // Gris adaptable
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -246,7 +232,7 @@ fun ProductContentView(
             Text(
                 text = product.description,
                 style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp),
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f) // Texto principal suave
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
             )
 
             // --- DIVISOR ---
@@ -293,13 +279,9 @@ fun ProductContentView(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-
                 Spacer(modifier = Modifier.weight(1f))
-
             }
-
-            // Espacio extra al final (para que el contenido no quede oculto tras el botón flotante)
-            Spacer(modifier = Modifier.height(80.dp))
+            // FIN: Eliminado el Spacer(80.dp) final.
         }
     }
 }
