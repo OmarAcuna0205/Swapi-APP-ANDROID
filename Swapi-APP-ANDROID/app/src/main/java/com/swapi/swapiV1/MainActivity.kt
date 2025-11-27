@@ -15,6 +15,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.swapi.swapiV1.login.model.network.AuthApiImpl
+import com.swapi.swapiV1.login.model.network.RetrofitProvider
 import com.swapi.swapiV1.login.model.repository.AuthRepository
 import com.swapi.swapiV1.login.viewmodel.LoginViewModel
 import com.swapi.swapiV1.login.viewmodel.LoginViewModelFactory
@@ -33,6 +34,10 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 1. INICIALIZAR RETROFIT (Vital para que funcione el Interceptor)
+        RetrofitProvider.setup(applicationContext)
+
         enableEdgeToEdge()
 
         val dataStore = DataStoreManager(this)
@@ -45,11 +50,12 @@ class MainActivity : ComponentActivity() {
                 // ViewModels
                 val onboardingViewModel: OnboardingViewModel = viewModel()
 
-                // --- INYECCIÓN DEL LOGIN VIEWMODEL ---
-                // Creamos el repositorio y la factory aquí para inyectarlo
+                // --- INYECCIÓN DEL LOGIN VIEWMODEL COMPARTIDO ---
                 val authRepository = AuthRepository(AuthApiImpl.service)
+
+                // CORRECCIÓN AQUÍ: Pasamos 'dataStore' a la Factory
                 val loginViewModel: LoginViewModel = viewModel(
-                    factory = LoginViewModelFactory(authRepository)
+                    factory = LoginViewModelFactory(authRepository, dataStore)
                 )
 
                 // DataStore States
@@ -72,19 +78,16 @@ class MainActivity : ComponentActivity() {
                     ) {
                         // --- RUTA 1: LOGIN ---
                         composable(ScreenNavigation.Login.route) {
-                            // LoginView también debería usar el viewModel eventualmente para compartir lógica,
-                            // pero por ahora lo dejamos como lo tienes si funciona.
-                            // Idealmente: LoginView(navController, loginViewModel)
                             LoginView(navController, dataStore)
                         }
 
-                        // --- RUTAS DE REGISTRO (Aquí usamos el Shared ViewModel) ---
+                        // --- RUTAS DE REGISTRO (Shared ViewModel) ---
 
                         // Paso 1: Email
                         composable(ScreenNavigation.SignUpEmail.route) {
                             SignUpEmailView(
                                 navHostController = navController,
-                                viewModel = loginViewModel // <--- Pasamos el VM compartido
+                                viewModel = loginViewModel
                             )
                         }
 
@@ -96,7 +99,7 @@ class MainActivity : ComponentActivity() {
                             val email = backStackEntry.arguments?.getString("email") ?: ""
                             SignUpCodeView(
                                 navHostController = navController,
-                                viewModel = loginViewModel, // <--- Pasamos el VM compartido
+                                viewModel = loginViewModel,
                                 email = email
                             )
                         }
@@ -109,7 +112,7 @@ class MainActivity : ComponentActivity() {
                             val email = backStackEntry.arguments?.getString("email") ?: ""
                             SignUpProfileView(
                                 navHostController = navController,
-                                viewModel = loginViewModel, // <--- Pasamos el VM compartido
+                                viewModel = loginViewModel,
                                 email = email
                             )
                         }
@@ -123,6 +126,7 @@ class MainActivity : ComponentActivity() {
                                     scope.launch {
                                         dataStore.setLoggedIn(false)
                                         dataStore.setUserName("Usuario")
+                                        dataStore.saveAccessToken("") // Limpiamos el token al salir
                                     }
                                     navController.navigate(ScreenNavigation.Login.route) {
                                         popUpTo(0) { inclusive = true }
@@ -130,8 +134,6 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-
-                        // ... Aquí irían tus otras rutas (Sales, Rents, etc) si no están dentro del TabBar ...
                     }
                 }
             }

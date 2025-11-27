@@ -1,11 +1,9 @@
 package com.swapi.swapiV1.home.views
 
-// --- CAMBIO: Imports añadidos para la animación y el icono ---
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-// --------------------------------------------------------
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,11 +15,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Search // <-- Import añadido
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,7 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign // <-- Import añadido
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,7 +39,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.swapi.swapiV1.R
 import com.swapi.swapiV1.components.topbar.SwapiTopBar
-import com.swapi.swapiV1.home.model.dto.ListingDto
+import com.swapi.swapiV1.home.model.dto.Product // <--- USAMOS PRODUCT
 import com.swapi.swapiV1.home.model.network.HomeApiImpl
 import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.viewmodel.HomeUIState
@@ -57,7 +56,8 @@ fun HomeView(
     navController: NavController,
     dataStore: DataStoreManager
 ) {
-    val factory = HomeViewModelFactory(HomeRepository(HomeApiImpl.retrofitApi))
+    // Inicializamos el ViewModel (sin parámetros en el Repo si usas la versión simple)
+    val factory = HomeViewModelFactory(HomeRepository())
     val viewModel: HomeViewModel = viewModel(factory = factory)
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -92,13 +92,33 @@ fun HomeView(
                 )
                 is HomeUIState.Success -> {
                     val userName by dataStore.userNameFlow.collectAsState(initial = "...")
+                    val allProducts = state.products
 
-                    // --- CAMBIO: Lógica de visibilidad añadida ---
-                    val allListingsEmpty = state.sections.all { it.listings.isEmpty() }
+                    // --- FILTRADO LOCAL (Búsqueda) ---
+                    val filteredProducts = if (searchText.isNotBlank()) {
+                        allProducts.filter {
+                            it.title.contains(searchText, ignoreCase = true) ||
+                                    it.description.contains(searchText, ignoreCase = true)
+                        }
+                    } else {
+                        allProducts
+                    }
+
+                    // --- AGRUPADO POR CATEGORÍAS ---
+                    // El backend devuelve una lista plana, aquí la organizamos para que se vea bonita
+                    // Definimos el orden que queremos mostrar
+                    val categoriesOrder = listOf("ventas", "rentas", "servicios", "anuncios")
+
+                    // Agrupamos los productos
+                    val productsByCategory = remember(filteredProducts) {
+                        filteredProducts.groupBy { it.category.lowercase() }
+                    }
+
+                    val isEmpty = filteredProducts.isEmpty()
 
                     // Muestra la lista SÓLO si NO está vacía
                     AnimatedVisibility(
-                        visible = !allListingsEmpty,
+                        visible = !isEmpty,
                         enter = fadeIn(tween(300)),
                         exit = fadeOut(tween(300))
                     ) {
@@ -117,26 +137,34 @@ fun HomeView(
                                 Spacer(modifier = Modifier.height(16.dp))
                             }
 
-                            state.sections.forEach { section ->
-                                Column(modifier = Modifier.padding(bottom = 24.dp)) {
-                                    SectionHeader(
-                                        title = section.sectionTitle,
-                                        onSeeMoreClicked = {
-                                            when (section.sectionTitle) {
-                                                "Ventas" -> navController.navigate(ScreenNavigation.Sales.route) // Idealmente, esto usaría una key, no "Ventas"
-                                                "Rentas" -> navController.navigate(ScreenNavigation.Rents.route)
-                                                "Servicios" -> navController.navigate(ScreenNavigation.Services.route)
-                                                "Anuncios" -> navController.navigate(ScreenNavigation.Ads.route)
+                            // Iteramos sobre las categorías en orden
+                            categoriesOrder.forEach { categoryKey ->
+                                val productsInCat = productsByCategory[categoryKey] ?: emptyList()
+
+                                if (productsInCat.isNotEmpty()) {
+                                    // Convertimos "ventas" a "Ventas" para el título
+                                    val title = categoryKey.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+
+                                    Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                                        SectionHeader(
+                                            title = title,
+                                            onSeeMoreClicked = {
+                                                when (categoryKey) {
+                                                    "ventas" -> navController.navigate(ScreenNavigation.Sales.route)
+                                                    "rentas" -> navController.navigate(ScreenNavigation.Rents.route)
+                                                    "servicios" -> navController.navigate(ScreenNavigation.Services.route)
+                                                    "anuncios" -> navController.navigate(ScreenNavigation.Ads.route)
+                                                }
                                             }
-                                        }
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    LazyRow(
-                                        contentPadding = PaddingValues(horizontal = 16.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                    ) {
-                                        items(section.listings) { listing ->
-                                            ModernProductCard(listing = listing, navController = navController)
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        LazyRow(
+                                            contentPadding = PaddingValues(horizontal = 16.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                        ) {
+                                            items(productsInCat) { product ->
+                                                ModernProductCard(product = product, navController = navController)
+                                            }
                                         }
                                     }
                                 }
@@ -145,9 +173,9 @@ fun HomeView(
                         }
                     }
 
-                    // Muestra "Sin Resultados" SÓLO si la lista está vacía Y la barra de búsqueda está activa
+                    // Muestra "Sin Resultados"
                     AnimatedVisibility(
-                        visible = allListingsEmpty && showSearchBar,
+                        visible = isEmpty && showSearchBar,
                         enter = fadeIn(tween(300)),
                         exit = fadeOut(tween(300))
                     ) {
@@ -156,7 +184,7 @@ fun HomeView(
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier
                                 .padding(32.dp)
-                                .align(Alignment.Center) // Centra el mensaje
+                                .align(Alignment.Center)
                         ) {
                             Icon(
                                 Icons.Filled.Search,
@@ -166,9 +194,7 @@ fun HomeView(
                             )
                             Text(
                                 stringResource(id = R.string.sales_search_no_results_title),
-                                style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontWeight = FontWeight.Bold
-                                ),
+                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
@@ -185,7 +211,6 @@ fun HomeView(
     }
 }
 
-// ... (SectionHeader y ModernProductCard se quedan igual que en tu archivo original)
 @Composable
 fun SectionHeader(title: String, onSeeMoreClicked: () -> Unit) {
     Row(
@@ -213,10 +238,13 @@ fun SectionHeader(title: String, onSeeMoreClicked: () -> Unit) {
 }
 
 @Composable
-fun ModernProductCard(listing: ListingDto, navController: NavController) {
-    val priceColor = Color(0xFF448AFF) // Azul
+fun ModernProductCard(product: Product, navController: NavController) {
+    val priceColor = Color(0xFF448AFF)
     val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
-    format.currency = java.util.Currency.getInstance(listing.currency)
+
+    // Construimos la URL de la imagen (Asegúrate que esta IP sea la de tu compu)
+    val baseUrl = "http://192.168.1.69:3000/storage/"
+    val imageUrl = if (product.images.isNotEmpty()) baseUrl + product.images[0] else ""
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -225,13 +253,13 @@ fun ModernProductCard(listing: ListingDto, navController: NavController) {
             .width(280.dp)
             .height(200.dp)
             .clickable {
-                navController.navigate(ScreenNavigation.ProductDetail.createRoute(listing.id))
+                navController.navigate(ScreenNavigation.ProductDetail.createRoute(product.id))
             }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
-                model = listing.imageUrl,
-                contentDescription = listing.title,
+                model = imageUrl,
+                contentDescription = product.title,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
@@ -255,7 +283,7 @@ fun ModernProductCard(listing: ListingDto, navController: NavController) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = listing.title,
+                        text = product.title,
                         fontWeight = FontWeight.ExtraBold,
                         color = Color.White,
                         fontSize = 18.sp,
@@ -264,25 +292,32 @@ fun ModernProductCard(listing: ListingDto, navController: NavController) {
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = format.format(listing.price),
+                        text = format.format(product.price),
                         color = priceColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
+
+                // Sección del Autor (Avatar con inicial)
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    AsyncImage(
-                        model = listing.user.avatarUrl,
-                        contentDescription = stringResource(R.string.home_card_avatar_cd, listing.user.name),
+                    Box(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(Color.White)
-                    )
+                            .background(Color.White),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = product.author.firstName.take(1).uppercase(),
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = listing.user.name.split(" ").first(),
+                        text = product.author.firstName,
                         color = Color.White.copy(alpha = 0.8f),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
@@ -291,14 +326,16 @@ fun ModernProductCard(listing: ListingDto, navController: NavController) {
                     )
                 }
             }
-            if (listing.category.isNotBlank()) {
+
+            // Etiqueta de Categoría
+            if (product.category.isNotBlank()) {
                 Surface(
                     color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.9f),
                     shape = RoundedCornerShape(bottomStart = 8.dp, topEnd = 16.dp),
                     modifier = Modifier.align(Alignment.TopEnd)
                 ) {
                     Text(
-                        text = listing.category,
+                        text = product.category.uppercase(),
                         color = MaterialTheme.colorScheme.onSecondary,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,

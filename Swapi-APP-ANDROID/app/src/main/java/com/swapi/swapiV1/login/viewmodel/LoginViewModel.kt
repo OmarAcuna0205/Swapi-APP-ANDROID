@@ -4,13 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swapi.swapiV1.login.model.dto.RegisterRequest
 import com.swapi.swapiV1.login.model.repository.AuthRepository
+import com.swapi.swapiV1.utils.datastore.DataStoreManager // <--- IMPORTANTE
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
-class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
+// Agregamos dataStore al constructor 👇
+class LoginViewModel(
+    private val repo: AuthRepository,
+    private val dataStore: DataStoreManager
+) : ViewModel() {
 
     // ---------------- UI STATE ----------------
     private val _ui = MutableStateFlow(LoginUiState())
@@ -62,9 +67,7 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
         val password = _ui.value.password
 
         if (email.isBlank() || password.isBlank()) {
-            viewModelScope.launch {
-                _toastEvents.send("Email y password son obligatorios")
-            }
+            viewModelScope.launch { _toastEvents.send("Email y password son obligatorios") }
             return
         }
 
@@ -75,13 +78,19 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
                 val res = repo.login(email, password)
 
                 if (res.success) {
-                    _navEvents.send(
-                        LoginNavEvent.GoHome(res.user?.firstName)
-                    )
+                    // --- ¡AQUÍ ESTÁ LA SOLUCIÓN! ---
+                    // Guardamos el token y el estado de sesión
+                    // (Asumiendo que res.token existe, si se llama diferente en tu repo, cámbialo aquí)
+                    res.token?.let { token ->
+                        dataStore.saveAccessToken(token)
+                    }
+                    dataStore.setLoggedIn(true)
+                    dataStore.setUserName(res.user?.firstName ?: "Usuario")
+                    // -------------------------------
+
+                    _navEvents.send(LoginNavEvent.GoHome(res.user?.firstName))
                 } else {
-                    _toastEvents.send(
-                        res.message.ifBlank { "Login fallido" }
-                    )
+                    _toastEvents.send(res.message.ifBlank { "Login fallido" })
                 }
             } catch (_: Exception) {
                 _toastEvents.send("Error de red o servidor")
@@ -91,43 +100,24 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
         }
     }
 
+    // ... (El resto de funciones onRegisterUser y onVerifyCode siguen igual)
+
     // ---------------- REGISTRAR USUARIO ----------------
     fun onRegisterUser() {
-        if (
-            registerEmail.isBlank() ||
-            registerPassword.isBlank() ||
-            registerName.isBlank()
-        ) {
-            viewModelScope.launch {
-                _toastEvents.send("Completa todos los campos obligatorios")
-            }
+        if (registerEmail.isBlank() || registerPassword.isBlank() || registerName.isBlank()) {
+            viewModelScope.launch { _toastEvents.send("Completa todos los campos obligatorios") }
             return
         }
-
         _ui.value = _ui.value.copy(isLoading = true)
-
         viewModelScope.launch {
             val request = RegisterRequest(
-                email = registerEmail,
-                firstName = registerName,
-                paternalSurname = registerPaternal,
-                maternalSurname = registerMaternal,
-                password = registerPassword,
-                age = registerAge,
-                gender = registerGender,
-                phone = registerPhone
+                email = registerEmail, firstName = registerName, paternalSurname = registerPaternal,
+                maternalSurname = registerMaternal, password = registerPassword, age = registerAge,
+                gender = registerGender, phone = registerPhone
             )
-
             val result = repo.register(request)
-
-            result
-                .onSuccess {
-                    _navEvents.send(LoginNavEvent.GoVerifyCode)
-                }
-                .onFailure {
-                    _toastEvents.send(it.message ?: "Error en registro")
-                }
-
+            result.onSuccess { _navEvents.send(LoginNavEvent.GoVerifyCode) }
+                .onFailure { _toastEvents.send(it.message ?: "Error en registro") }
             _ui.value = _ui.value.copy(isLoading = false)
         }
     }
@@ -135,25 +125,14 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
     // ---------------- VERIFICAR CÓDIGO ----------------
     fun onVerifyCode(code: String) {
         if (code.isBlank()) {
-            viewModelScope.launch {
-                _toastEvents.send("Ingresa el código")
-            }
+            viewModelScope.launch { _toastEvents.send("Ingresa el código") }
             return
         }
-
         _ui.value = _ui.value.copy(isLoading = true)
-
         viewModelScope.launch {
             val result = repo.verifyCode(registerEmail, code)
-
-            result
-                .onSuccess {
-                    _navEvents.send(LoginNavEvent.GoLogin)
-                }
-                .onFailure {
-                    _toastEvents.send("Código inválido")
-                }
-
+            result.onSuccess { _navEvents.send(LoginNavEvent.GoLogin) }
+                .onFailure { _toastEvents.send("Código inválido") }
             _ui.value = _ui.value.copy(isLoading = false)
         }
     }

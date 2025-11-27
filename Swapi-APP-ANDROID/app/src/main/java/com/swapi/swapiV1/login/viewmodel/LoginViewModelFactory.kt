@@ -3,20 +3,17 @@ package com.swapi.swapiV1.login.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.swapi.swapiV1.login.model.repository.AuthRepository
+import com.swapi.swapiV1.utils.datastore.DataStoreManager
 
-/**
- * Clase "Factory" (fábrica) necesaria para crear instancias de LoginViewModel.
- * Se utiliza porque nuestro LoginViewModel tiene dependencias en su constructor (el AuthRepository),
- * y el sistema necesita que le digamos cómo proveer esas dependencias.
- */
-class LoginViewModelFactory(private val repo: AuthRepository) : ViewModelProvider.Factory {
-
-    /**
-     * Este método es llamado por el sistema Android cuando necesita crear el ViewModel.
-     */
+class LoginViewModelFactory(
+    private val repository: AuthRepository,
+    private val dataStore: DataStoreManager // <-- Agregamos esto
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        // Creamos y devolvemos una instancia de LoginViewModel, pasándole el repositorio.
-        // El cast 'as T' es necesario para cumplir con el tipo genérico que requiere la interfaz.
-        return LoginViewModel(repo) as T
+        if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return LoginViewModel(repository, dataStore) as T // <-- Se lo pasamos al VM
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

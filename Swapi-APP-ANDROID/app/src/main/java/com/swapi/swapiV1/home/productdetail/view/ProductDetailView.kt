@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -12,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,7 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource // <-- Import
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,9 +30,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.swapi.swapiV1.R // <-- Import
-import com.swapi.swapiV1.home.model.dto.ListingDto
-import com.swapi.swapiV1.home.model.network.HomeApiImpl
+import com.swapi.swapiV1.R
+import com.swapi.swapiV1.home.model.dto.Product
 import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.productdetail.viewmodel.ProductDetailUiState
 import com.swapi.swapiV1.home.productdetail.viewmodel.ProductDetailViewModel
@@ -42,33 +43,88 @@ fun ProductDetailView(
     productId: String,
     navController: NavController
 ) {
-    val factory = ProductDetailViewModelFactory(productId, HomeRepository(HomeApiImpl.retrofitApi))
+    val factory = ProductDetailViewModelFactory(productId, HomeRepository())
     val viewModel: ProductDetailViewModel = viewModel(factory = factory)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val swapiBrandColor = Color(0xFF4A8BFF)
+    // Color de marca (Azul FB/Swapi)
+    val brandColor = Color(0xFF0064E0)
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background, // Se adapta a modo oscuro
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.detail_titulo)) },
+                title = {},
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back_button_cd)
+                            contentDescription = "Atrás",
+                            tint = MaterialTheme.colorScheme.onBackground // Se adapta (Negro/Blanco)
                         )
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Guardar producto */ }) {
+                    // BOTÓN DE GUARDADO (Bookmark)
+                    IconButton(onClick = { /* TODO: Guardar */ }) {
                         Icon(
                             Icons.Default.BookmarkBorder,
-                            contentDescription = stringResource(R.string.detail_guardar)
+                            contentDescription = "Guardar",
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
+        },
+        // BOTÓN FIJO HASTA ABAJO
+        bottomBar = {
+            if (uiState is ProductDetailUiState.Success) {
+                val product = (uiState as ProductDetailUiState.Success).product
+                val context = LocalContext.current
+                val toastMsgNoNum = stringResource(R.string.detail_toast_no_numero)
+                val wppMsgTemplate = stringResource(R.string.detail_whatsapp_mensaje)
+                val toastMsgNoWpp = stringResource(R.string.detail_toast_no_whatsapp)
+
+                Surface(
+                    shadowElevation = 16.dp,
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .navigationBarsPadding() // Para que no lo tape la barra de gestos
+                    ) {
+                        Button(
+                            onClick = {
+                                openWhatsApp(
+                                    context,
+                                    product.author.phone,
+                                    product.title,
+                                    toastMsgNoNum,
+                                    wppMsgTemplate,
+                                    toastMsgNoWpp
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = brandColor)
+                        ) {
+                            Text(
+                                "Enviar mensaje",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+            }
         }
     ) { paddingValues ->
         Box(
@@ -78,14 +134,11 @@ fun ProductDetailView(
             contentAlignment = Alignment.Center
         ) {
             when (val state = uiState) {
-                is ProductDetailUiState.Loading -> CircularProgressIndicator(color = swapiBrandColor)
-                is ProductDetailUiState.Error -> Text(
-                    state.message,
-                    color = MaterialTheme.colorScheme.error
-                )
+                is ProductDetailUiState.Loading -> CircularProgressIndicator(color = brandColor)
+                is ProductDetailUiState.Error -> Text(state.message, color = MaterialTheme.colorScheme.error)
                 is ProductDetailUiState.Success -> ProductContentView(
                     product = state.product,
-                    brandColor = swapiBrandColor
+                    brandColor = brandColor
                 )
             }
         }
@@ -94,108 +147,176 @@ fun ProductDetailView(
 
 @Composable
 fun ProductContentView(
-    product: ListingDto,
+    product: Product,
     brandColor: Color
 ) {
-    val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    // --- ¡AQUÍ SACAMOS LAS STRINGS! ---
-    // Las sacamos aquí, dentro del Composable, para pasarlas a la función normal.
-    val toastMsgNoNum = stringResource(R.string.detail_toast_no_numero)
-    val wppMsgTemplate = stringResource(R.string.detail_whatsapp_mensaje) // El "template"
-    val toastMsgNoWpp = stringResource(R.string.detail_toast_no_whatsapp)
-    // -----------------------------------
+    // URL de tu backend local
+    val baseUrl = "http://192.168.1.69:3000/storage/"
+    val mainImage = if (product.images.isNotEmpty()) baseUrl + product.images[0] else ""
+    val imageCount = product.images.size
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // ... (AsyncImage y primer Column se quedan igual)
-        AsyncImage(
-            model = product.imageUrl,
-            contentDescription = product.title,
-            // ...
-        )
+        // 1. IMAGEN
+        Box(modifier = Modifier
+            .height(350.dp)
+            .fillMaxWidth()) {
+            AsyncImage(
+                model = mainImage,
+                contentDescription = product.title,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            // Indicador de fotos
+            if (imageCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(16.dp)
+                        .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = "1 / $imageCount",
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
-            // ... (Título y Precio se quedan igual)
+            // 2. TÍTULO
+            Text(
+                text = product.title,
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp
+                ),
+                color = MaterialTheme.colorScheme.onBackground // Adaptable
+            )
 
-            // ... (Descripción se queda igual)
-            Surface(/*...*/) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.detail_descripcion),/*...*/)
-                    Text(product.description, /*...*/)
-                }
-            }
+            Spacer(modifier = Modifier.height(4.dp))
 
-            // ... (Vendedor se queda igual)
-            Surface(/*...*/) {
-                Row(modifier = Modifier.padding(16.dp)) {
-                    AsyncImage(
-                        model = product.user.avatarUrl,
-                        contentDescription = stringResource(R.string.detail_avatar_vendedor_cd),
-                        // ...
-                    )
-                    // ...
-                    Column {
-                        Text(product.user.name, /*...*/)
-                        Text(stringResource(R.string.detail_vendedor_verificado), /*...*/)
-                    }
-                }
-            }
+            // 3. PRECIO
+            Text(
+                text = "$${product.price}",
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
+                color = MaterialTheme.colorScheme.onBackground // Adaptable
+            )
 
-
-            // --- ¡AQUÍ PASAMOS LAS STRINGS! ---
-            Button(
-                onClick = {
-                    openWhatsApp(
-                        context,
-                        product.user.phoneNumber,
-                        product.title,
-                        // Le pasamos las strings como texto normal
-                        toastMsgNoNum = toastMsgNoNum,
-                        wppMsgTemplate = wppMsgTemplate,
-                        toastMsgNoWpp = toastMsgNoWpp
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                // ... (el resto del botón)
-            ) {
+            // Ubicación
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.LocationOn,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant, // Gris adaptable
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    stringResource(R.string.detail_boton_whatsapp),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    text = "Chihuahua, Chih.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant // Gris adaptable
                 )
             }
+
+            // --- DIVISOR ---
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 4. DESCRIPCIÓN
+            Text(
+                text = "Descripción",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = product.description,
+                style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f) // Texto principal suave
+            )
+
+            // --- DIVISOR ---
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 5. INFORMACIÓN DEL VENDEDOR
+            Text(
+                text = "Información del vendedor",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Avatar
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = product.author.firstName.take(1).uppercase(),
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column {
+                    Text(
+                        text = "${product.author.firstName} ${product.author.paternalSurname ?: ""}",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = "Miembro de la comunidad ULSA",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+            }
+
+            // Espacio extra al final (para que el contenido no quede oculto tras el botón flotante)
+            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }
 
-// --- ¡AQUÍ RECIBIMOS LAS STRINGS! ---
-// La función ahora acepta las strings como parámetros normales
 private fun openWhatsApp(
     context: Context,
     phoneNumber: String?,
     productName: String,
-    toastMsgNoNum: String, // <-- Parámetro nuevo
-    wppMsgTemplate: String, // <-- Parámetro nuevo
-    toastMsgNoWpp: String // <-- Parámetro nuevo
+    toastMsgNoNum: String,
+    wppMsgTemplate: String,
+    toastMsgNoWpp: String
 ) {
     if (phoneNumber.isNullOrBlank()) {
-        Toast.makeText(context, toastMsgNoNum, Toast.LENGTH_SHORT).show() // <-- Se usa el parámetro
+        Toast.makeText(context, toastMsgNoNum, Toast.LENGTH_SHORT).show()
         return
     }
 
-    // Usamos String.format para meter el nombre del producto en el template
     val message = String.format(wppMsgTemplate, productName)
 
     try {
@@ -204,6 +325,6 @@ private fun openWhatsApp(
         intent.data = Uri.parse(url)
         context.startActivity(intent)
     } catch (e: Exception) {
-        Toast.makeText(context, toastMsgNoWpp, Toast.LENGTH_SHORT).show() // <-- Se usa el parámetro
+        Toast.makeText(context, toastMsgNoWpp, Toast.LENGTH_SHORT).show()
     }
 }

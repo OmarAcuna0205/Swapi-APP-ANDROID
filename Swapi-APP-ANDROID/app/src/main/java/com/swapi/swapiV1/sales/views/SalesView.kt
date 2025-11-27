@@ -22,7 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.stringResource // <-- IMPORT AÑADIDO
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,8 +30,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.swapi.swapiV1.R // <-- IMPORT AÑADIDO
-import com.swapi.swapiV1.home.model.network.HomeApiImpl
+import com.swapi.swapiV1.R
+import com.swapi.swapiV1.home.model.dto.Product // <--- CAMBIO: Usamos Product
 import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.viewmodel.HomeUIState
 import com.swapi.swapiV1.home.viewmodel.HomeViewModel
@@ -42,7 +42,8 @@ import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SalesView(navController: NavController) {
-    val factory = HomeViewModelFactory(HomeRepository(HomeApiImpl.retrofitApi))
+    // Inicializamos el ViewModel (usando repo simple)
+    val factory = HomeViewModelFactory(HomeRepository())
     val viewModel: HomeViewModel = viewModel(factory = factory)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -75,6 +76,7 @@ fun SalesView(navController: NavController) {
                 FloatingActionButton(
                     onClick = {
                         fabScale = 0.85f
+                        // Asumo que NewPublication no espera argumentos por ahora
                         navController.navigate(ScreenNavigation.NewPublication.route)
                     },
                     modifier = Modifier
@@ -91,7 +93,6 @@ fun SalesView(navController: NavController) {
                 ) {
                     Icon(
                         Icons.Filled.Add,
-                        // CAMBIO:
                         contentDescription = stringResource(id = R.string.sales_fab_add_cd),
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
@@ -125,7 +126,6 @@ fun SalesView(navController: NavController) {
                                 color = swapiBrandColor
                             )
                             Text(
-                                // CAMBIO:
                                 stringResource(id = R.string.sales_loading_text),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -146,11 +146,8 @@ fun SalesView(navController: NavController) {
                                 tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                             )
                             Text(
-                                // CAMBIO:
                                 stringResource(id = R.string.sales_error_title),
-                                style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontWeight = FontWeight.Bold
-                                ),
+                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.error
                             )
                             Text(
@@ -163,11 +160,19 @@ fun SalesView(navController: NavController) {
                     }
 
                     is HomeUIState.Success -> {
-                        val allListings = state.sections.flatMap { it.listings }
-                        val filteredListings = if (searchQuery.isBlank()) allListings else {
-                            allListings.filter {
+                        // --- LÓGICA DE FILTRADO ---
+                        val allListings = state.products // Ahora es una lista plana
+
+                        // 1. Filtramos SOLO los de categoría "ventas" (Case insensitive)
+                        val salesListings = allListings.filter {
+                            it.category.equals("ventas", ignoreCase = true)
+                        }
+
+                        // 2. Filtramos por búsqueda si el usuario escribió algo
+                        val filteredListings = if (searchQuery.isBlank()) salesListings else {
+                            salesListings.filter {
                                 it.title.contains(searchQuery, ignoreCase = true) ||
-                                        it.category.contains(searchQuery, ignoreCase = true)
+                                        it.description.contains(searchQuery, ignoreCase = true)
                             }
                         }
 
@@ -177,18 +182,18 @@ fun SalesView(navController: NavController) {
                             exit = fadeOut(tween(300)) + scaleOut(targetScale = 0.97f, animationSpec = tween(300))
                         ) {
                             LazyVerticalGrid(
-                                columns = GridCells.Adaptive(minSize = 300.dp),
-                                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
-                                verticalArrangement = Arrangement.spacedBy(20.dp),
-                                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                columns = GridCells.Adaptive(minSize = 160.dp), // Ajusté el tamaño a 160dp para que quepan 2 columnas
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
                                 modifier = Modifier.fillMaxSize()
                             ) {
-                                items(filteredListings, key = { it.id }) { listing ->
+                                items(filteredListings, key = { it.id }) { product ->
                                     SaleProductCard(
-                                        listing = listing,
+                                        product = product, // Enviamos Product
                                         onClick = {
                                             navController.navigate(
-                                                ScreenNavigation.ProductDetail.createRoute(listing.id)
+                                                ScreenNavigation.ProductDetail.createRoute(product.id)
                                             )
                                         }
                                     )
@@ -196,8 +201,9 @@ fun SalesView(navController: NavController) {
                             }
                         }
 
+                        // Estado vacío (sin resultados)
                         AnimatedVisibility(
-                            visible = filteredListings.isEmpty() && searchQuery.isNotEmpty(),
+                            visible = filteredListings.isEmpty(),
                             enter = fadeIn(tween(400)),
                             exit = fadeOut(tween(300))
                         ) {
@@ -213,16 +219,15 @@ fun SalesView(navController: NavController) {
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                                 Text(
-                                    // CAMBIO:
                                     stringResource(id = R.string.sales_search_no_results_title),
-                                    style = MaterialTheme.typography.headlineSmall.copy(
-                                        fontWeight = FontWeight.Bold
-                                    ),
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    // CAMBIO:
-                                    stringResource(id = R.string.sales_search_no_results_subtitle),
+                                    if (searchQuery.isNotEmpty())
+                                        stringResource(id = R.string.sales_search_no_results_subtitle)
+                                    else
+                                        "No hay publicaciones de ventas disponibles aún.",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
@@ -270,7 +275,7 @@ private fun SalesTopBar(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        "Ventas", // NOTA: Esta no estaba en la lista que me diste
+                        "Ventas",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.SemiBold,
                             letterSpacing = 0.5.sp
@@ -278,7 +283,6 @@ private fun SalesTopBar(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        // CAMBIO:
                         stringResource(id = R.string.sales_header_subtitle),
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -300,7 +304,6 @@ private fun SalesTopBar(
                     .padding(horizontal = 24.dp, vertical = 12.dp),
                 placeholder = {
                     Text(
-                        // CAMBIO:
                         stringResource(id = R.string.sales_search_placeholder),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -309,7 +312,6 @@ private fun SalesTopBar(
                 leadingIcon = {
                     Icon(
                         Icons.Default.Search,
-                        // CAMBIO:
                         contentDescription = stringResource(id = R.string.sales_search_icon_cd),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier.size(20.dp)
