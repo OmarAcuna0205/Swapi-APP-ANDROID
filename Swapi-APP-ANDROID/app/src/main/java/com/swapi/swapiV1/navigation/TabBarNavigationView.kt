@@ -2,27 +2,13 @@ package com.swapi.swapiV1.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,17 +20,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.swapi.swapiV1.ads.AdsView
 import com.swapi.swapiV1.home.productdetail.view.ProductDetailView
+import com.swapi.swapiV1.home.views.CategoryProductView
 import com.swapi.swapiV1.home.views.HomeView
-import com.swapi.swapiV1.profile.view.ProfileView
+import com.swapi.swapiV1.profile.views.MyPostsView
+import com.swapi.swapiV1.profile.views.ProfileView
+import com.swapi.swapiV1.publication.views.EditPostView // Importante importar esto
 import com.swapi.swapiV1.publication.views.NewPublicationView
-import com.swapi.swapiV1.rents.RentsView
-// --- CAMBIO AQUÍ: Import para la nueva pantalla ---
 import com.swapi.swapiV1.saved.views.SavedPostsView
-// --- FIN DEL CAMBIO ---
-import com.swapi.swapiV1.sales.views.SalesView
-import com.swapi.swapiV1.services.ServicesView
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,7 +53,6 @@ fun TabBarNavigationView(
                         tonalElevation = 0.dp,
                         modifier = Modifier.height(85.dp)
                     ) {
-                        // Inicio
                         NavigationBarItem(
                             selected = currentRoute == ScreenNavigation.Home.route,
                             onClick = {
@@ -89,10 +71,7 @@ fun TabBarNavigationView(
                                 indicatorColor = Color.Transparent
                             )
                         )
-
                         Spacer(modifier = Modifier.weight(1f))
-
-                        // Perfil
                         NavigationBarItem(
                             selected = currentRoute == ScreenNavigation.Profile.route,
                             onClick = {
@@ -112,8 +91,6 @@ fun TabBarNavigationView(
                             )
                         )
                     }
-
-                    // Botón central flotante
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
@@ -122,12 +99,7 @@ fun TabBarNavigationView(
                         Box(
                             modifier = Modifier
                                 .size(72.dp)
-                                .shadow(
-                                    elevation = 20.dp,
-                                    shape = CircleShape,
-                                    ambientColor = Color.Black.copy(alpha = 0.6f),
-                                    spotColor = Color.Black.copy(alpha = 0.6f)
-                                )
+                                .shadow(20.dp, CircleShape, ambientColor = Color.Black.copy(0.6f))
                                 .clip(CircleShape)
                                 .background(Color.White)
                                 .padding(4.dp),
@@ -138,17 +110,10 @@ fun TabBarNavigationView(
                                     .size(64.dp)
                                     .clip(CircleShape)
                                     .background(swapiBlue)
-                                    .clickable {
-                                        navController.navigate(ScreenNavigation.NewPublication.route)
-                                    },
+                                    .clickable { navController.navigate(ScreenNavigation.NewPublication.route) },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Publicar",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(36.dp)
-                                )
+                                Icon(Icons.Default.Add, "Publicar", tint = Color.White, modifier = Modifier.size(36.dp))
                             }
                         }
                     }
@@ -162,31 +127,35 @@ fun TabBarNavigationView(
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(ScreenNavigation.Home.route) {
-                HomeView(navController = navController, dataStore = dataStore)
-            }
-            composable(ScreenNavigation.Profile.route) {
-                ProfileView(navController, onLogout = onLogout)
-            }
+            composable(ScreenNavigation.Home.route) { HomeView(navController, dataStore) }
+            composable(ScreenNavigation.Profile.route) { ProfileView(navController, onLogout) }
             composable(ScreenNavigation.NewPublication.route) { NewPublicationView(navController) }
-            composable(ScreenNavigation.Sales.route) { SalesView(navController = navController) }
-            composable(ScreenNavigation.Rents.route) { RentsView() }
-            composable(ScreenNavigation.Services.route) { ServicesView() }
-            composable(ScreenNavigation.Ads.route) { AdsView() }
+            composable(ScreenNavigation.MyPosts.route) { MyPostsView(navController) }
 
-            // --- CAMBIO AQUÍ: Ruta añadida para "Guardados" ---
-            composable(ScreenNavigation.SavedPosts.route) {
-                SavedPostsView(navController = navController)
-            }
-            // --- FIN DEL CAMBIO ---
+            composable(ScreenNavigation.Sales.route) { CategoryProductView(navController, category = "ventas") }
+            composable(ScreenNavigation.Rents.route) { CategoryProductView(navController, category = "rentas") }
+            composable(ScreenNavigation.Services.route) { CategoryProductView(navController, category = "servicios") }
+            composable(ScreenNavigation.Ads.route) { CategoryProductView(navController, category = "anuncios") }
+
+            composable(ScreenNavigation.SavedPosts.route) { SavedPostsView(navController) }
 
             composable(
                 route = ScreenNavigation.ProductDetail.route,
                 arguments = listOf(navArgument("productId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId")
-                requireNotNull(productId) { "El ID del producto no puede ser nulo" }
-                ProductDetailView(productId = productId, navController = navController)
+                requireNotNull(productId)
+                ProductDetailView(productId, navController)
+            }
+
+            // --- NUEVO COMPOSABLE PARA EDITAR ---
+            composable(
+                route = ScreenNavigation.EditPost.route,
+                arguments = listOf(navArgument("postId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val postId = backStackEntry.arguments?.getString("postId")
+                requireNotNull(postId)
+                EditPostView(postId = postId, navController = navController)
             }
         }
     }

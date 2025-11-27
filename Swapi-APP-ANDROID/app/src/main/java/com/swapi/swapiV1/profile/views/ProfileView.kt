@@ -1,7 +1,6 @@
-package com.swapi.swapiV1.profile.view
+package com.swapi.swapiV1.profile.views
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,16 +19,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil.compose.rememberAsyncImagePainter
 import com.swapi.swapiV1.R
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.profile.viewmodel.ProfileUiState
@@ -53,6 +49,7 @@ fun ProfileView(
     val uiState by vm.uiState.collectAsState()
     val context = LocalContext.current
 
+    // Definimos los items. Fíjate que el route "my_posts" es solo un identificador aquí.
     val activityItems = listOf(
         MenuItem(
             Icons.Default.ListAlt,
@@ -113,24 +110,35 @@ fun ProfileView(
                     .padding(paddingValues)
             ) {
                 item { ProfileHeader(uiState) }
-                item { ActionsGrid(navController) } // <-- Error arreglado
+                item { ActionsGrid(navController) }
 
-                item { SectionHeader(stringResource(R.string.profile_seccion_actividad)) } // <-- Error arreglado
+                item { SectionHeader(stringResource(R.string.profile_seccion_actividad)) }
+
+                // --- CORRECCIÓN AQUÍ ---
                 items(activityItems.size) { index ->
                     val item = activityItems[index]
                     val msgIrA = stringResource(R.string.profile_toast_ir_a, item.title)
-                    ProfileListItem(icon = item.icon, title = item.title, subtitle = item.subtitle) { // <-- Error arreglado
-                        Toast.makeText(context, msgIrA, Toast.LENGTH_SHORT).show()
+
+                    ProfileListItem(icon = item.icon, title = item.title, subtitle = item.subtitle) {
+                        // Verificamos si el item clicado es "my_posts"
+                        if (item.route == "my_posts") {
+                            // Navegamos a la pantalla real
+                            navController.navigate(ScreenNavigation.MyPosts.route)
+                        } else {
+                            // Para los demás (Historial), seguimos mostrando el Toast por ahora
+                            Toast.makeText(context, msgIrA, Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
+                // -----------------------
 
                 item { Divider(Modifier.padding(horizontal = 16.dp)) }
 
-                item { SectionHeader(stringResource(R.string.profile_seccion_cuenta)) } // <-- Error arreglado
+                item { SectionHeader(stringResource(R.string.profile_seccion_cuenta)) }
                 items(accountItems.size) { index ->
                     val item = accountItems[index]
                     val msgIrA = stringResource(R.string.profile_toast_ir_a, item.title)
-                    ProfileListItem(icon = item.icon, title = item.title, subtitle = item.subtitle) { // <-- Error arreglado
+                    ProfileListItem(icon = item.icon, title = item.title, subtitle = item.subtitle) {
                         if (item.route == "logout") {
                             onLogout()
                         } else {
@@ -142,8 +150,6 @@ fun ProfileView(
         }
     }
 }
-
-// --- ¡AQUÍ ESTÁN LOS AYUDANTES QUE FALTABAN! ---
 
 @Composable
 private fun ActionsGrid(navController: NavHostController) {
@@ -161,19 +167,19 @@ private fun ActionsGrid(navController: NavHostController) {
 
     Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            ActionCard(title = actions[0].first, icon = actions[0].second, modifier = Modifier.weight(1f)) { // <-- Error arreglado
+            ActionCard(title = actions[0].first, icon = actions[0].second, modifier = Modifier.weight(1f)) {
                 navController.navigate(ScreenNavigation.SavedPosts.route)
             }
-            ActionCard(title = actions[1].first, icon = actions[1].second, modifier = Modifier.weight(1f)) { // <-- Error arreglado
+            ActionCard(title = actions[1].first, icon = actions[1].second, modifier = Modifier.weight(1f)) {
                 Toast.makeText(context, msgIrA1, Toast.LENGTH_SHORT).show()
             }
         }
         Spacer(Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            ActionCard(title = actions[2].first, icon = actions[2].second, modifier = Modifier.weight(1f)) { // <-- Error arreglado
+            ActionCard(title = actions[2].first, icon = actions[2].second, modifier = Modifier.weight(1f)) {
                 Toast.makeText(context, msgIrA2, Toast.LENGTH_SHORT).show()
             }
-            ActionCard(title = actions[3].first, icon = actions[3].second, modifier = Modifier.weight(1f)) { // <-- Error arreglado
+            ActionCard(title = actions[3].first, icon = actions[3].second, modifier = Modifier.weight(1f)) {
                 Toast.makeText(context, msgIrA3, Toast.LENGTH_SHORT).show()
             }
         }

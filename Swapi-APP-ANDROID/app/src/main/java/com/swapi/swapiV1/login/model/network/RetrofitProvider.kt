@@ -1,15 +1,13 @@
 package com.swapi.swapiV1.login.model.network
 
 import android.content.Context
+import com.swapi.swapiV1.utils.Constants
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitProvider {
-    // TU IP LOCAL
-    private const val BASE_URL = "http://192.168.1.69:3000/" // <--- Confirma que siga siendo esta
-
     private var retrofit: Retrofit? = null
 
     fun setup(context: Context) {
@@ -18,21 +16,19 @@ object RetrofitProvider {
                 level = HttpLoggingInterceptor.Level.BODY
             }
 
-            // AQUI AGREGAMOS EL AUTH INTERCEPTOR
             val client = OkHttpClient.Builder()
                 .addInterceptor(logging)
-                .addInterceptor(AuthInterceptor(context)) // <--- ¡ESTO FALTABA!
+                .addInterceptor(AuthInterceptor(context))
                 .build()
 
             retrofit = Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(Constants.BASE_URL) // <--- Usamos la constante
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(client)
                 .build()
         }
     }
 
-    // Funciones seguras para obtener las APIs
     val authApi: AuthApi
         get() = retrofit!!.create(AuthApi::class.java)
 
