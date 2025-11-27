@@ -2,35 +2,24 @@ package com.swapi.swapiV1.home.model.dto
 
 import com.google.gson.annotations.SerializedName
 
-// Estructura principal del JSON
-data class HomeScreenResponse(
-    @SerializedName("homeScreen") val homeScreen: List<HomeSectionDto>
+// Representa la publicación (El "Post" de MongoDB)
+data class Product(
+    @SerializedName("_id") val id: String,
+    val title: String,
+    val description: String,
+    val price: Double,
+    val category: String,
+    val images: List<String>, // Lista de nombres de imagen
+    val author: AuthorDto,    // Objeto Autor completo
+    val isActive: Boolean,
+    @SerializedName("createdAt") val postDate: String
 )
 
-// Representa cada sección con un título y una lista de ads
-data class HomeSectionDto(
-    @SerializedName("sectionTitle") val sectionTitle: String,
-    @SerializedName("listings") val listings: List<ListingDto>
-)
-
-// Representa un anuncio o publicación individual
-data class ListingDto(
-    @SerializedName("id") val id: String,
-    @SerializedName("title") val title: String,
-    @SerializedName("description") val description: String,
-    @SerializedName("price") val price: Double,
-    @SerializedName("currency") val currency: String,
-    @SerializedName("category") val category: String,
-    @SerializedName("imageUrl") val imageUrl: String,
-    @SerializedName("postDate") val postDate: String,
-    @SerializedName("user") val user: UserDto
-)
-
-// Representa la información del usuario que publica
-data class UserDto(
-    @SerializedName("userId") val userId: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("avatarUrl") val avatarUrl: String,
-    @SerializedName("contactInfo") val contactInfo: String,
-    @SerializedName("phoneNumber") val phoneNumber: String? // <-- AÑADE EL SIGNO DE INTERROGACIÓN (?)
+// Representa al usuario dentro de la publicación
+data class AuthorDto(
+    @SerializedName("_id") val id: String,
+    val firstName: String,
+    val email: String,
+    val phone: String? = null,
+    val paternalSurname: String? = null
 )

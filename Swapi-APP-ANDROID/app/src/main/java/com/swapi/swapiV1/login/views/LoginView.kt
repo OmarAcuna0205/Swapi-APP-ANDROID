@@ -8,7 +8,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -18,7 +17,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
@@ -49,45 +47,53 @@ fun LoginView(
     navHostController: NavHostController,
     dataStore: DataStoreManager
 ) {
-    // --- LÓGICA (Sin cambios) ---
-    val context = LocalContext.current.applicationContext
+    // Contexto para el Toast
+    val context = LocalContext.current
 
-    // IMPORTANTE: Asegúrate de que RetrofitProvider tenga authApi accesible
+    // 1. Inyección de dependencias manual (Repository + Factory)
+    // Usamos 'remember' para no recrear el repo en cada recomposición
     val repo = remember { AuthRepository(RetrofitProvider.authApi) }
-    val vm: LoginViewModel = viewModel(factory = LoginViewModelFactory(repo))
+    val vm: LoginViewModel = viewModel(
+        factory = LoginViewModelFactory(repo, dataStore)
+    )
+
     val ui by vm.ui.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
+    // Función auxiliar para mostrar mensajes
     fun showToastSafe(text: String) {
         Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
     }
 
+    // 2. Escuchar eventos de Toast (Errores, mensajes)
     LaunchedEffect(vm) {
         vm.toastEvents.collectLatest { msg -> showToastSafe(msg) }
     }
 
-    // --- AQUÍ ESTABA EL ERROR ---
+    // 3. Escuchar eventos de Navegación (Login Exitoso)
     LaunchedEffect(Unit) {
         vm.navEvents.collectLatest { event ->
             when (event) {
                 is LoginViewModel.LoginNavEvent.GoHome -> {
+                    // Guardar sesión localmente también (por si acaso)
                     scope.launch {
                         dataStore.setLoggedIn(true)
                         dataStore.setUserName(event.userName ?: "Usuario")
                     }
+                    // Navegar al TabBar y borrar el Login del historial (back stack)
                     navHostController.navigate("tabbar") {
-                        popUpTo("login") { inclusive = true }
+                        popUpTo(ScreenNavigation.Login.route) { inclusive = true }
                         launchSingleTop = true
                     }
                 }
-                // Agregamos 'else' para cubrir GoVerifyCode y GoLogin que no se usan aquí
+                // Ignoramos los eventos de registro aquí (se manejan en las otras pantallas)
                 else -> {}
             }
         }
     }
 
-    // --- INTERFAZ ---
+    // --- INTERFAZ DE USUARIO ---
     val swapiBrandColor = Color(0xFF4A8BFF)
 
     Box(
@@ -178,6 +184,7 @@ fun LoginView(
                     unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
                     unfocusedLabelColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                 ),
+                // Al dar enter en el teclado, intenta loguear
                 keyboardActions = KeyboardActions(onDone = { vm.login() })
             )
 
@@ -218,7 +225,7 @@ fun LoginView(
             Spacer(Modifier.height(8.dp))
 
             // --- LINK OLVIDASTE CONTRASEÑA ---
-            TextButton(onClick = { /* TODO: Implementar */ }) {
+            TextButton(onClick = { /* TODO: Implementar recuperación */ }) {
                 Text(
                     stringResource(id = R.string.login_forgot_password),
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -230,10 +237,12 @@ fun LoginView(
 
             // --- DIVIDER "O" ---
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.weight(1f),
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
                     thickness = 1.dp
@@ -244,14 +253,14 @@ fun LoginView(
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                     style = MaterialTheme.typography.bodySmall
                 )
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.weight(1f),
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
                     thickness = 1.dp
                 )
             }
 
-            // --- BOTÓN SIGNUP ---
+            // --- BOTÓN SIGNUP (Crear cuenta) ---
             OutlinedButton(
                 onClick = { navHostController.navigate(ScreenNavigation.SignUpEmail.route) },
                 modifier = Modifier

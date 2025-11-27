@@ -21,7 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource // <-- IMPORT AÑADIDO
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,24 +30,25 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.swapi.swapiV1.R // <-- IMPORT AÑADIDO
-import com.swapi.swapiV1.home.model.network.HomeApiImpl
+import com.swapi.swapiV1.R
 import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.viewmodel.HomeUIState
 import com.swapi.swapiV1.home.viewmodel.HomeViewModel
 import com.swapi.swapiV1.home.viewmodel.HomeViewModelFactory
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedPostsView(navController: NavController) {
-    val factory = HomeViewModelFactory(HomeRepository(HomeApiImpl.retrofitApi))
+    // Inicializamos ViewModel con repo simple
+    val factory = HomeViewModelFactory(HomeRepository())
     val viewModel: HomeViewModel = viewModel(factory = factory)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     var searchQuery by remember { mutableStateOf("") }
-
     val swapiBrandColor = Color(0xFF4A8BFF)
 
     Box(
@@ -91,7 +92,6 @@ fun SavedPostsView(navController: NavController) {
                                 color = swapiBrandColor
                             )
                             Text(
-                                // --- CAMBIO ---
                                 stringResource(R.string.saved_cargando),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -112,16 +112,13 @@ fun SavedPostsView(navController: NavController) {
                                 tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                             )
                             Text(
-                                // --- CAMBIO ---
                                 stringResource(R.string.saved_error_titulo),
-                                style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontWeight = FontWeight.Bold
-                                ),
+                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.error,
                                 textAlign = TextAlign.Center
                             )
                             Text(
-                                state.message, // Dinámico
+                                state.message,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
@@ -130,7 +127,10 @@ fun SavedPostsView(navController: NavController) {
                     }
 
                     is HomeUIState.Success -> {
-                        val allListings = state.sections.flatMap { it.listings }
+                        // --- LOGICA DE FILTRADO ---
+                        // Como no tenemos endpoint de "Guardados" real, mostramos todos
+                        // Simulando que el usuario guardó todo lo que ve.
+                        val allListings = state.products // Usamos products (lista plana)
 
                         val filteredListings = if (searchQuery.isBlank()) allListings else {
                             allListings.filter {
@@ -145,20 +145,29 @@ fun SavedPostsView(navController: NavController) {
                             exit = fadeOut(tween(300)) + scaleOut(targetScale = 0.97f, animationSpec = tween(300))
                         ) {
                             LazyVerticalGrid(
-                                columns = GridCells.Adaptive(minSize = 300.dp),
-                                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
-                                verticalArrangement = Arrangement.spacedBy(20.dp),
-                                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                columns = GridCells.Adaptive(minSize = 160.dp), // Ajustado a 160dp
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
                                 modifier = Modifier.fillMaxSize()
                             ) {
-                                items(filteredListings, key = { it.id }) { listing ->
+                                items(filteredListings, key = { it.id }) { product ->
+                                    // Construimos URL de imagen
+                                    val baseUrl = "http://192.168.1.69:3000/storage/"
+                                    val imageUrl = if (product.images.isNotEmpty()) baseUrl + product.images[0] else ""
+
+                                    // Formateamos precio
+                                    val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
+                                    format.maximumFractionDigits = 0
+                                    val priceFormatted = format.format(product.price)
+
                                     SavedItemCard(
-                                        title = listing.title,
-                                        price = "$${listing.price} ${listing.currency}",
-                                        imageUrl = listing.imageUrl,
+                                        title = product.title,
+                                        price = priceFormatted,
+                                        imageUrl = imageUrl,
                                         onClick = {
                                             navController.navigate(
-                                                ScreenNavigation.ProductDetail.createRoute(listing.id)
+                                                ScreenNavigation.ProductDetail.createRoute(product.id)
                                             )
                                         }
                                     )
@@ -183,15 +192,11 @@ fun SavedPostsView(navController: NavController) {
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                                 Text(
-                                    // --- CAMBIO (Reutilizamos la string de Sales) ---
                                     stringResource(R.string.sales_search_no_results_title),
-                                    style = MaterialTheme.typography.headlineSmall.copy(
-                                        fontWeight = FontWeight.Bold
-                                    ),
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    // --- CAMBIO (Reutilizamos la string de Sales) ---
                                     stringResource(R.string.sales_search_no_results_subtitle),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -216,7 +221,6 @@ private fun SavedTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
-            // --- CAMBIO: Añadido padding para la barra de estado ---
             .windowInsetsPadding(WindowInsets.statusBars),
         shadowElevation = 10.dp,
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
@@ -236,14 +240,12 @@ private fun SavedTopBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    // --- CAMBIO: Quitado el padding 'top = 40.dp' ---
                     .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        // --- CAMBIO ---
                         stringResource(R.string.saved_titulo),
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.SemiBold,
@@ -252,7 +254,6 @@ private fun SavedTopBar(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        // --- CAMBIO ---
                         stringResource(R.string.saved_subtitulo),
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -274,7 +275,6 @@ private fun SavedTopBar(
                     .padding(horizontal = 24.dp, vertical = 12.dp),
                 placeholder = {
                     Text(
-                        // --- CAMBIO ---
                         stringResource(R.string.saved_buscar_placeholder),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -283,7 +283,6 @@ private fun SavedTopBar(
                 leadingIcon = {
                     Icon(
                         Icons.Default.Search,
-                        // --- CAMBIO (Reutilizamos la string de Sales) ---
                         contentDescription = stringResource(R.string.sales_search_icon_cd),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier.size(20.dp)
@@ -315,35 +314,40 @@ private fun SavedItemCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.clickable(onClick = onClick),
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .height(260.dp), // Altura fija para uniformidad
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column {
             Image(
                 painter = rememberAsyncImagePainter(model = imageUrl),
-                contentDescription = title, // Dinámico, está bien
+                contentDescription = title,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .height(150.dp) // Imagen un poco más pequeña para que quepa texto
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentScale = ContentScale.Crop
             )
 
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .padding(12.dp)
+                    .fillMaxHeight(), // Ocupar el resto
+                verticalArrangement = Arrangement.SpaceBetween // Precio al fondo
             ) {
                 Text(
-                    text = title, // Dinámico
+                    text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 2
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
                 Text(
-                    text = price, // Dinámico
+                    text = price,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Color(0xFF4A8BFF), // Brand color
                     fontWeight = FontWeight.SemiBold
                 )
             }

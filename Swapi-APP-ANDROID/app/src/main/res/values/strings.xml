@@ -101,7 +101,7 @@
     <string name="new_pub_descripcion_label">Description</string>
     <string name="new_pub_precio_label">Price</string>
     <string name="new_pub_categoria_label">Category</string>
-    <string name="new_pub_categoria_info">Information</string>
+    <string name="new_pub_categoria_info">Announcements</string>
     <string name="new_pub_imagen_cd">Upload image</string>
     <string name="new_pub_imagen_seleccionada_cd">Selected image</string>
     <string name="new_pub_boton_seleccionar_img">Select Image</string>

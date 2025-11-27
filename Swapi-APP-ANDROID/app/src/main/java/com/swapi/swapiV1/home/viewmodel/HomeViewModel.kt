@@ -2,82 +2,65 @@ package com.swapi.swapiV1.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.swapi.swapiV1.home.model.dto.HomeSectionDto
 import com.swapi.swapiV1.home.model.repository.HomeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.io.IOException
 
-// (Asumo que tu archivo HomeUIState.kt está en esta misma ruta)
-// sealed interface HomeUIState { ... }
+class HomeViewModel(
+    private val repository: HomeRepository
+) : ViewModel() {
 
-class HomeViewModel(private val repository: HomeRepository) : ViewModel() {
-
+    // Estado principal de la UI (Carga, Éxito con productos, Error)
     private val _uiState = MutableStateFlow<HomeUIState>(HomeUIState.Loading)
     val uiState: StateFlow<HomeUIState> = _uiState.asStateFlow()
 
+    // --- NUEVAS VARIABLES PARA EL BUSCADOR ---
+    // Controla si la barrita de búsqueda está visible o no
     private val _showSearchBar = MutableStateFlow(false)
     val showSearchBar: StateFlow<Boolean> = _showSearchBar.asStateFlow()
 
+    // Controla el texto que el usuario escribe
     private val _searchText = MutableStateFlow("")
     val searchText: StateFlow<String> = _searchText.asStateFlow()
 
     init {
-        fetchHomeData()
+        loadProducts()
     }
 
-    fun onToggleSearchBar() {
-        _showSearchBar.value = !_showSearchBar.value
-        // Si se cierra la barra, limpia el texto y restaura los datos
-        if (!_showSearchBar.value) {
-            _searchText.value = ""
-            fetchHomeData() // Vuelve a cargar los datos originales
-        }
-    }
-
-    // --- CAMBIO PRINCIPAL ---
-    // Ahora, cada vez que el texto cambia, se ejecuta la búsqueda.
-    fun onSearchTextChange(text: String) {
-        _searchText.value = text // 1. Actualiza el texto en la barra
-
-        if (text.isBlank()) {
-            // 2a. Si el texto está vacío, restaura la lista original
-            fetchHomeData()
-        } else {
-            // 2b. Si hay texto, ejecuta la lógica de búsqueda INMEDIATAMENTE
-            viewModelScope.launch {
-                // (No mostramos Loading para que se sienta más rápido)
-                try {
-                    val searchResults = repository.searchListings(text)
-                    _uiState.value = HomeUIState.Success(sections = searchResults)
-                } catch (e: Exception) {
-                    _uiState.value = HomeUIState.Error("Error al buscar: ${e.message}")
-                }
-            }
-        }
-    }
-
-    // Esta función es para la acción del teclado (Enter)
-    fun onSearchSubmit() {
-        // La búsqueda ya se hizo "en vivo".
-        // No necesitamos hacer nada extra, la TopBar ya oculta el teclado.
-    }
-    // -------------------------
-
-    fun fetchHomeData() {
-        // (Esta función se queda igual)
+    private fun loadProducts() {
         viewModelScope.launch {
             _uiState.value = HomeUIState.Loading
             try {
-                val response = repository.getHomeScreenData()
-                _uiState.value = HomeUIState.Success(sections = response.homeScreen)
-            } catch (e: IOException) {
-                _uiState.value = HomeUIState.Error("Error de conexión. Revisa tu internet.")
+                val products = repository.getProducts()
+                _uiState.value = HomeUIState.Success(products)
             } catch (e: Exception) {
-                _uiState.value = HomeUIState.Error("Ocurrió un error inesperado: ${e.message}")
+                _uiState.value = HomeUIState.Error("Error al cargar: ${e.message}")
             }
         }
+    }
+
+    // --- FUNCIONES QUE FALTABAN ---
+
+    // Se llama cada vez que escribes una letra
+    fun onSearchTextChange(text: String) {
+        _searchText.value = text
+    }
+
+    // Se llama al picarle a la lupa para mostrar/ocultar
+    fun onToggleSearchBar() {
+        _showSearchBar.value = !_showSearchBar.value
+        if (!_showSearchBar.value) {
+            // Si la cierran, limpiamos el texto para que vuelvan a salir todos los productos
+            _searchText.value = ""
+        }
+    }
+
+    // Se llama al darle "Enter" o "Buscar" en el teclado
+    fun onSearchSubmit() {
+        // Por ahora el filtrado es local (en HomeView), así que aquí no necesitamos
+        // llamar al backend, pero podrías agregar lógica extra si quisieras.
+        println("Buscando: ${_searchText.value}")
     }
 }

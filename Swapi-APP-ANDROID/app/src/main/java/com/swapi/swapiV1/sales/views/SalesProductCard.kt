@@ -18,24 +18,29 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource // <-- IMPORT AÑADIDO
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.swapi.swapiV1.R // <-- IMPORT AÑADIDO
-import com.swapi.swapiV1.home.model.dto.ListingDto
+import com.swapi.swapiV1.R
+import com.swapi.swapiV1.home.model.dto.Product // <--- CAMBIO: Usamos Product
 import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
 fun SaleProductCard(
-    listing: ListingDto,
+    product: Product, // <--- CAMBIO: Recibimos Product
     onClick: () -> Unit
 ) {
     val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
     format.maximumFractionDigits = 0
+
+    // Construcción de la URL de la imagen
+    // Asegúrate de usar TU IP local correcta
+    val baseUrl = "http://192.168.1.69:3000/storage/"
+    val imageUrl = if (product.images.isNotEmpty()) baseUrl + product.images[0] else ""
 
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -75,7 +80,7 @@ fun SaleProductCard(
                     )
                 )
         ) {
-            // Imagen superior (sin cambios)
+            // Imagen superior
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -83,8 +88,8 @@ fun SaleProductCard(
                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
             ) {
                 AsyncImage(
-                    model = listing.imageUrl,
-                    contentDescription = listing.title,
+                    model = imageUrl, // <--- CAMBIO: Usamos la URL construida
+                    contentDescription = product.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -100,14 +105,14 @@ fun SaleProductCard(
                 )
             }
 
-            // Contenido textual (sin cambios)
+            // Contenido textual
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 16.dp)
             ) {
                 Text(
-                    text = listing.category.uppercase(),
+                    text = product.category.uppercase(), // <--- CAMBIO: product.category
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
@@ -118,7 +123,7 @@ fun SaleProductCard(
                 Spacer(Modifier.height(4.dp))
 
                 Text(
-                    text = listing.title,
+                    text = product.title, // <--- CAMBIO: product.title
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 17.sp
@@ -136,7 +141,7 @@ fun SaleProductCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = format.format(listing.price),
+                        text = format.format(product.price), // <--- CAMBIO: product.price
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 19.sp
@@ -154,7 +159,6 @@ fun SaleProductCard(
                     ) {
                         Icon(
                             Icons.Filled.ArrowForward,
-                            // CAMBIO:
                             contentDescription = stringResource(id = R.string.sales_card_details_cd),
                             tint = swapiBrandColor,
                             modifier = Modifier.size(20.dp)
