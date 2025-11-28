@@ -57,16 +57,13 @@ fun EditPostView(
     LaunchedEffect(uiState) {
         if (uiState is EditUiState.Success) {
             val product = (uiState as EditUiState.Success).product
-            // Solo llenamos si está vacío para no sobrescribir lo que el usuario esté editando
             if (titulo.isEmpty()) {
                 titulo = product.title
                 descripcion = product.description
 
-                // Formato de precio sin decimales .0
                 val df = DecimalFormat("#.##")
                 precio = df.format(product.price)
 
-                // Capitalizar primera letra de categoría
                 categoria = product.category.replaceFirstChar { it.uppercase() }
 
                 if (product.images.isNotEmpty()) {
@@ -80,7 +77,14 @@ fun EditPostView(
     LaunchedEffect(updateSuccess) {
         if (updateSuccess == true) {
             Toast.makeText(context, "Publicación actualizada correctamente", Toast.LENGTH_SHORT).show()
-            navController.popBackStack() // Volver atrás
+
+            // --- CORRECCIÓN AQUI: AVISAR AL HOME (O PANTALLA ANTERIOR) ---
+            navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.set("refresh_home", true)
+            // --------------------------------------------------------------
+
+            navController.popBackStack()
             viewModel.resetState()
         } else if (updateSuccess == false) {
             Toast.makeText(context, "Error al actualizar la publicación", Toast.LENGTH_SHORT).show()
@@ -227,7 +231,7 @@ fun EditPostView(
                                         title = titulo,
                                         description = descripcion,
                                         price = precio,
-                                        category = categoria // El repositorio la pasará a minúsculas
+                                        category = categoria
                                     )
                                 } else {
                                     Toast.makeText(context, "Por favor completa los campos", Toast.LENGTH_SHORT).show()

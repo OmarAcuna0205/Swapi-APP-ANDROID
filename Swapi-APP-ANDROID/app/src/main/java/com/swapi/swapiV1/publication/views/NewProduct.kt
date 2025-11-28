@@ -35,12 +35,13 @@ import com.swapi.swapiV1.publication.viewmodel.NewPublicationViewModel
 @Composable
 fun NewPublicationView(
     navController: NavController,
-    viewModel: NewPublicationViewModel = viewModel() // 1. Inyectamos el ViewModel aquí
+    viewModel: NewPublicationViewModel = viewModel()
 ) {
     // Variables de estado y contexto
     val context = LocalContext.current
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val publishSuccess by viewModel.publishSuccess.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
 
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
@@ -49,14 +50,18 @@ fun NewPublicationView(
     var expanded by remember { mutableStateOf(false) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // 2. Escuchamos el resultado: Si fue exitoso, cerramos la pantalla
+    // 2. Escuchamos el resultado
     LaunchedEffect(publishSuccess) {
         if (publishSuccess == true) {
             Toast.makeText(context, "¡Publicado con éxito!", Toast.LENGTH_LONG).show()
-            navController.popBackStack() // Regresamos al feed y se actualiza
+            navController.previousBackStackEntry?.savedStateHandle?.set("refresh_home", true)
+            navController.popBackStack()
             viewModel.resetState()
         } else if (publishSuccess == false) {
-            Toast.makeText(context, "Error al publicar. Revisa tu conexión.", Toast.LENGTH_LONG).show()
+            // --- AQUÍ USAMOS EL MENSAJE DEL BACKEND ---
+            val msg = errorMessage ?: "Error al publicar. Revisa tu conexión."
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+
             viewModel.resetState()
         }
     }
@@ -109,7 +114,6 @@ fun NewPublicationView(
                 )
                 .padding(padding)
         ) {
-            // Indicador de carga al centro si está subiendo
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
@@ -129,7 +133,7 @@ fun NewPublicationView(
                     label = { Text(stringResource(R.string.new_pub_titulo_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    enabled = !isLoading // Deshabilitar si está cargando
+                    enabled = !isLoading
                 )
 
                 OutlinedTextField(
@@ -219,16 +223,10 @@ fun NewPublicationView(
                     }
                 }
 
-                // 3. Botón CONECTADO al ViewModel
                 Button(
                     onClick = {
-                        // Validamos que no haya campos vacíos
                         if (titulo.isNotBlank() && precio.isNotBlank() && categoria.isNotBlank()) {
-
-                            // Convertimos el nombre visual ("Ventas") al nombre técnico ("ventas")
                             val backendCategory = categoriasMap[categoria] ?: "ventas"
-
-                            // Llamamos a la función de publicar
                             viewModel.publish(
                                 context = context,
                                 title = titulo,
@@ -245,7 +243,7 @@ fun NewPublicationView(
                         .fillMaxWidth()
                         .height(55.dp),
                     shape = RoundedCornerShape(14.dp),
-                    enabled = !isLoading // Evita doble click
+                    enabled = !isLoading
                 ) {
                     if (isLoading) {
                         Text("Publicando...", fontSize = 18.sp)

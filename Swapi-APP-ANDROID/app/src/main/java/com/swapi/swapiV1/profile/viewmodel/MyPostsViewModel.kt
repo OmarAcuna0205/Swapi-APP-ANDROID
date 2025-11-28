@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-// Estado de la UI
+// UI State
 sealed class MyPostsUiState {
     object Loading : MyPostsUiState()
     data class Success(val posts: List<Product>) : MyPostsUiState()
@@ -23,6 +23,10 @@ class MyPostsViewModel(
     private val _uiState = MutableStateFlow<MyPostsUiState>(MyPostsUiState.Loading)
     val uiState: StateFlow<MyPostsUiState> = _uiState.asStateFlow()
 
+    // New state to notify the View when a post is deleted
+    private val _deleteSuccess = MutableStateFlow(false)
+    val deleteSuccess: StateFlow<Boolean> = _deleteSuccess.asStateFlow()
+
     init {
         loadMyPosts()
     }
@@ -35,26 +39,28 @@ class MyPostsViewModel(
                 if (posts != null) {
                     _uiState.value = MyPostsUiState.Success(posts)
                 } else {
-                    _uiState.value = MyPostsUiState.Error("Error al cargar publicaciones.")
+                    _uiState.value = MyPostsUiState.Error("Error loading posts.")
                 }
             } catch (e: Exception) {
-                _uiState.value = MyPostsUiState.Error(e.message ?: "Error desconocido")
+                _uiState.value = MyPostsUiState.Error(e.message ?: "Unknown error")
             }
         }
     }
 
     fun deletePost(postId: String) {
         viewModelScope.launch {
-            // Podrías poner un estado de carga aquí si quisieras bloquear la UI
             val success = repository.deletePost(postId)
             if (success) {
-                // Recargamos la lista para que desaparezca el item borrado
-                loadMyPosts()
+                loadMyPosts() // Reload local list
+                _deleteSuccess.value = true // Notify UI to trigger Home refresh
             } else {
-                // Opcional: Manejar error de borrado (toast, snackbar, etc)
-                // Por ahora solo recargamos para asegurar consistencia
+                // Handle error if needed
                 loadMyPosts()
             }
         }
+    }
+
+    fun resetDeleteState() {
+        _deleteSuccess.value = false
     }
 }

@@ -31,11 +31,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.swapi.swapiV1.R
-import com.swapi.swapiV1.home.model.repository.HomeRepository
-import com.swapi.swapiV1.home.viewmodel.HomeUIState
-import com.swapi.swapiV1.home.viewmodel.HomeViewModel
-import com.swapi.swapiV1.home.viewmodel.HomeViewModelFactory
 import com.swapi.swapiV1.navigation.ScreenNavigation
+import com.swapi.swapiV1.saved.viewmodel.SavedPostsViewModel // Importar el nuevo VM
+import com.swapi.swapiV1.saved.viewmodel.SavedUIState // Importar el nuevo State
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 import java.text.NumberFormat
 import java.util.Locale
@@ -43,10 +41,14 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedPostsView(navController: NavController) {
-    // Inicializamos ViewModel con repo simple
-    val factory = HomeViewModelFactory(HomeRepository())
-    val viewModel: HomeViewModel = viewModel(factory = factory)
+    // 1. Usamos el nuevo SavedPostsViewModel
+    val viewModel: SavedPostsViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // 2. Recargar cada vez que entramos a la pantalla (por si guardaste algo nuevo)
+    LaunchedEffect(Unit) {
+        viewModel.loadSavedPosts()
+    }
 
     var searchQuery by remember { mutableStateOf("") }
     val swapiBrandColor = Color(0xFF4A8BFF)
@@ -80,8 +82,9 @@ fun SavedPostsView(navController: NavController) {
                     .dismissKeyboardOnClick(),
                 contentAlignment = Alignment.Center
             ) {
+                // 3. Usamos el SavedUIState
                 when (val state = uiState) {
-                    is HomeUIState.Loading -> {
+                    is SavedUIState.Loading -> {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -99,7 +102,7 @@ fun SavedPostsView(navController: NavController) {
                         }
                     }
 
-                    is HomeUIState.Error -> {
+                    is SavedUIState.Error -> {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -112,7 +115,7 @@ fun SavedPostsView(navController: NavController) {
                                 tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                             )
                             Text(
-                                stringResource(R.string.saved_error_titulo),
+                                "Error", // Puedes usar un string resource aquí
                                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.error,
                                 textAlign = TextAlign.Center
@@ -126,39 +129,54 @@ fun SavedPostsView(navController: NavController) {
                         }
                     }
 
-                    is HomeUIState.Success -> {
-                        // --- LOGICA DE FILTRADO ---
-                        // Como no tenemos endpoint de "Guardados" real, mostramos todos
-                        // Simulando que el usuario guardó todo lo que ve.
-                        val allListings = state.products // Usamos products (lista plana)
+                    is SavedUIState.Success -> {
+                        val allListings = state.products
 
-                        val filteredListings = if (searchQuery.isBlank()) allListings else {
-                            allListings.filter {
-                                it.title.contains(searchQuery, ignoreCase = true) ||
-                                        it.category.contains(searchQuery, ignoreCase = true)
+                        // Si la lista está vacía (no has guardado nada)
+                        if (allListings.isEmpty()) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                modifier = Modifier.padding(32.dp)
+                            ) {
+                                Icon(
+                                    Icons.Filled.Bookmark,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(72.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                                )
+                                Text(
+                                    "Aún no tienes guardados",
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    "Explora el inicio y guarda lo que te guste.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
                             }
-                        }
+                        } else {
+                            // Filtrado local en la lista de guardados
+                            val filteredListings = if (searchQuery.isBlank()) allListings else {
+                                allListings.filter {
+                                    it.title.contains(searchQuery, ignoreCase = true) ||
+                                            it.category.contains(searchQuery, ignoreCase = true)
+                                }
+                            }
 
-                        AnimatedVisibility(
-                            visible = filteredListings.isNotEmpty(),
-                            enter = fadeIn(tween(500)) + scaleIn(initialScale = 0.97f, animationSpec = tween(500)),
-                            exit = fadeOut(tween(300)) + scaleOut(targetScale = 0.97f, animationSpec = tween(300))
-                        ) {
                             LazyVerticalGrid(
-                                columns = GridCells.Adaptive(minSize = 160.dp), // Ajustado a 160dp
+                                columns = GridCells.Adaptive(minSize = 160.dp),
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 items(filteredListings, key = { it.id }) { product ->
-                                    // Construimos URL de imagen
-                                    // val baseUrl = "http://192.168.1.69:3000/storage/"
                                     val baseUrl = "http://10.0.2.2:3000/storage/"
-
                                     val imageUrl = if (product.images.isNotEmpty()) baseUrl + product.images[0] else ""
 
-                                    // Formateamos precio
                                     val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
                                     format.maximumFractionDigits = 0
                                     val priceFormatted = format.format(product.price)
@@ -176,36 +194,6 @@ fun SavedPostsView(navController: NavController) {
                                 }
                             }
                         }
-
-                        AnimatedVisibility(
-                            visible = filteredListings.isEmpty() && searchQuery.isNotEmpty(),
-                            enter = fadeIn(tween(400)),
-                            exit = fadeOut(tween(300))
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                modifier = Modifier.padding(32.dp)
-                            ) {
-                                Icon(
-                                    Icons.Filled.Search,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(72.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                )
-                                Text(
-                                    stringResource(R.string.sales_search_no_results_title),
-                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    stringResource(R.string.sales_search_no_results_subtitle),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
                     }
                 }
             }
@@ -213,6 +201,7 @@ fun SavedPostsView(navController: NavController) {
     }
 }
 
+// ... (El resto de funciones auxiliares SavedTopBar y SavedItemCard se quedan igual)
 @Composable
 private fun SavedTopBar(
     searchQuery: String,

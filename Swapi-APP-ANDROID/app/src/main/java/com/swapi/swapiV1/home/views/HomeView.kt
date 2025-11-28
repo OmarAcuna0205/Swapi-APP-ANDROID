@@ -63,6 +63,22 @@ fun HomeView(
     val searchText by viewModel.searchText.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
+    // --- CORRECCIÓN AQUI: DETECTAR SEÑAL DE REFRESH ---
+    val currentBackStack = navController.currentBackStackEntry
+    // Observamos si "refresh_home" cambia a true. Usamos getStateFlow para que sea reactivo.
+    val refreshHomeState by currentBackStack?.savedStateHandle
+        ?.getStateFlow("refresh_home", false)
+        ?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
+
+    LaunchedEffect(refreshHomeState) {
+        if (refreshHomeState) {
+            viewModel.onRefresh()
+            // Importante: Reseteamos la bandera a false para que no se cicle
+            currentBackStack?.savedStateHandle?.set("refresh_home", false)
+        }
+    }
+    // ---------------------------------------------------
+
     // Configuración del Pull to Refresh
     val pullRefreshState = rememberPullToRefreshState()
     if (pullRefreshState.isRefreshing) {
@@ -130,19 +146,18 @@ fun HomeView(
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
                     ) {
-                        // 1. BARRA DE BÚSQUEDA (Ahora es parte del contenido y hace scroll)
-                        Spacer(modifier = Modifier.height(8.dp)) // Un poco de aire arriba
+                        // 1. BARRA DE BÚSQUEDA
+                        Spacer(modifier = Modifier.height(8.dp))
                         SwapiTopBar(
                             searchText = searchText,
                             onSearchTextChange = viewModel::onSearchTextChange
                         )
 
-                        // 2. BIENVENIDA (Más grande y visible solo si no buscas)
+                        // 2. BIENVENIDA
                         AnimatedVisibility(visible = !isEmpty) {
                             if (searchText.isBlank()) {
                                 Text(
                                     text = stringResource(R.string.home_bienvenida, userName),
-                                    // CAMBIO: De headlineSmall a headlineMedium para que se vea más grande
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.ExtraBold,
                                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp)
@@ -226,7 +241,7 @@ fun HomeView(
     }
 }
 
-// ... (El resto de funciones auxiliares: SectionHeader y ModernProductCard se mantienen igual)
+// ... (El resto de funciones auxiliares se mantienen igual)
 @Composable
 fun SectionHeader(title: String, onSeeMoreClicked: () -> Unit) {
     Row(

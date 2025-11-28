@@ -29,16 +29,54 @@ fun MyPostsView(navController: NavController) {
     val viewModel: MyPostsViewModel = viewModel(factory = factory)
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val deleteSuccess by viewModel.deleteSuccess.collectAsStateWithLifecycle()
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var postToDeleteId by remember { mutableStateOf<String?>(null) }
 
-    // (Diálogo de alerta... código igual que antes)
+    // --- HELPER FUNCTION TO NOTIFY HOME ---
+    // This finds the Home entry in the backstack and sets the flag
+    fun notifyHomeToRefresh() {
+        try {
+            // IMPORTANT: Replace "home_route" with your actual Home route string
+            // e.g. ScreenNavigation.Home.route or just "home"
+            val homeRoute = "home"
+            navController.getBackStackEntry(homeRoute)
+                .savedStateHandle["refresh_home"] = true
+        } catch (e: Exception) {
+            // Home is not in the backstack (should not happen in normal flow)
+            e.printStackTrace()
+        }
+    }
+
+    // --- LOGIC: HANDLE DELETE SUCCESS ---
+    LaunchedEffect(deleteSuccess) {
+        if (deleteSuccess) {
+            notifyHomeToRefresh() // <--- Notify Home
+            viewModel.resetDeleteState()
+        }
+    }
+
+    // --- LOGIC: HANDLE RETURN FROM EDIT ---
+    val currentBackStackEntry = navController.currentBackStackEntry
+    val shouldRefreshFromEdit by currentBackStackEntry?.savedStateHandle
+        ?.getStateFlow("refresh_home", false)
+        ?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
+
+    LaunchedEffect(shouldRefreshFromEdit) {
+        if (shouldRefreshFromEdit) {
+            viewModel.loadMyPosts() // Refresh this list
+            notifyHomeToRefresh()   // <--- PROPAGATE signal to Home
+            currentBackStackEntry?.savedStateHandle?.set("refresh_home", false)
+        }
+    }
+    // ------------------------------------
+
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Eliminar publicación") },
-            text = { Text("¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer.") },
+            title = { Text("Delete Post") },
+            text = { Text("Are you sure you want to delete this post? This action cannot be undone.") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -47,10 +85,10 @@ fun MyPostsView(navController: NavController) {
                         postToDeleteId = null
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) { Text("Eliminar") }
+                ) { Text("Delete") }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancelar") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
             }
         )
     }
@@ -58,10 +96,10 @@ fun MyPostsView(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mis Publicaciones", fontWeight = FontWeight.Bold) },
+                title = { Text("My Posts", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -86,7 +124,7 @@ fun MyPostsView(navController: NavController) {
                 is MyPostsUiState.Success -> {
                     if (state.posts.isEmpty()) {
                         Text(
-                            text = "Aún no has publicado nada.",
+                            text = "You haven't posted anything yet.",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.align(Alignment.Center),
@@ -104,7 +142,6 @@ fun MyPostsView(navController: NavController) {
                                         navController.navigate(ScreenNavigation.ProductDetail.createRoute(post.id))
                                     },
                                     onEditClick = {
-                                        // --- AQUÍ CONECTAMOS LA NAVEGACIÓN ---
                                         navController.navigate(ScreenNavigation.EditPost.createRoute(post.id))
                                     },
                                     onDeleteClick = {
