@@ -4,12 +4,13 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.swapi.swapiV1.home.model.dto.Product
-import com.swapi.swapiV1.home.model.dto.UpdatePostRequest // <--- ¡IMPORTANTE IMPORTAR ESTO!
+import com.swapi.swapiV1.home.model.dto.UpdatePostRequest
 import com.swapi.swapiV1.home.model.network.PostApiImpl
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject // <--- IMPORTANTE: Para leer el mensaje de error del backend
 import java.io.File
 import java.io.FileOutputStream
 
@@ -36,7 +37,6 @@ class PostRepository {
         }
     }
 
-    // --- CORREGIDO: Usamos UpdatePostRequest en vez de Map ---
     suspend fun updatePost(
         id: String,
         title: String,
@@ -45,7 +45,6 @@ class PostRepository {
         category: String
     ): Boolean {
         return try {
-            // AQUÍ ESTABA EL ERROR: Usamos la clase, no un mapa
             val requestBody = UpdatePostRequest(
                 title = title,
                 description = description,
@@ -56,7 +55,6 @@ class PostRepository {
             val response = api.updatePost(id, requestBody)
 
             if (!response.isSuccessful) {
-                // Logueamos el error del servidor si falla
                 Log.e("PostRepo", "Error update: ${response.code()} - ${response.errorBody()?.string()}")
             }
             response.isSuccessful
@@ -66,6 +64,7 @@ class PostRepository {
         }
     }
 
+    // --- CORREGIDO: Regresa Pair<Boolean, String?> para manejar el mensaje de error ---
     suspend fun createPost(
         context: Context,
         title: String,
@@ -73,7 +72,7 @@ class PostRepository {
         price: String,
         category: String,
         imageUri: Uri?
-    ): Boolean {
+    ): Pair<Boolean, String?> {
         return try {
             val titlePart = title.toRequestBody("text/plain".toMediaTypeOrNull())
             val descPart = description.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -90,10 +89,23 @@ class PostRepository {
             }
 
             val response = api.createPost(imagePart, titlePart, descPart, pricePart, catPart)
-            response.isSuccessful
+
+            if (response.isSuccessful) {
+                Pair(true, null) // Éxito, sin mensaje de error
+            } else {
+                // Leemos el cuerpo del error para sacar el mensaje "No se permiten palabras..."
+                val errorBody = response.errorBody()?.string()
+                val errorMessage = try {
+                    val json = JSONObject(errorBody ?: "")
+                    json.optString("message", "Error al publicar")
+                } catch (e: Exception) {
+                    "Error al publicar"
+                }
+                Pair(false, errorMessage)
+            }
         } catch (e: Exception) {
             Log.e("PostRepo", "Exception createPost: ${e.message}")
-            false
+            Pair(false, "Error de conexión: ${e.message}")
         }
     }
 

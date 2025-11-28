@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+// En NewPublicationViewModel.kt
+
 class NewPublicationViewModel : ViewModel() {
     private val repository = PostRepository()
 
@@ -17,6 +19,10 @@ class NewPublicationViewModel : ViewModel() {
 
     private val _publishSuccess = MutableStateFlow<Boolean?>(null)
     val publishSuccess: StateFlow<Boolean?> = _publishSuccess
+
+    // --- NUEVO: Variable para el mensaje de error ---
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
 
     fun publish(
         context: Context,
@@ -30,13 +36,24 @@ class NewPublicationViewModel : ViewModel() {
 
         viewModelScope.launch {
             _isLoading.value = true
-            val success = repository.createPost(context, title, description, price, category, imageUri)
+            _errorMessage.value = null // Limpiamos errores previos
+
+            // Recibimos el par (exito, mensaje)
+            val result = repository.createPost(context, title, description, price, category, imageUri)
+
             _isLoading.value = false
-            _publishSuccess.value = success
+
+            if (result.first) {
+                _publishSuccess.value = true
+            } else {
+                _publishSuccess.value = false
+                _errorMessage.value = result.second // Guardamos el mensaje del backend
+            }
         }
     }
 
     fun resetState() {
         _publishSuccess.value = null
+        _errorMessage.value = null
     }
 }

@@ -36,7 +36,7 @@ import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.productdetail.viewmodel.ProductDetailUiState
 import com.swapi.swapiV1.home.productdetail.viewmodel.ProductDetailViewModel
 import com.swapi.swapiV1.home.productdetail.viewmodel.ProductDetailViewModelFactory
-import com.swapi.swapiV1.utils.Constants // Recomendado usar tus constantes
+import androidx.compose.material.icons.filled.Bookmark
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +46,11 @@ fun ProductDetailView(
 ) {
     val factory = ProductDetailViewModelFactory(productId, HomeRepository())
     val viewModel: ProductDetailViewModel = viewModel(factory = factory)
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // ✅ NUEVO: escuchamos si está guardado
+    val isSaved by viewModel.isSaved.collectAsStateWithLifecycle()
 
     val brandColor = Color(0xFF0064E0)
 
@@ -65,11 +69,23 @@ fun ProductDetailView(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Guardar */ }) {
+                    IconButton(
+                        onClick = {
+                            // ✅ ACCIÓN REAL
+                            viewModel.toggleSave()
+                        }
+                    ) {
                         Icon(
-                            Icons.Default.BookmarkBorder,
+                            // ✅ ICONO DINÁMICO
+                            imageVector = if (isSaved)
+                                Icons.Default.Bookmark
+                            else
+                                Icons.Default.BookmarkBorder,
                             contentDescription = "Guardar",
-                            tint = MaterialTheme.colorScheme.onBackground
+                            tint = if (isSaved)
+                                brandColor
+                            else
+                                MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -132,12 +148,17 @@ fun ProductDetailView(
             contentAlignment = Alignment.Center
         ) {
             when (val state = uiState) {
-                is ProductDetailUiState.Loading -> CircularProgressIndicator(color = brandColor)
-                is ProductDetailUiState.Error -> Text(state.message, color = MaterialTheme.colorScheme.error)
-                is ProductDetailUiState.Success -> ProductContentView(
-                    product = state.product,
-                    brandColor = brandColor
-                )
+                is ProductDetailUiState.Loading ->
+                    CircularProgressIndicator(color = brandColor)
+
+                is ProductDetailUiState.Error ->
+                    Text(state.message, color = MaterialTheme.colorScheme.error)
+
+                is ProductDetailUiState.Success ->
+                    ProductContentView(
+                        product = state.product,
+                        brandColor = brandColor
+                    )
             }
         }
     }
