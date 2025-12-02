@@ -1,50 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Swapi</string>
-    <string name="anuncios_title">Announcements</string>
+    <string name="anuncios_title">Ads</string>
     <string name="home_title">Home</string>
-    <string name="rentas_title">Rentals</string>
+    <string name="rentas_title">Rents</string>
     <string name="servicios_title">Services</string>
     <string name="ventas_title">Sales</string>
     <string name="tab_ventas">Sales</string>
-    <string name="tab_rentas">Rentals</string>
+    <string name="tab_rentas">Rents</string>
     <string name="tab_home">Home</string>
     <string name="tab_servicios">Services</string>
-    <string name="tab_anuncios">Announcements</string>
-    <string name="login_logo_cd">Application logo</string>
+    <string name="tab_anuncios">Ads</string>
+    <string name="login_logo_cd">App Logo</string>
     <string name="login_email_label">Email</string>
     <string name="login_password_label">Password</string>
-    <string name="login_toggle_password_cd">Toggle password visibility</string>
-    <string name="login_button_text">Login</string>
+    <string name="login_toggle_password_cd">Show/hide password</string>
+    <string name="login_button_text">Log In</string>
     <string name="login_signing_in">Signing in…</string>
     <string name="login_face_id_button">Face ID</string>
-    <string name="login_face_id_cd">Login with Face ID</string>
+    <string name="login_face_id_cd">Log in with Face ID</string>
     <string name="login_signup_prompt">Don\'t have an account? Sign up here</string>
     <string name="onboarding_previous_button">Previous</string>
     <string name="onboarding_next_button">Next</string>
-    <string name="onboarding_start_button">Start</string>
-    <string name="onboarding_finished_toast">Onboarding finished</string>
-    <string name="onboarding_page1_title">Your Campus, Your Marketplace!</string>
+    <string name="onboarding_start_button">Get Started</string>
+    <string name="onboarding_finished_toast">Intro finished</string>
+    <string name="onboarding_page1_title">Your Campus, Your Market!</string>
     <string name="onboarding_page1_desc">Buy, sell, rent, or share services within your own school community, all in one place.</string>
-    <string name="onboarding_page2_title">Safe and Reliable Environment</string>
-    <string name="onboarding_page2_desc">A trustworthy space just for students and faculty.</string>
+    <string name="onboarding_page2_title">Safe and Trusted Environment</string>
+    <string name="onboarding_page2_desc">A reliable space only for students and faculty.</string>
     <string name="onboarding_page3_title">Boost Your Community</string>
-    <string name="onboarding_page3_desc">Support your classmates, discover opportunities, and stay up to date with ads.</string>
+    <string name="onboarding_page3_desc">Support your peers, discover opportunities, and stay up to date with announcements.</string>
     <string name="common_back_button_cd">Back</string>
     <string name="common_continue">Continue</string>
     <string name="login_title">Welcome Back</string>
-    <string name="login_subtitle">Login to your Swapi account</string>
-    <string name="login_forgot_password">Forgot your password?</string>
+    <string name="login_subtitle">Log in to your Swapi account</string>
+    <string name="login_forgot_password">Forgot password?</string>
     <string name="login_divider_or">or</string>
-    <string name="login_create_account">Create a new account</string>
+    <string name="login_create_account">Create new account</string>
     <string name="signup_email_title">What\'s your email?</string>
-    <string name="signup_email_subtitle">We\'ll send a verification code to this email.</string>
+    <string name="signup_email_subtitle">We will send a verification code to this email.</string>
     <string name="signup_code_title">Enter Code</string>
     <string name="signup_code_subtitle">We sent a 6-digit code to %1$s</string>
     <string name="signup_code_label">Verification Code</string>
     <string name="signup_code_button">Verify</string>
-    <string name="signup_profile_title">Create your Profile</string>
-    <string name="signup_profile_subtitle">You are registering with the email: %1$s</string>
+    <string name="signup_profile_title">Create Profile</string>
+    <string name="signup_profile_subtitle">You are registering with: %1$s</string>
     <string name="signup_profile_name_label">Full Name</string>
     <string name="signup_profile_phone_label">Phone Number</string>
     <string name="signup_profile_confirm_password_label">Confirm Password</string>
@@ -53,7 +53,7 @@
     <string name="sales_loading_text">Loading products...</string>
     <string name="sales_error_title">Oops... Something went wrong</string>
     <string name="sales_search_no_results_title">No results</string>
-    <string name="sales_search_no_results_subtitle">Try with different search terms.</string>
+    <string name="sales_search_no_results_subtitle">Try different search terms.</string>
     <string name="sales_header_subtitle">Discover premium products</string>
     <string name="sales_search_placeholder">Search products...</string>
     <string name="sales_search_icon_cd">Search</string>
@@ -61,7 +61,7 @@
 
     <string name="home_bienvenida">Welcome, %1$s</string>
     <string name="home_ver_mas">See more</string>
-    <string name="home_card_avatar_cd">Avatar for %1$s</string>
+    <string name="home_card_avatar_cd">Avatar of %1$s</string>
     <string name="home_buscar_placeholder">Search in Swapi...</string>
     <string name="home_buscar_limpiar">Clear search</string>
     <string name="home_buscar_cerrar">Close search</string>
@@ -73,19 +73,19 @@
     <string name="detail_avatar_vendedor_cd">Seller avatar</string>
     <string name="detail_vendedor_verificado">Verified seller</string>
     <string name="detail_boton_whatsapp">Contact via WhatsApp</string>
-    <string name="detail_toast_no_numero">The seller did not provide a number.</string>
-    <string name="detail_whatsapp_mensaje">Hello, I\'m interested in your product \'%1$s\' that I saw on Swapi.</string>
+    <string name="detail_toast_no_numero">Seller did not provide a number.</string>
+    <string name="detail_whatsapp_mensaje">Hi, I\'m interested in your product \'%1$s\' from Swapi.</string>
     <string name="detail_toast_no_whatsapp">Could not open WhatsApp.</string>
 
     <string name="profile_titulo">My Swapi Profile</string>
     <string name="profile_mis_publicaciones">My posts</string>
     <string name="profile_mis_publicaciones_sub">Manage all your ads</string>
-    <string name="profile_historial">Activity history</string>
-    <string name="profile_historial_sub">Past sales, rentals, and services</string>
+    <string name="profile_historial">Activity History</string>
+    <string name="profile_historial_sub">Past sales, rents, and services</string>
     <string name="profile_editar">Edit public profile</string>
-    <string name="profile_seguridad">Account security</string>
+    <string name="profile_seguridad">Account Security</string>
     <string name="profile_seguridad_sub">Verify your institutional email</string>
-    <string name="profile_cerrar_sesion">Logout</string>
+    <string name="profile_cerrar_sesion">Log Out</string>
     <string name="profile_toast_ir_a">Go to %1$s</string>
     <string name="profile_guardados">Saved</string>
     <string name="profile_mensajes">Messages</string>
@@ -93,15 +93,15 @@
     <string name="profile_ayuda">Help</string>
     <string name="profile_seccion_actividad">My Activity</string>
     <string name="profile_seccion_cuenta">Account &amp; Support</string>
-    <string name="profile_foto_cd">Profile picture</string>
-    <string name="profile_ver_publico">View my public profile</string>
+    <string name="profile_foto_cd">Profile photo</string>
+    <string name="profile_ver_publico">View public profile</string>
 
     <string name="new_pub_titulo">Create Post</string>
     <string name="new_pub_titulo_label">Title</string>
     <string name="new_pub_descripcion_label">Description</string>
     <string name="new_pub_precio_label">Price</string>
     <string name="new_pub_categoria_label">Category</string>
-    <string name="new_pub_categoria_info">Announcements</string>
+    <string name="new_pub_categoria_info">Ads</string>
     <string name="new_pub_imagen_cd">Upload image</string>
     <string name="new_pub_imagen_seleccionada_cd">Selected image</string>
     <string name="new_pub_boton_seleccionar_img">Select Image</string>
@@ -109,9 +109,32 @@
     <string name="new_pub_boton_publicar">Publish</string>
 
     <string name="saved_cargando">Loading saved items...</string>
-    <string name="saved_error_titulo">Oops... Couldn\'t load your saved items</string>
+    <string name="saved_error_titulo">Oops... Could not load saved items</string>
     <string name="saved_titulo">Saved</string>
     <string name="saved_subtitulo">Your saved posts</string>
-    <string name="saved_buscar_placeholder">Search in saved...</string>
+    <string name="saved_buscar_placeholder">Search saved...</string>
+
+    <string name="msg_post_deleted_success">Post deleted successfully</string>
+    <string name="msg_post_created_success">Published successfully!</string>
+    <string name="msg_post_updated_success">Post updated successfully</string>
+    <string name="msg_verification_success">Verification successful</string>
+    <string name="msg_saved_removed">Removed from saved</string>
+    <string name="msg_saved_added">Added to saved</string>
+
+    <string name="error_offensive_words">Offensive language is not allowed</string>
+    <string name="error_create_post">Error creating post</string>
+    <string name="error_delete_post">Could not delete post</string>
+    <string name="error_update_post">Error updating post</string>
+    <string name="error_post_not_found">Post not found</string>
+    <string name="error_permission_denied">Permission denied</string>
+    <string name="error_user_not_found">User not found</string>
+    <string name="error_toggle_save">Error updating saved items</string>
+    <string name="error_generic">An unexpected error occurred</string>
+
+    <string name="saved_empty_state">You don\'t have saved items yet</string>
+    <string name="error_get_saved">Could not load saved items</string>
+
+    <string name="sales_empty_list">No sales listings available yet.</string>
+    <string name="sale_card_user_prefix">User:</string>
 
 </resources>

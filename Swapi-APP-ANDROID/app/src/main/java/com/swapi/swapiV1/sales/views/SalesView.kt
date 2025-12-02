@@ -31,7 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.swapi.swapiV1.R
-import com.swapi.swapiV1.home.model.dto.Product // <--- CAMBIO: Usamos Product
+import com.swapi.swapiV1.home.model.dto.Product
 import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.viewmodel.HomeUIState
 import com.swapi.swapiV1.home.viewmodel.HomeViewModel
@@ -42,7 +42,6 @@ import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SalesView(navController: NavController) {
-    // Inicializamos el ViewModel (usando repo simple)
     val factory = HomeViewModelFactory(HomeRepository())
     val viewModel: HomeViewModel = viewModel(factory = factory)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -76,7 +75,6 @@ fun SalesView(navController: NavController) {
                 FloatingActionButton(
                     onClick = {
                         fabScale = 0.85f
-                        // Asumo que NewPublication no espera argumentos por ahora
                         navController.navigate(ScreenNavigation.NewPublication.route)
                     },
                     modifier = Modifier
@@ -160,15 +158,11 @@ fun SalesView(navController: NavController) {
                     }
 
                     is HomeUIState.Success -> {
-                        // --- LÓGICA DE FILTRADO ---
-                        val allListings = state.products // Ahora es una lista plana
-
-                        // 1. Filtramos SOLO los de categoría "ventas" (Case insensitive)
+                        val allListings = state.products
                         val salesListings = allListings.filter {
                             it.category.equals("ventas", ignoreCase = true)
                         }
 
-                        // 2. Filtramos por búsqueda si el usuario escribió algo
                         val filteredListings = if (searchQuery.isBlank()) salesListings else {
                             salesListings.filter {
                                 it.title.contains(searchQuery, ignoreCase = true) ||
@@ -182,7 +176,7 @@ fun SalesView(navController: NavController) {
                             exit = fadeOut(tween(300)) + scaleOut(targetScale = 0.97f, animationSpec = tween(300))
                         ) {
                             LazyVerticalGrid(
-                                columns = GridCells.Adaptive(minSize = 160.dp), // Ajusté el tamaño a 160dp para que quepan 2 columnas
+                                columns = GridCells.Adaptive(minSize = 160.dp),
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -190,7 +184,7 @@ fun SalesView(navController: NavController) {
                             ) {
                                 items(filteredListings, key = { it.id }) { product ->
                                     SaleProductCard(
-                                        product = product, // Enviamos Product
+                                        product = product,
                                         onClick = {
                                             navController.navigate(
                                                 ScreenNavigation.ProductDetail.createRoute(product.id)
@@ -201,7 +195,6 @@ fun SalesView(navController: NavController) {
                             }
                         }
 
-                        // Estado vacío (sin resultados)
                         AnimatedVisibility(
                             visible = filteredListings.isEmpty(),
                             enter = fadeIn(tween(400)),
@@ -227,7 +220,7 @@ fun SalesView(navController: NavController) {
                                     if (searchQuery.isNotEmpty())
                                         stringResource(id = R.string.sales_search_no_results_subtitle)
                                     else
-                                        "No hay publicaciones de ventas disponibles aún.",
+                                        stringResource(id = R.string.sales_empty_list), // --- USAMOS STRING RESOURCE
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
@@ -275,7 +268,7 @@ private fun SalesTopBar(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        "Ventas",
+                        stringResource(id = R.string.ventas_title), // --- USAMOS STRING RESOURCE
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.SemiBold,
                             letterSpacing = 0.5.sp

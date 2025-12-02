@@ -114,4 +114,27 @@
     <string name="saved_subtitulo">Tus publicaciones guardadas</string>
     <string name="saved_buscar_placeholder">Buscar en guardados...</string>
 
+    <string name="msg_post_deleted_success">Publicación eliminada correctamente</string>
+    <string name="msg_post_created_success">¡Publicado con éxito!</string>
+    <string name="msg_post_updated_success">Publicación actualizada correctamente</string>
+    <string name="msg_verification_success">Verificación exitosa</string>
+    <string name="msg_saved_removed">Eliminado de guardados</string>
+    <string name="msg_saved_added">Agregado a guardados</string>
+
+    <string name="error_offensive_words">No se permite lenguaje ofensivo</string>
+    <string name="error_create_post">Error al crear la publicación</string>
+    <string name="error_delete_post">No se pudo eliminar</string>
+    <string name="error_update_post">Error al actualizar</string>
+    <string name="error_post_not_found">Publicación no encontrada</string>
+    <string name="error_permission_denied">No tienes permisos</string>
+    <string name="error_user_not_found">Usuario no encontrado</string>
+    <string name="error_toggle_save">Error al actualizar guardados</string>
+    <string name="error_generic">Ocurrió un error inesperado</string>
+
+    <string name="saved_empty_state">Aún no tienes guardados</string>
+    <string name="error_get_saved">No se pudieron cargar los guardados</string>
+
+    <string name="sales_empty_list">No hay publicaciones de ventas disponibles aún.</string>
+    <string name="sale_card_user_prefix">Usuario:</string>
+
 </resources>

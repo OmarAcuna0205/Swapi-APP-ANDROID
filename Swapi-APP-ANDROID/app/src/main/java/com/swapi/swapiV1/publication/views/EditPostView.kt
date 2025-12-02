@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,12 +23,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.swapi.swapiV1.R
 import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.model.repository.PostRepository
 import com.swapi.swapiV1.publication.viewmodel.EditPostViewModel
 import com.swapi.swapiV1.publication.viewmodel.EditPostViewModelFactory
 import com.swapi.swapiV1.publication.viewmodel.EditUiState
 import com.swapi.swapiV1.utils.Constants
+import com.swapi.swapiV1.utils.ErrorMessageMapper // Mapper
 import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,21 +44,32 @@ fun EditPostView(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val updateSuccess by viewModel.updateSuccess.collectAsStateWithLifecycle()
+    val errorCode by viewModel.errorCode.collectAsStateWithLifecycle() // Código de error
+
     val context = LocalContext.current
 
     // ✅ COLOR ACTUALIZADO
     val brandColor = Color(0xFF0064E0)
 
-    // Variables de estado para el formulario
+    // Variables de estado
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf("") }
     var currentImageUrl by remember { mutableStateOf("") }
 
-    // Control del dropdown
     var expanded by remember { mutableStateOf(false) }
-    val categoriasVisuales = listOf("Ventas", "Rentas", "Servicios", "Anuncios")
+    // Mapeo para traducción de categorías en el dropdown
+    val categoriasMap = mapOf(
+        stringResource(R.string.ventas_title) to "ventas",
+        stringResource(R.string.rentas_title) to "rentas",
+        stringResource(R.string.new_pub_categoria_info) to "anuncios",
+        stringResource(R.string.servicios_title) to "servicios"
+    )
+    // Inverso para mostrar el nombre bonito si viene del backend
+    val categoriasBackendMap = categoriasMap.entries.associate { (k, v) -> v to k }
+
+    val categoriasVisuales = categoriasMap.keys.toList()
 
     // --- PRECARGA DE DATOS ---
     LaunchedEffect(uiState) {
@@ -68,7 +82,9 @@ fun EditPostView(
                 val df = DecimalFormat("#.##")
                 precio = df.format(product.price)
 
-                categoria = product.category.replaceFirstChar { it.uppercase() }
+                // Intentamos traducir la categoría del backend al nombre visual
+                val catBackend = product.category.lowercase()
+                categoria = categoriasBackendMap[catBackend] ?: catBackend.replaceFirstChar { it.uppercase() }
 
                 if (product.images.isNotEmpty()) {
                     currentImageUrl = Constants.BASE_URL + "storage/" + product.images[0]
@@ -80,18 +96,21 @@ fun EditPostView(
     // --- RESPUESTA DE ACTUALIZACIÓN ---
     LaunchedEffect(updateSuccess) {
         if (updateSuccess == true) {
-            Toast.makeText(context, "Publicación actualizada correctamente", Toast.LENGTH_SHORT).show()
+            // Mensaje de éxito traducido
+            val msg = ErrorMessageMapper.getMessage(context, "POST_UPDATED_SUCCESS")
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
 
-            // --- CORRECCIÓN AQUI: AVISAR AL HOME (O PANTALLA ANTERIOR) ---
             navController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.set("refresh_home", true)
-            // --------------------------------------------------------------
 
             navController.popBackStack()
             viewModel.resetState()
         } else if (updateSuccess == false) {
-            Toast.makeText(context, "Error al actualizar la publicación", Toast.LENGTH_SHORT).show()
+            // Mensaje de error traducido usando el código
+            val errorMsg = ErrorMessageMapper.getMessage(context, errorCode ?: "ERROR_UPDATE_POST")
+            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+
             viewModel.resetState()
         }
     }
@@ -99,10 +118,11 @@ fun EditPostView(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Editar Publicación") },
+                // Usamos string resource genérico o uno específico "Editar Publicación"
+                title = { Text(stringResource(R.string.profile_editar)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back_button_cd))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -133,8 +153,10 @@ fun EditPostView(
                     )
                 }
                 is EditUiState.Error -> {
+                    // Traducimos el error de carga también
+                    val msg = ErrorMessageMapper.getMessage(context, state.msg)
                     Text(
-                        text = state.msg,
+                        text = msg,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.align(Alignment.Center)
                     )
@@ -149,7 +171,7 @@ fun EditPostView(
                         OutlinedTextField(
                             value = titulo,
                             onValueChange = { titulo = it },
-                            label = { Text("Título") },
+                            label = { Text(stringResource(R.string.new_pub_titulo_label)) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp)
                         )
@@ -157,7 +179,7 @@ fun EditPostView(
                         OutlinedTextField(
                             value = descripcion,
                             onValueChange = { descripcion = it },
-                            label = { Text("Descripción") },
+                            label = { Text(stringResource(R.string.new_pub_descripcion_label)) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(min = 120.dp),
@@ -169,7 +191,7 @@ fun EditPostView(
                         OutlinedTextField(
                             value = precio,
                             onValueChange = { if (it.all { char -> char.isDigit() || char == '.' }) precio = it },
-                            label = { Text("Precio") },
+                            label = { Text(stringResource(R.string.new_pub_precio_label)) },
                             prefix = { Text("$") },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp)
@@ -183,7 +205,7 @@ fun EditPostView(
                                 value = categoria,
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Categoría") },
+                                label = { Text(stringResource(R.string.new_pub_categoria_label)) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                                 modifier = Modifier
                                     .menuAnchor()
@@ -209,7 +231,7 @@ fun EditPostView(
                         // Imagen (Solo visualización)
                         if (currentImageUrl.isNotEmpty()) {
                             Text(
-                                "Imagen actual (no editable por ahora)",
+                                "Imagen actual", // Podrías agregar stringResource aquí también
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -234,21 +256,24 @@ fun EditPostView(
                         Button(
                             onClick = {
                                 if (titulo.isNotBlank() && precio.isNotBlank() && categoria.isNotBlank()) {
+                                    // Convertimos nombre visual a valor backend
+                                    val catBackend = categoriasMap[categoria] ?: "ventas"
+
                                     viewModel.saveChanges(
                                         title = titulo,
                                         description = descripcion,
                                         price = precio,
-                                        category = categoria
+                                        category = catBackend
                                     )
                                 } else {
-                                    Toast.makeText(context, "Por favor completa los campos", Toast.LENGTH_SHORT).show()
+                                    // Toast local simple o también traducible si quieres
+                                    Toast.makeText(context, "Completa los campos", Toast.LENGTH_SHORT).show()
                                 }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(55.dp),
                             shape = RoundedCornerShape(14.dp),
-                            // ✅ APLICAMOS EL COLOR DEL BOTÓN
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = brandColor,
                                 contentColor = Color.White

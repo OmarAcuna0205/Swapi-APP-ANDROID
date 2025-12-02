@@ -9,15 +9,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-// Estado de la UI exclusivo para Guardados
 sealed class SavedUIState {
     object Loading : SavedUIState()
     data class Success(val products: List<Product>) : SavedUIState()
-    data class Error(val message: String) : SavedUIState()
+    data class Error(val code: String) : SavedUIState() // Cambiamos 'message' por 'code'
 }
 
 class SavedPostsViewModel : ViewModel() {
-    // Usamos el UserRepository que conecta con /api/user/saved
     private val repository = UserRepository()
 
     private val _uiState = MutableStateFlow<SavedUIState>(SavedUIState.Loading)
@@ -35,10 +33,11 @@ class SavedPostsViewModel : ViewModel() {
                 if (savedProducts != null) {
                     _uiState.value = SavedUIState.Success(savedProducts)
                 } else {
-                    _uiState.value = SavedUIState.Error("No se pudieron cargar los guardados")
+                    // Enviamos CÓDIGO, no texto
+                    _uiState.value = SavedUIState.Error("ERROR_GET_SAVED")
                 }
             } catch (e: Exception) {
-                _uiState.value = SavedUIState.Error("Error: ${e.message}")
+                _uiState.value = SavedUIState.Error("ERROR_GENERICO")
             }
         }
     }

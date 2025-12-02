@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +31,7 @@ import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.sales.views.SaleProductCard
 import com.swapi.swapiV1.saved.viewmodel.SavedPostsViewModel
 import com.swapi.swapiV1.saved.viewmodel.SavedUIState
+import com.swapi.swapiV1.utils.ErrorMessageMapper // Asegúrate de importar esto
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,6 +39,7 @@ import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 fun SavedPostsView(navController: NavController) {
     val viewModel: SavedPostsViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current // Necesario para el Mapper
 
     LaunchedEffect(Unit) {
         viewModel.loadSavedPosts()
@@ -80,7 +83,9 @@ fun SavedPostsView(navController: NavController) {
                         CircularProgressIndicator(color = swapiBrandColor)
                     }
                     is SavedUIState.Error -> {
-                        Text(text = state.message, color = MaterialTheme.colorScheme.error)
+                        // --- CORRECCIÓN: Usamos el Mapper para traducir el código ---
+                        val errorText = ErrorMessageMapper.getMessage(context, state.code)
+                        Text(text = errorText, color = MaterialTheme.colorScheme.error)
                     }
                     is SavedUIState.Success -> {
                         val allListings = state.products
@@ -95,7 +100,8 @@ fun SavedPostsView(navController: NavController) {
                                     modifier = Modifier.size(72.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                                 )
-                                Text("Aún no tienes guardados")
+                                // --- CORRECCIÓN: Usamos stringResource ---
+                                Text(stringResource(R.string.saved_empty_state))
                             }
                         } else {
                             val filteredListings = if (searchQuery.isBlank()) allListings else {
@@ -163,17 +169,17 @@ private fun SavedTopBar(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Atrás",
+                        // --- CORRECCIÓN: Usamos stringResource ---
+                        contentDescription = stringResource(R.string.common_back_button_cd),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
                 Spacer(modifier = Modifier.width(4.dp))
 
-                // Títulos (Solo el Título principal ahora)
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.Center // Centrado verticalmente al no haber subtítulo
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Text(
                         stringResource(R.string.saved_titulo),
@@ -183,10 +189,7 @@ private fun SavedTopBar(
                         ),
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    // Subtítulo eliminado
                 }
-
-                // Icono decorativo eliminado
             }
 
             OutlinedTextField(

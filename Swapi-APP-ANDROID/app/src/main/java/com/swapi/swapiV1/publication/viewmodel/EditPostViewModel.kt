@@ -28,6 +28,10 @@ class EditPostViewModel(
     private val _updateSuccess = MutableStateFlow<Boolean?>(null)
     val updateSuccess: StateFlow<Boolean?> = _updateSuccess.asStateFlow()
 
+    // Variable para el código de error
+    private val _errorCode = MutableStateFlow<String?>(null)
+    val errorCode: StateFlow<String?> = _errorCode.asStateFlow()
+
     init {
         loadProduct()
     }
@@ -35,33 +39,44 @@ class EditPostViewModel(
     private fun loadProduct() {
         viewModelScope.launch {
             _uiState.value = EditUiState.Loading
-            // Usamos HomeRepository para traer los detalles actuales
             val product = homeRepository.getProductById(postId)
             if (product != null) {
                 _uiState.value = EditUiState.Success(product)
             } else {
-                _uiState.value = EditUiState.Error("No se encontró la publicación")
+                _uiState.value = EditUiState.Error("POST_NO_ENCONTRADO")
             }
         }
     }
 
     fun saveChanges(title: String, description: String, price: String, category: String) {
         viewModelScope.launch {
-            _uiState.value = EditUiState.Loading
+            // Convertimos el precio
             val priceDouble = price.toDoubleOrNull() ?: 0.0
 
-            val success = postRepository.updatePost(
+            // --- CORRECCIÓN AQUÍ ---
+            // 'result' es un Pair<Boolean, String?>
+            val result = postRepository.updatePost(
                 id = postId,
                 title = title,
                 description = description,
                 price = priceDouble,
                 category = category
             )
-            _updateSuccess.value = success
+
+            // Usamos .first para ver si fue exitoso (Boolean)
+            if (result.first) {
+                _updateSuccess.value = true
+                _errorCode.value = null
+            } else {
+                _updateSuccess.value = false
+                // Usamos .second para obtener el código de error (String?)
+                _errorCode.value = result.second ?: "ERROR_UPDATE_POST"
+            }
         }
     }
 
     fun resetState() {
         _updateSuccess.value = null
+        _errorCode.value = null
     }
 }

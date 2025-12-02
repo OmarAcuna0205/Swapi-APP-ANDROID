@@ -14,7 +14,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,6 +31,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.swapi.swapiV1.R
 import com.swapi.swapiV1.publication.viewmodel.NewPublicationViewModel
+import com.swapi.swapiV1.utils.ErrorMessageMapper // IMPORTANTE: El mapper que creamos
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,7 +43,9 @@ fun NewPublicationView(
     val context = LocalContext.current
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val publishSuccess by viewModel.publishSuccess.collectAsStateWithLifecycle()
-    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
+
+    // --- CORRECCIÓN: Observamos el CÓDIGO de error, no el mensaje ---
+    val errorCode by viewModel.errorCode.collectAsStateWithLifecycle()
 
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
@@ -59,9 +62,10 @@ fun NewPublicationView(
             navController.popBackStack()
             viewModel.resetState()
         } else if (publishSuccess == false) {
-            // --- AQUÍ USAMOS EL MENSAJE DEL BACKEND ---
-            val msg = errorMessage ?: "Error al publicar. Revisa tu conexión."
-            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+
+            // --- AQUÍ LA MAGIA: Traducimos el código ---
+            val errorMsg = ErrorMessageMapper.getMessage(context, errorCode)
+            Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
 
             viewModel.resetState()
         }
@@ -246,7 +250,6 @@ fun NewPublicationView(
                         .height(55.dp),
                     shape = RoundedCornerShape(14.dp),
                     enabled = !isLoading,
-                    // ✅ APLICAMOS EL COLOR DEL BOTÓN
                     colors = ButtonDefaults.buttonColors(
                         containerColor = swapiBrandColor,
                         contentColor = Color.White

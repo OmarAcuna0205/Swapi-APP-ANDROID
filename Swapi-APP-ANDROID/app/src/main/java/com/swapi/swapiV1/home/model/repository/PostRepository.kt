@@ -10,7 +10,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject // <--- IMPORTANTE: Para leer el mensaje de error del backend
+import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 
@@ -37,13 +37,14 @@ class PostRepository {
         }
     }
 
+    // --- ACTUALIZADO: Ahora devuelve Pair(Exito, CódigoError) ---
     suspend fun updatePost(
         id: String,
         title: String,
         description: String,
         price: Double,
         category: String
-    ): Boolean {
+    ): Pair<Boolean, String?> {
         return try {
             val requestBody = UpdatePostRequest(
                 title = title,
@@ -54,17 +55,28 @@ class PostRepository {
 
             val response = api.updatePost(id, requestBody)
 
-            if (!response.isSuccessful) {
-                Log.e("PostRepo", "Error update: ${response.code()} - ${response.errorBody()?.string()}")
+            if (response.isSuccessful) {
+                // Éxito
+                Pair(true, null)
+            } else {
+                // Error: Leemos el código del backend
+                val errorBody = response.errorBody()?.string()
+                val code = try {
+                    val json = JSONObject(errorBody ?: "")
+                    json.optString("code", "ERROR_UPDATE_POST")
+                } catch (e: Exception) {
+                    "ERROR_UPDATE_POST"
+                }
+                Log.e("PostRepo", "Error update: $code")
+                Pair(false, code)
             }
-            response.isSuccessful
         } catch (e: Exception) {
             Log.e("PostRepo", "Exception updatePost: ${e.message}")
-            false
+            Pair(false, "ERROR_CONNECTION")
         }
     }
 
-    // --- CORREGIDO: Regresa Pair<Boolean, String?> para manejar el mensaje de error ---
+    // --- ACTUALIZADO: Lee el campo "code" ---
     suspend fun createPost(
         context: Context,
         title: String,
@@ -91,21 +103,21 @@ class PostRepository {
             val response = api.createPost(imagePart, titlePart, descPart, pricePart, catPart)
 
             if (response.isSuccessful) {
-                Pair(true, null) // Éxito, sin mensaje de error
+                Pair(true, null)
             } else {
-                // Leemos el cuerpo del error para sacar el mensaje "No se permiten palabras..."
+                // Error: Leemos el código para saber si fueron groserías u otra cosa
                 val errorBody = response.errorBody()?.string()
-                val errorMessage = try {
+                val code = try {
                     val json = JSONObject(errorBody ?: "")
-                    json.optString("message", "Error al publicar")
+                    json.optString("code", "ERROR_CREATE_POST")
                 } catch (e: Exception) {
-                    "Error al publicar"
+                    "ERROR_CREATE_POST"
                 }
-                Pair(false, errorMessage)
+                Pair(false, code)
             }
         } catch (e: Exception) {
             Log.e("PostRepo", "Exception createPost: ${e.message}")
-            Pair(false, "Error de conexión: ${e.message}")
+            Pair(false, "ERROR_CONNECTION")
         }
     }
 

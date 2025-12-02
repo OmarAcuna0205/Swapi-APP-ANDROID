@@ -9,9 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-// En NewPublicationViewModel.kt
-
 class NewPublicationViewModel : ViewModel() {
+
     private val repository = PostRepository()
 
     private val _isLoading = MutableStateFlow(false)
@@ -20,9 +19,9 @@ class NewPublicationViewModel : ViewModel() {
     private val _publishSuccess = MutableStateFlow<Boolean?>(null)
     val publishSuccess: StateFlow<Boolean?> = _publishSuccess
 
-    // --- NUEVO: Variable para el mensaje de error ---
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage
+    // ✅ SOLO CÓDIGO DE ERROR (ej. "PALABRAS_OFENSIVAS")
+    private val _errorCode = MutableStateFlow<String?>(null)
+    val errorCode: StateFlow<String?> = _errorCode
 
     fun publish(
         context: Context,
@@ -36,10 +35,17 @@ class NewPublicationViewModel : ViewModel() {
 
         viewModelScope.launch {
             _isLoading.value = true
-            _errorMessage.value = null // Limpiamos errores previos
+            _errorCode.value = null
 
-            // Recibimos el par (exito, mensaje)
-            val result = repository.createPost(context, title, description, price, category, imageUri)
+            // Repo regresa: Pair<success, errorCode?>
+            val result = repository.createPost(
+                context,
+                title,
+                description,
+                price,
+                category,
+                imageUri
+            )
 
             _isLoading.value = false
 
@@ -47,13 +53,13 @@ class NewPublicationViewModel : ViewModel() {
                 _publishSuccess.value = true
             } else {
                 _publishSuccess.value = false
-                _errorMessage.value = result.second // Guardamos el mensaje del backend
+                _errorCode.value = result.second
             }
         }
     }
 
     fun resetState() {
         _publishSuccess.value = null
-        _errorMessage.value = null
+        _errorCode.value = null
     }
 }
