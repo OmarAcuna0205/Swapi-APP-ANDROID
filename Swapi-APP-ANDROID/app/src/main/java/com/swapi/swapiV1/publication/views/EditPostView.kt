@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +42,9 @@ fun EditPostView(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val updateSuccess by viewModel.updateSuccess.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    // ✅ COLOR ACTUALIZADO
+    val brandColor = Color(0xFF0064E0)
 
     // Variables de estado para el formulario
     var titulo by remember { mutableStateOf("") }
@@ -106,7 +110,7 @@ fun EditPostView(
                 )
             )
         },
-        containerColor = androidx.compose.ui.graphics.Color.Transparent
+        containerColor = Color.Transparent
     ) { padding ->
         Box(
             modifier = Modifier
@@ -123,7 +127,10 @@ fun EditPostView(
         ) {
             when (val state = uiState) {
                 is EditUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = brandColor
+                    )
                 }
                 is EditUiState.Error -> {
                     Text(
@@ -240,7 +247,12 @@ fun EditPostView(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(55.dp),
-                            shape = RoundedCornerShape(14.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            // ✅ APLICAMOS EL COLOR DEL BOTÓN
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = brandColor,
+                                contentColor = Color.White
+                            )
                         ) {
                             Text("Guardar Cambios", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }

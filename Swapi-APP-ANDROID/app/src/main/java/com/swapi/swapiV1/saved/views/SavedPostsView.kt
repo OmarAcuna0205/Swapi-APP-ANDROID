@@ -1,16 +1,13 @@
 package com.swapi.swapiV1.saved.views
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -20,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -29,23 +25,19 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
 import com.swapi.swapiV1.R
 import com.swapi.swapiV1.navigation.ScreenNavigation
-import com.swapi.swapiV1.saved.viewmodel.SavedPostsViewModel // Importar el nuevo VM
-import com.swapi.swapiV1.saved.viewmodel.SavedUIState // Importar el nuevo State
+import com.swapi.swapiV1.sales.views.SaleProductCard
+import com.swapi.swapiV1.saved.viewmodel.SavedPostsViewModel
+import com.swapi.swapiV1.saved.viewmodel.SavedUIState
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
-import java.text.NumberFormat
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedPostsView(navController: NavController) {
-    // 1. Usamos el nuevo SavedPostsViewModel
     val viewModel: SavedPostsViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // 2. Recargar cada vez que entramos a la pantalla (por si guardaste algo nuevo)
     LaunchedEffect(Unit) {
         viewModel.loadSavedPosts()
     }
@@ -71,7 +63,8 @@ fun SavedPostsView(navController: NavController) {
                 SavedTopBar(
                     searchQuery = searchQuery,
                     onQueryChange = { searchQuery = it },
-                    brandColor = swapiBrandColor
+                    brandColor = swapiBrandColor,
+                    onBack = { navController.popBackStack() }
                 )
             }
         ) { paddingValues ->
@@ -82,62 +75,19 @@ fun SavedPostsView(navController: NavController) {
                     .dismissKeyboardOnClick(),
                 contentAlignment = Alignment.Center
             ) {
-                // 3. Usamos el SavedUIState
                 when (val state = uiState) {
                     is SavedUIState.Loading -> {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(50.dp),
-                                strokeWidth = 4.dp,
-                                color = swapiBrandColor
-                            )
-                            Text(
-                                stringResource(R.string.saved_cargando),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        CircularProgressIndicator(color = swapiBrandColor)
                     }
-
                     is SavedUIState.Error -> {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier.padding(32.dp)
-                        ) {
-                            Icon(
-                                Icons.Filled.Bookmark,
-                                contentDescription = null,
-                                modifier = Modifier.size(72.dp),
-                                tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
-                            )
-                            Text(
-                                "Error", // Puedes usar un string resource aquí
-                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.error,
-                                textAlign = TextAlign.Center
-                            )
-                            Text(
-                                state.message,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                        Text(text = state.message, color = MaterialTheme.colorScheme.error)
                     }
-
                     is SavedUIState.Success -> {
                         val allListings = state.products
-
-                        // Si la lista está vacía (no has guardado nada)
                         if (allListings.isEmpty()) {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                modifier = Modifier.padding(32.dp)
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 Icon(
                                     Icons.Filled.Bookmark,
@@ -145,50 +95,25 @@ fun SavedPostsView(navController: NavController) {
                                     modifier = Modifier.size(72.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                                 )
-                                Text(
-                                    "Aún no tienes guardados",
-                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    "Explora el inicio y guarda lo que te guste.",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
-                                )
+                                Text("Aún no tienes guardados")
                             }
                         } else {
-                            // Filtrado local en la lista de guardados
                             val filteredListings = if (searchQuery.isBlank()) allListings else {
                                 allListings.filter {
-                                    it.title.contains(searchQuery, ignoreCase = true) ||
-                                            it.category.contains(searchQuery, ignoreCase = true)
+                                    it.title.contains(searchQuery, ignoreCase = true)
                                 }
                             }
-
                             LazyVerticalGrid(
-                                columns = GridCells.Adaptive(minSize = 160.dp),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                columns = GridCells.Fixed(1),
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(20.dp),
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 items(filteredListings, key = { it.id }) { product ->
-                                    val baseUrl = "http://10.0.2.2:3000/storage/"
-                                    val imageUrl = if (product.images.isNotEmpty()) baseUrl + product.images[0] else ""
-
-                                    val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
-                                    format.maximumFractionDigits = 0
-                                    val priceFormatted = format.format(product.price)
-
-                                    SavedItemCard(
-                                        title = product.title,
-                                        price = priceFormatted,
-                                        imageUrl = imageUrl,
+                                    SaleProductCard(
+                                        product = product,
                                         onClick = {
-                                            navController.navigate(
-                                                ScreenNavigation.ProductDetail.createRoute(product.id)
-                                            )
+                                            navController.navigate(ScreenNavigation.ProductDetail.createRoute(product.id))
                                         }
                                     )
                                 }
@@ -201,12 +126,12 @@ fun SavedPostsView(navController: NavController) {
     }
 }
 
-// ... (El resto de funciones auxiliares SavedTopBar y SavedItemCard se quedan igual)
 @Composable
 private fun SavedTopBar(
     searchQuery: String,
     onQueryChange: (String) -> Unit,
-    brandColor: Color
+    brandColor: Color,
+    onBack: () -> Unit
 ) {
     Surface(
         modifier = Modifier
@@ -231,11 +156,25 @@ private fun SavedTopBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .padding(start = 8.dp, end = 20.dp, top = 20.dp, bottom = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                // --- BOTÓN DE REGRESAR ---
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Atrás",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                // Títulos (Solo el Título principal ahora)
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center // Centrado verticalmente al no haber subtítulo
+                ) {
                     Text(
                         stringResource(R.string.saved_titulo),
                         style = MaterialTheme.typography.headlineMedium.copy(
@@ -244,18 +183,10 @@ private fun SavedTopBar(
                         ),
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Text(
-                        stringResource(R.string.saved_subtitulo),
-                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    // Subtítulo eliminado
                 }
-                Icon(
-                    Icons.Filled.Bookmark,
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp),
-                    tint = brandColor
-                )
+
+                // Icono decorativo eliminado
             }
 
             OutlinedTextField(
@@ -263,22 +194,10 @@ private fun SavedTopBar(
                 onValueChange = onQueryChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 12.dp),
-                placeholder = {
-                    Text(
-                        stringResource(R.string.saved_buscar_placeholder),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = stringResource(R.string.sales_search_icon_cd),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                },
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 20.dp),
+                placeholder = { Text(stringResource(R.string.saved_buscar_placeholder)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 colors = TextFieldDefaults.colors(
@@ -286,62 +205,9 @@ private fun SavedTopBar(
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                     focusedIndicatorColor = brandColor,
                     unfocusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                ),
-                textStyle = MaterialTheme.typography.bodyLarge
-            )
-        }
-    }
-}
-
-@Composable
-private fun SavedItemCard(
-    title: String,
-    price: String,
-    imageUrl: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .clickable(onClick = onClick)
-            .height(260.dp), // Altura fija para uniformidad
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column {
-            Image(
-                painter = rememberAsyncImagePainter(model = imageUrl),
-                contentDescription = title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp) // Imagen un poco más pequeña para que quepa texto
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentScale = ContentScale.Crop
-            )
-
-            Column(
-                modifier = Modifier
-                    .padding(12.dp)
-                    .fillMaxHeight(), // Ocupar el resto
-                verticalArrangement = Arrangement.SpaceBetween // Precio al fondo
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    disabledIndicatorColor = Color.Transparent
                 )
-                Text(
-                    text = price,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color(0xFF4A8BFF), // Brand color
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+            )
         }
     }
 }

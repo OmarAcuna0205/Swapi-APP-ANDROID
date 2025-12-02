@@ -128,7 +128,7 @@ fun TabBarNavigationView(
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(ScreenNavigation.Home.route) { HomeView(navController, dataStore) }
-            composable(ScreenNavigation.Profile.route) { ProfileView(navController, onLogout) }
+            composable(ScreenNavigation.Profile.route) { ProfileView(navController, onLogout, dataStore) }
             composable(ScreenNavigation.NewPublication.route) { NewPublicationView(navController) }
             composable(ScreenNavigation.MyPosts.route) { MyPostsView(navController) }
 

@@ -1,9 +1,6 @@
 package com.swapi.swapiV1.home.views
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -63,9 +60,8 @@ fun HomeView(
     val searchText by viewModel.searchText.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
-    // --- CORRECCIÓN AQUI: DETECTAR SEÑAL DE REFRESH ---
+    // --- LOGICA DE REFRESH ---
     val currentBackStack = navController.currentBackStackEntry
-    // Observamos si "refresh_home" cambia a true. Usamos getStateFlow para que sea reactivo.
     val refreshHomeState by currentBackStack?.savedStateHandle
         ?.getStateFlow("refresh_home", false)
         ?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
@@ -73,11 +69,10 @@ fun HomeView(
     LaunchedEffect(refreshHomeState) {
         if (refreshHomeState) {
             viewModel.onRefresh()
-            // Importante: Reseteamos la bandera a false para que no se cicle
             currentBackStack?.savedStateHandle?.set("refresh_home", false)
         }
     }
-    // ---------------------------------------------------
+    // -------------------------
 
     // Configuración del Pull to Refresh
     val pullRefreshState = rememberPullToRefreshState()
@@ -94,9 +89,7 @@ fun HomeView(
         }
     }
 
-    Scaffold(
-        // Ya NO le pasamos topBar aquí, para que no quede fija
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -241,7 +234,6 @@ fun HomeView(
     }
 }
 
-// ... (El resto de funciones auxiliares se mantienen igual)
 @Composable
 fun SectionHeader(title: String, onSeeMoreClicked: () -> Unit) {
     Row(
@@ -329,7 +321,11 @@ fun ModernProductCard(product: Product, navController: NavController) {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
 
+                // --- SECCIÓN CORREGIDA: Manejo seguro de Author ---
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    val authorName = product.author?.firstName ?: "Usuario"
+                    val initial = authorName.take(1).uppercase()
+
                     Box(
                         modifier = Modifier
                             .size(36.dp)
@@ -338,14 +334,14 @@ fun ModernProductCard(product: Product, navController: NavController) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = product.author.firstName.take(1).uppercase(),
+                            text = initial,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = product.author.firstName,
+                        text = authorName,
                         color = Color.White.copy(alpha = 0.8f),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
@@ -353,6 +349,7 @@ fun ModernProductCard(product: Product, navController: NavController) {
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+                // ------------------------------------------------
             }
 
             if (product.category.isNotBlank()) {
