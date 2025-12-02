@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -80,7 +81,8 @@ fun NewPublicationView(
     )
     val categoriasVisuales = categoriasMap.keys.toList()
 
-    val swapiBrandColor = Color(0xFF4A8BFF)
+    // ✅ COLOR ACTUALIZADO (Mismo que 'Enviar mensaje')
+    val swapiBrandColor = Color(0xFF0064E0)
 
     Scaffold(
         topBar = {
@@ -243,14 +245,20 @@ fun NewPublicationView(
                         .fillMaxWidth()
                         .height(55.dp),
                     shape = RoundedCornerShape(14.dp),
-                    enabled = !isLoading
+                    enabled = !isLoading,
+                    // ✅ APLICAMOS EL COLOR DEL BOTÓN
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = swapiBrandColor,
+                        contentColor = Color.White
+                    )
                 ) {
                     if (isLoading) {
                         Text("Publicando...", fontSize = 18.sp)
                     } else {
                         Text(
                             stringResource(R.string.new_pub_boton_publicar),
-                            fontSize = 18.sp
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold // Añadí Bold para que se parezca más
                         )
                     }
                 }

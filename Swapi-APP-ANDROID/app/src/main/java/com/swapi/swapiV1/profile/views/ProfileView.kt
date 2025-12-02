@@ -1,279 +1,273 @@
 package com.swapi.swapiV1.profile.views
 
-import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.swapi.swapiV1.R
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.profile.viewmodel.ProfileUiState
 import com.swapi.swapiV1.profile.viewmodel.ProfileViewModel
-
-// (Esta data class estaba en tu archivo original, la dejamos)
-data class MenuItem(
-    val icon: ImageVector,
-    val title: String,
-    val subtitle: String? = null,
-    val route: String
-)
+import com.swapi.swapiV1.profile.viewmodel.ProfileViewModelFactory
+import com.swapi.swapiV1.ui.theme.SwapiBlueLight
+import com.swapi.swapiV1.ui.theme.SwapiWhite
+import com.swapi.swapiV1.utils.datastore.DataStoreManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileView(
     navController: NavHostController,
     onLogout: () -> Unit,
-    vm: ProfileViewModel = viewModel()
+    dataStore: DataStoreManager
 ) {
-    val uiState by vm.uiState.collectAsState()
-    val context = LocalContext.current
-
-    // Definimos los items. Fíjate que el route "my_posts" es solo un identificador aquí.
-    val activityItems = listOf(
-        MenuItem(
-            Icons.Default.ListAlt,
-            stringResource(R.string.profile_mis_publicaciones),
-            stringResource(R.string.profile_mis_publicaciones_sub),
-            "my_posts"
-        ),
-        MenuItem(
-            Icons.Default.History,
-            stringResource(R.string.profile_historial),
-            stringResource(R.string.profile_historial_sub),
-            "history"
-        )
+    val viewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModelFactory(dataStore)
     )
+    val uiState by viewModel.uiState.collectAsState()
 
-    val accountItems = listOf(
-        MenuItem(
-            Icons.Default.Edit,
-            stringResource(R.string.profile_editar),
-            route = "edit_profile"
-        ),
-        MenuItem(
-            Icons.Default.Shield,
-            stringResource(R.string.profile_seguridad),
-            stringResource(R.string.profile_seguridad_sub),
-            "account_security"
-        ),
-        MenuItem(
-            Icons.AutoMirrored.Filled.Logout,
-            stringResource(R.string.profile_cerrar_sesion),
-            route = "logout"
-        )
-    )
+    // Definimos el color suavizado (un poco menos brilloso)
+    val softenedBlueLight = SwapiBlueLight.copy(alpha = 0.9f)
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.profile_titulo)) },
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back_button_cd)
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         }
     ) { paddingValues ->
-        if (uiState.isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                item { ProfileHeader(uiState) }
-                item { ActionsGrid(navController) }
 
-                item { SectionHeader(stringResource(R.string.profile_seccion_actividad)) }
-
-                // --- CORRECCIÓN AQUÍ ---
-                items(activityItems.size) { index ->
-                    val item = activityItems[index]
-                    val msgIrA = stringResource(R.string.profile_toast_ir_a, item.title)
-
-                    ProfileListItem(icon = item.icon, title = item.title, subtitle = item.subtitle) {
-                        // Verificamos si el item clicado es "my_posts"
-                        if (item.route == "my_posts") {
-                            // Navegamos a la pantalla real
-                            navController.navigate(ScreenNavigation.MyPosts.route)
-                        } else {
-                            // Para los demás (Historial), seguimos mostrando el Toast por ahora
-                            Toast.makeText(context, msgIrA, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-                // -----------------------
-
-                item { Divider(Modifier.padding(horizontal = 16.dp)) }
-
-                item { SectionHeader(stringResource(R.string.profile_seccion_cuenta)) }
-                items(accountItems.size) { index ->
-                    val item = accountItems[index]
-                    val msgIrA = stringResource(R.string.profile_toast_ir_a, item.title)
-                    ProfileListItem(icon = item.icon, title = item.title, subtitle = item.subtitle) {
-                        if (item.route == "logout") {
-                            onLogout()
-                        } else {
-                            Toast.makeText(context, msgIrA, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ActionsGrid(navController: NavHostController) {
-    val context = LocalContext.current
-
-    val actions = listOf(
-        stringResource(R.string.profile_guardados) to Icons.Default.BookmarkBorder,
-        stringResource(R.string.profile_mensajes) to Icons.Default.ChatBubbleOutline,
-        stringResource(R.string.profile_calificaciones) to Icons.Default.StarBorder,
-        stringResource(R.string.profile_ayuda) to Icons.Default.HelpOutline
-    )
-    val msgIrA1 = stringResource(R.string.profile_toast_ir_a, actions[1].first)
-    val msgIrA2 = stringResource(R.string.profile_toast_ir_a, actions[2].first)
-    val msgIrA3 = stringResource(R.string.profile_toast_ir_a, actions[3].first)
-
-    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            ActionCard(title = actions[0].first, icon = actions[0].second, modifier = Modifier.weight(1f)) {
-                navController.navigate(ScreenNavigation.SavedPosts.route)
-            }
-            ActionCard(title = actions[1].first, icon = actions[1].second, modifier = Modifier.weight(1f)) {
-                Toast.makeText(context, msgIrA1, Toast.LENGTH_SHORT).show()
-            }
-        }
-        Spacer(Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            ActionCard(title = actions[2].first, icon = actions[2].second, modifier = Modifier.weight(1f)) {
-                Toast.makeText(context, msgIrA2, Toast.LENGTH_SHORT).show()
-            }
-            ActionCard(title = actions[3].first, icon = actions[3].second, modifier = Modifier.weight(1f)) {
-                Toast.makeText(context, msgIrA3, Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-}
-
-@Composable
-private fun ProfileHeader(state: ProfileUiState) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
+        Column(
             modifier = Modifier
-                .size(80.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = stringResource(R.string.profile_foto_cd),
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+
+            // 1. Cabecera (Avatar y Nombre)
+            Spacer(modifier = Modifier.height(10.dp))
+            // Pasamos el color suavizado a la cabecera
+            ProfileHeaderBig(uiState, softenedBlueLight)
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // 2. Sección de Actividad
+            Text(
+                text = "Tu Actividad",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Tarjeta: Mis Publicaciones (Color suavizado)
+                DashboardCard(
+                    title = stringResource(R.string.profile_mis_publicaciones),
+                    icon = Icons.Default.Layers,
+                    modifier = Modifier.weight(1f),
+                    containerColor = softenedBlueLight, // <--- Color ajustado
+                    contentColor = SwapiWhite
+                ) { navController.navigate(ScreenNavigation.MyPosts.route) }
+
+                // Tarjeta: Guardados (Color suavizado)
+                DashboardCard(
+                    title = stringResource(R.string.profile_guardados),
+                    icon = Icons.Default.BookmarkBorder,
+                    modifier = Modifier.weight(1f),
+                    containerColor = softenedBlueLight, // <--- Color ajustado
+                    contentColor = SwapiWhite
+                ) { navController.navigate(ScreenNavigation.SavedPosts.route) }
+            }
+
+            // 3. Espaciador flexible (empuja hacia abajo)
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 4. Botón Cerrar Sesión
+            LogoutButton(onLogout = onLogout)
+
+            // 5. Espacio inferior AUMENTADO para subir el botón
+            Spacer(modifier = Modifier.height(80.dp)) // Antes era 30.dp
         }
-        Spacer(Modifier.height(8.dp))
-        Text(state.userName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        TextButton(onClick = { /* TODO: Navegar al perfil público */ }) {
-            Text(stringResource(R.string.profile_ver_publico))
+    }
+}
+
+// --- Componentes Auxiliares ---
+
+@Composable
+private fun ProfileHeaderBig(state: ProfileUiState, borderColor: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // Avatar: Borde con el color suavizado
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(110.dp)
+                .border(
+                    BorderStroke(3.dp, borderColor), // <--- Usa el color pasado como parámetro
+                    CircleShape
+                )
+        ) {
+            if (state.userName.isNotEmpty()) {
+                Text(
+                    text = state.userName.take(1).uppercase(),
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 48.sp
+                    ),
+                    // Mantenemos el texto e icono con el color original para contraste
+                    color = SwapiBlueLight
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(0.8f),
+                    tint = SwapiBlueLight
+                )
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        if (state.isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                strokeWidth = 2.dp,
+                color = SwapiBlueLight
+            )
+        } else {
+            Text(
+                text = state.userName,
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(Modifier.height(6.dp))
+
+            // Badge (Mantenemos el estilo original que ya era sutil)
+            Surface(
+                color = SwapiBlueLight.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(50),
+            ) {
+                Text(
+                    text = "Miembro Verificado",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                    color = SwapiBlueLight,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun ActionCard(
+private fun DashboardCard(
     title: String,
     icon: ImageVector,
     modifier: Modifier = Modifier,
+    containerColor: Color,
+    contentColor: Color,
     onClick: () -> Unit
 ) {
     Card(
-        modifier = modifier.clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = rememberRipple(),
-            onClick = onClick
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        onClick = onClick,
+        modifier = modifier.height(120.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(Modifier.padding(16.dp)) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp))
-            Spacer(Modifier.height(8.dp))
-            Text(title, style = MaterialTheme.typography.labelLarge)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(34.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.5.sp
+                ),
+                color = contentColor,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
 
 @Composable
-private fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-    )
-}
-
-@Composable
-private fun ProfileListItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String? = null,
-    onClick: () -> Unit
-) {
-    Row(
+private fun LogoutButton(onLogout: () -> Unit) {
+    OutlinedButton(
+        onClick = onLogout,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = rememberRipple(),
-                onClick = onClick
-            )
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .height(56.dp),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f)),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = MaterialTheme.colorScheme.error
+        )
     ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp))
-        Spacer(Modifier.width(16.dp))
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            if (subtitle != null) {
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Logout,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.profile_cerrar_sesion),
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+            )
         }
-        Icon(Icons.Default.ChevronRight, contentDescription = null)
     }
 }

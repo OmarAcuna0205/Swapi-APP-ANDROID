@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -15,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -39,141 +37,128 @@ fun MyPostCard(
     format.maximumFractionDigits = 0
     val imageUrl = if (product.images.isNotEmpty()) Constants.BASE_URL + "storage/" + product.images[0] else ""
 
-    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-    val cardBackground = MaterialTheme.colorScheme.surface
+    // Colores y estilos del tema (igual que SaleProductCard)
+    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+    val cardBackgroundColor = MaterialTheme.colorScheme.surface
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp) // Un poco más de separación entre tarjetas
-            .clip(RoundedCornerShape(16.dp))
-            .border(BorderStroke(1.dp, borderColor), RoundedCornerShape(16.dp))
+            .border(BorderStroke(1.dp, borderColor), RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp))
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = cardBackground),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(130.dp) // Altura cómoda
+        Column(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // 1. IMAGEN (Izquierda)
+            // 1. IMAGEN GRANDE (Top)
             Box(
                 modifier = Modifier
-                    .width(130.dp) // Imagen cuadrada o casi cuadrada
-                    .fillMaxHeight()
+                    .fillMaxWidth()
+                    .height(220.dp) // Misma altura que SaleProductCard
                     .background(Color.Gray.copy(alpha = 0.1f))
             ) {
                 AsyncImage(
                     model = imageUrl,
-                    contentDescription = null,
+                    contentDescription = product.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
-                // Sombra sutil interna para dar profundidad
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.1f))
-                            )
-                        )
-                )
+
+                // Etiqueta de Categoría flotante sobre la imagen
+                Surface(
+                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.9f),
+                    shape = RoundedCornerShape(bottomStart = 8.dp),
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Text(
+                        text = product.category.uppercase(),
+                        color = MaterialTheme.colorScheme.onSecondary,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
             }
 
-            // 2. CONTENIDO Y ACCIONES (Derecha)
-            Row(
+            // 2. CONTENIDO (Bottom)
+            Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                // 2a. Columna de Texto (Centro)
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    verticalArrangement = Arrangement.SpaceBetween
+                // Título
+                Text(
+                    text = product.title,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 18.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                // Descripción corta (opcional, para rellenar un poco visualmente)
+                Text(
+                    text = product.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                // Fila de Precio y Botones de Acción
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Parte Superior: Categoría y Título
-                    Column {
-                        Surface(
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(6.dp)
-                        ) {
-                            Text(
-                                text = product.category.uppercase(),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 10.sp
-                                ),
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        Text(
-                            text = product.title,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp
-                            ),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    // Parte Inferior: Precio
+                    // Precio
                     Text(
                         text = format.format(product.price),
                         style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 18.sp
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
                         ),
                         color = MaterialTheme.colorScheme.primary
                     )
-                }
 
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // 2b. Columna de Botones (Derecha Extrema)
-                Column(
-                    modifier = Modifier.fillMaxHeight(),
-                    verticalArrangement = Arrangement.SpaceBetween, // Editar arriba, Eliminar abajo
-                    horizontalAlignment = Alignment.End
-                ) {
-                    // Botón Editar
-                    IconButton(
-                        onClick = onEditClick,
-                        modifier = Modifier
-                            .size(34.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
+                    // Botones de Editar y Eliminar
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Icon(
-                            Icons.Default.Edit,
-                            contentDescription = "Editar",
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                        // Botón Editar
+                        IconButton(
+                            onClick = onEditClick,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Editar",
+                                tint = MaterialTheme.colorScheme.primary, // Azul para editar
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
 
-                    // Botón Eliminar
-                    IconButton(
-                        onClick = onDeleteClick,
-                        modifier = Modifier
-                            .size(34.dp)
-                            .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f), CircleShape)
-                    ) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = "Eliminar",
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.error
-                        )
+                        // Botón Eliminar
+                        IconButton(
+                            onClick = onDeleteClick,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Eliminar",
+                                tint = MaterialTheme.colorScheme.error, // Rojo para eliminar
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
