@@ -14,7 +14,8 @@ class AuthRepository(private val api: AuthApi) {
             val resp = api.login(LoginRequest(email, password))
 
             if (resp.isSuccessful) {
-                resp.body() ?: LoginResponse(false, "Respuesta vacía del servidor")
+                // Si el body es nulo, devolvemos código de error
+                resp.body() ?: LoginResponse(false, "ERROR_SERVIDOR_VACIO")
             } else {
                 val msg = resp.errorBody()?.string().orEmpty()
                 val parsed = try {
@@ -25,13 +26,15 @@ class AuthRepository(private val api: AuthApi) {
 
                 LoginResponse(
                     success = false,
-                    message = parsed.ifBlank { "Credenciales inválidas" }
+                    // Si el backend manda mensaje, intentamos usarlo (o el Mapper lo devolverá tal cual si no es código),
+                    // si no, usamos el código de credenciales inválidas por defecto.
+                    message = parsed.ifBlank { "LOGIN_CREDENCIALES_INVALIDAS" }
                 )
             }
         } catch (_: IOException) {
-            LoginResponse(false, "Sin conexión. Verifica tu red.")
+            LoginResponse(false, "ERROR_RED")
         } catch (_: Exception) {
-            LoginResponse(false, "Error inesperado")
+            LoginResponse(false, "ERROR_GENERICO")
         }
     }
 
@@ -51,13 +54,13 @@ class AuthRepository(private val api: AuthApi) {
                 }
 
                 Result.failure(
-                    Exception(parsed.ifBlank { "Error en registro" })
+                    Exception(parsed.ifBlank { "ERROR_REGISTRO_GENERICO" })
                 )
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Sin conexión. Verifica tu red."))
+            Result.failure(Exception("ERROR_RED"))
         } catch (e: Exception) {
-            Result.failure(Exception("Error inesperado"))
+            Result.failure(Exception("ERROR_GENERICO"))
         }
     }
 
@@ -78,13 +81,14 @@ class AuthRepository(private val api: AuthApi) {
                 }
 
                 Result.failure(
-                    Exception(parsed.ifBlank { "Código incorrecto" })
+                    // "VERIFICACION_CODIGO_INVALIDO" ya lo agregamos al Mapper en el paso anterior
+                    Exception(parsed.ifBlank { "VERIFICACION_CODIGO_INVALIDO" })
                 )
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Sin conexión. Verifica tu red."))
+            Result.failure(Exception("ERROR_RED"))
         } catch (e: Exception) {
-            Result.failure(Exception("Error inesperado"))
+            Result.failure(Exception("ERROR_GENERICO"))
         }
     }
 }

@@ -7,7 +7,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,17 +15,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.swapi.swapiV1.R
 import com.swapi.swapiV1.home.model.repository.HomeRepository
 import com.swapi.swapiV1.home.viewmodel.HomeUIState
 import com.swapi.swapiV1.home.viewmodel.HomeViewModel
 import com.swapi.swapiV1.home.viewmodel.HomeViewModelFactory
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.sales.views.SaleProductCard
+import com.swapi.swapiV1.utils.ErrorMessageMapper
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,10 +43,20 @@ fun CategoryProductView(
     val factory = HomeViewModelFactory(repository)
     val viewModel: HomeViewModel = viewModel(factory = factory)
 
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
-    val displayTitle = category.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+    // --- 1. TRADUCCIÓN DEL TÍTULO ---
+    // Mapeamos el ID del backend (ej: "ventas") al stringResource correspondiente
+    val displayTitle = when(category.lowercase()) {
+        "ventas" -> stringResource(R.string.ventas_title)
+        "rentas" -> stringResource(R.string.rentas_title)
+        "servicios" -> stringResource(R.string.servicios_title)
+        "anuncios" -> stringResource(R.string.anuncios_title)
+        else -> category.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    }
+
     val swapiBrandColor = Color(0xFF4A8BFF)
 
     Scaffold(
@@ -72,10 +88,14 @@ fun CategoryProductView(
             when (val state = uiState) {
                 is HomeUIState.Loading -> CircularProgressIndicator(color = swapiBrandColor)
 
-                is HomeUIState.Error -> Text(
-                    text = "Error: ${state.message}",
-                    color = MaterialTheme.colorScheme.error
-                )
+                is HomeUIState.Error -> {
+                    // --- 2. MANEJO DE ERRORES CON MAPPER ---
+                    val msg = ErrorMessageMapper.getMessage(context, state.message)
+                    Text(
+                        text = msg,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
 
                 is HomeUIState.Success -> {
                     val filteredList = state.products.filter { product ->
@@ -88,11 +108,10 @@ fun CategoryProductView(
                     }
 
                     if (filteredList.isNotEmpty()) {
-                        // --- CAMBIO PRINCIPAL AQUÍ ---
                         LazyVerticalGrid(
-                            columns = GridCells.Fixed(1), // 1 Columna (Lista vertical)
+                            columns = GridCells.Fixed(1),
                             contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(20.dp), // Más espacio entre tarjetas
+                            verticalArrangement = Arrangement.spacedBy(20.dp),
                             modifier = Modifier.fillMaxSize()
                         ) {
                             items(filteredList, key = { it.id }) { product ->
@@ -105,6 +124,7 @@ fun CategoryProductView(
                             }
                         }
                     } else {
+                        // --- 3. ESTADO VACÍO CON FORMATO ---
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -117,7 +137,8 @@ fun CategoryProductView(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                             )
                             Text(
-                                "No hay $category disponibles.",
+                                // "No hay Ventas disponibles" / "No Sales available"
+                                text = stringResource(R.string.category_empty, displayTitle),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -154,7 +175,10 @@ private fun CategoryTopBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.common_atras_cd) // --- 4. CD ---
+                    )
                 }
                 Text(
                     text = title,
@@ -170,7 +194,8 @@ private fun CategoryTopBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
-                placeholder = { Text("Buscar en $title...") },
+                // --- 5. PLACEHOLDER DINÁMICO ---
+                placeholder = { Text(stringResource(R.string.category_search_hint, title)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,

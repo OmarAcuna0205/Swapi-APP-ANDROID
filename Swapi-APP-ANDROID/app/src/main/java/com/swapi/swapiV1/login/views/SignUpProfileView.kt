@@ -29,6 +29,7 @@ import androidx.navigation.NavHostController
 import com.swapi.swapiV1.R
 import com.swapi.swapiV1.login.viewmodel.LoginViewModel
 import com.swapi.swapiV1.navigation.ScreenNavigation
+import com.swapi.swapiV1.utils.ErrorMessageMapper // IMPORTANTE: Agregado
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,16 +45,15 @@ fun SignUpProfileView(
     var maternal by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") } // Nota: confirmPassword no se está usando en la lógica actual del VM, pero visualmente está ahí.
 
     var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
 
     val uiState by viewModel.ui.collectAsState() // Observamos estado de carga
     val context = LocalContext.current
     val swapiBrandColor = Color(0xFF4A8BFF)
 
-    // Escuchar eventos de navegación y toast
+    // Escuchar eventos de navegación
     LaunchedEffect(Unit) {
         viewModel.navEvents.collect { event ->
             if (event is LoginViewModel.LoginNavEvent.GoVerifyCode) {
@@ -63,9 +63,12 @@ fun SignUpProfileView(
         }
     }
 
+    // Escuchar eventos de toast (Errores)
     LaunchedEffect(Unit) {
-        viewModel.toastEvents.collect { msg ->
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        viewModel.toastEvents.collect { msgCode ->
+            // CORRECCIÓN: Usamos el Mapper para traducir el código de error
+            val message = ErrorMessageMapper.getMessage(context, msgCode)
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -123,7 +126,8 @@ fun SignUpProfileView(
                     paternal = it
                     viewModel.onRegisterPaternalChange(it)
                 },
-                label = { Text("Apellido Paterno") }, // Agrega este string a strings.xml
+                // CORRECCIÓN: Usamos stringResource
+                label = { Text(stringResource(R.string.signup_lastname_paternal)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
@@ -140,7 +144,8 @@ fun SignUpProfileView(
                     maternal = it
                     viewModel.onRegisterMaternalChange(it)
                 },
-                label = { Text("Apellido Materno") }, // Agrega este string a strings.xml
+                // CORRECCIÓN: Usamos stringResource
+                label = { Text(stringResource(R.string.signup_lastname_maternal)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),

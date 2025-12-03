@@ -137,4 +137,60 @@
     <string name="sales_empty_list">No hay publicaciones de ventas disponibles aún.</string>
     <string name="sale_card_user_prefix">Usuario:</string>
 
+    <string name="common_atras_cd">Atrás</string>
+    <string name="common_cancelar">Cancelar</string>
+    <string name="common_guardar_cambios">Guardar Cambios</string>
+    <string name="common_limpiar_cd">Limpiar</string>
+    <string name="common_cargando">Cargando...</string>
+    <string name="common_publicando">Publicando...</string>
+    <string name="common_usuario_default">Usuario</string>
+
+    <string name="product_ubicacion_default">Chihuahua, Chih.</string>
+    <string name="product_info_vendedor">Información del vendedor</string>
+    <string name="product_miembro_comunidad">Miembro de la comunidad ULSA</string>
+    <string name="product_enviar_mensaje">Enviar mensaje</string>
+
+    <string name="myposts_empty">Aún no has publicado nada.</string>
+    <string name="myposts_search_empty">No se encontraron resultados.</string>
+    <string name="myposts_delete_title">Eliminar publicación</string>
+    <string name="myposts_delete_msg">¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.</string>
+    <string name="myposts_delete_confirm">Eliminar</string>
+    <string name="myposts_search_hint">Buscar en mis posts...</string>
+
+    <string name="edit_imagen_actual">Imagen actual</string>
+    <string name="edit_completa_campos">Completa los campos</string>
+
+    <string name="category_search_hint">Buscar en %1$s...</string>
+    <string name="category_empty">No hay %1$s disponibles.</string>
+
+    <string name="new_pub_llenar_campos">Por favor llena los campos</string>
+
+    <string name="signup_success_verify">Cuenta verificada. Inicia sesión.</string>
+    <string name="signup_error_domain">Solo se permiten correos institucionales (@ulsachihuahua.edu.mx)</string>
+    <string name="signup_lastname_paternal">Apellido Paterno</string>
+    <string name="signup_lastname_maternal">Apellido Materno</string>
+
+    <string name="profile_tu_actividad">Tu Actividad</string>
+    <string name="profile_miembro_verificado">Miembro Verificado</string>
+
+    <string name="login_error_campos">Email y contraseña son obligatorios</string>
+    <string name="login_error_generico">Error de red o servidor</string>
+    <string name="registro_error_campos">Completa todos los campos obligatorios</string>
+    <string name="verificacion_codigo_vacio">Ingresa el código</string>
+    <string name="verificacion_codigo_invalido">Código inválido</string>
+
+    <string name="action_editar_cd">Editar publicación</string>
+    <string name="action_eliminar_cd">Eliminar publicación</string>
+
+    <string name="repo_error_servidor_vacio">Respuesta vacía del servidor</string>
+    <string name="repo_login_credenciales">Credenciales inválidas</string>
+    <string name="repo_error_registro">Error en el registro</string>
+
+    <string name="home_error_load">Error al cargar productos</string>
+
+    <string name="product_error_load">Error al cargar el producto</string>
+
+    <string name="tab_perfil">Perfil</string>
+    <string name="nav_fab_publicar_cd">Publicar nuevo</string>
+
 </resources>

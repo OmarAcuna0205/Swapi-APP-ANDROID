@@ -38,6 +38,9 @@ fun SaleProductCard(
     val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
     format.maximumFractionDigits = 0
 
+    // ✅ COLOR ACTUALIZADO (Mismo que en HomeView -> ModernProductCard)
+    val priceColor = Color(0xFF448AFF)
+
     val imageUrl = if (product.images.isNotEmpty()) Constants.BASE_URL + "storage/" + product.images[0] else ""
 
     var isPressed by remember { mutableStateOf(false) }
@@ -88,9 +91,13 @@ fun SaleProductCard(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                // --- STRING RESOURCE ---
+                // --- SEGURIDAD DE AUTOR ---
+                val defaultUser = stringResource(R.string.common_usuario_default)
+                val authorName = product.author?.firstName ?: defaultUser
+                val prefix = stringResource(R.string.sale_card_user_prefix)
+
                 Text(
-                    text = "${stringResource(R.string.sale_card_user_prefix)} ${product.author.firstName}",
+                    text = "$prefix $authorName",
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontWeight = FontWeight.Medium,
                         letterSpacing = 0.5.sp
@@ -124,12 +131,13 @@ fun SaleProductCard(
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         ),
-                        color = MaterialTheme.colorScheme.primary
+                        // ✅ AQUÍ APLICAMOS EL COLOR DEL HOME
+                        color = priceColor
                     )
 
                     Icon(
                         imageVector = Icons.Default.ArrowForward,
-                        contentDescription = stringResource(R.string.sales_card_details_cd), // --- STRING RESOURCE
+                        contentDescription = stringResource(R.string.sales_card_details_cd),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )

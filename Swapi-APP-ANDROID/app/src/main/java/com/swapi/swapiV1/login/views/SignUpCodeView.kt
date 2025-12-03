@@ -25,6 +25,7 @@ import androidx.navigation.NavHostController
 import com.swapi.swapiV1.R
 import com.swapi.swapiV1.login.viewmodel.LoginViewModel
 import com.swapi.swapiV1.navigation.ScreenNavigation
+import com.swapi.swapiV1.utils.ErrorMessageMapper // IMPORTANTE: Agregado
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,8 +44,10 @@ fun SignUpCodeView(
     LaunchedEffect(Unit) {
         viewModel.navEvents.collect { event ->
             if (event is LoginViewModel.LoginNavEvent.GoLogin) {
-                // Si verifica OK, vamos al Login para que entre
-                Toast.makeText(context, "Cuenta verificada. Inicia sesión.", Toast.LENGTH_LONG).show()
+                // CORRECCIÓN 1: Usamos stringResource para el mensaje de éxito
+                val msg = context.getString(R.string.signup_success_verify)
+                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+
                 navHostController.navigate(ScreenNavigation.Login.route) {
                     popUpTo(ScreenNavigation.Login.route) { inclusive = true }
                 }
@@ -54,8 +57,10 @@ fun SignUpCodeView(
 
     // Escuchar errores (código incorrecto)
     LaunchedEffect(Unit) {
-        viewModel.toastEvents.collect { msg ->
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        viewModel.toastEvents.collect { msgCode ->
+            // CORRECCIÓN 2: Usamos el Mapper para traducir el código de error
+            val message = ErrorMessageMapper.getMessage(context, msgCode)
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
 

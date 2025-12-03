@@ -16,11 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.swapi.swapiV1.R
 import com.swapi.swapiV1.home.model.dto.Product
 import com.swapi.swapiV1.utils.Constants
 import java.text.NumberFormat
@@ -35,9 +37,20 @@ fun MyPostCard(
 ) {
     val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
     format.maximumFractionDigits = 0
+
+    val priceColor = Color(0xFF448AFF)
+
     val imageUrl = if (product.images.isNotEmpty()) Constants.BASE_URL + "storage/" + product.images[0] else ""
 
-    // Colores y estilos del tema (igual que SaleProductCard)
+    // Traducción de la categoría
+    val categoryLabel = when(product.category.lowercase()) {
+        "ventas" -> stringResource(R.string.ventas_title)
+        "rentas" -> stringResource(R.string.rentas_title)
+        "servicios" -> stringResource(R.string.servicios_title)
+        "anuncios" -> stringResource(R.string.anuncios_title)
+        else -> product.category
+    }
+
     val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     val cardBackgroundColor = MaterialTheme.colorScheme.surface
 
@@ -57,7 +70,7 @@ fun MyPostCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp) // Misma altura que SaleProductCard
+                    .height(220.dp)
                     .background(Color.Gray.copy(alpha = 0.1f))
             ) {
                 AsyncImage(
@@ -67,14 +80,14 @@ fun MyPostCard(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Etiqueta de Categoría flotante sobre la imagen
+                // Etiqueta de Categoría flotante
                 Surface(
                     color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.9f),
                     shape = RoundedCornerShape(bottomStart = 8.dp),
                     modifier = Modifier.align(Alignment.TopEnd)
                 ) {
                     Text(
-                        text = product.category.uppercase(),
+                        text = categoryLabel.uppercase(),
                         color = MaterialTheme.colorScheme.onSecondary,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
@@ -103,7 +116,7 @@ fun MyPostCard(
 
                 Spacer(Modifier.height(4.dp))
 
-                // Descripción corta (opcional, para rellenar un poco visualmente)
+                // Descripción
                 Text(
                     text = product.description,
                     style = MaterialTheme.typography.bodySmall,
@@ -127,35 +140,33 @@ fun MyPostCard(
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         ),
-                        color = MaterialTheme.colorScheme.primary
+
+                        color = priceColor
                     )
 
-                    // Botones de Editar y Eliminar
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        // Botón Editar
                         IconButton(
                             onClick = onEditClick,
                             modifier = Modifier.size(36.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
-                                contentDescription = "Editar",
-                                tint = MaterialTheme.colorScheme.primary, // Azul para editar
+                                contentDescription = stringResource(R.string.action_editar_cd),
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
 
-                        // Botón Eliminar
                         IconButton(
                             onClick = onDeleteClick,
                             modifier = Modifier.size(36.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = "Eliminar",
-                                tint = MaterialTheme.colorScheme.error, // Rojo para eliminar
+                                contentDescription = stringResource(R.string.action_eliminar_cd),
+                                tint = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(20.dp)
                             )
                         }

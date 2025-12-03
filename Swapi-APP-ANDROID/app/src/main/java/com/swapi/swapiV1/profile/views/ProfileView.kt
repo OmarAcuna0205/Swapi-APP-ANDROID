@@ -32,7 +32,6 @@ import com.swapi.swapiV1.profile.viewmodel.ProfileUiState
 import com.swapi.swapiV1.profile.viewmodel.ProfileViewModel
 import com.swapi.swapiV1.profile.viewmodel.ProfileViewModelFactory
 import com.swapi.swapiV1.ui.theme.SwapiBlueLight
-import com.swapi.swapiV1.ui.theme.SwapiWhite
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,7 +55,7 @@ fun ProfileView(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_atras_cd))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -83,7 +82,8 @@ fun ProfileView(
 
             // 2. Sección de Actividad
             Text(
-                text = "Tu Actividad",
+                // CORRECCIÓN AQUÍ: Usamos stringResource
+                text = stringResource(R.string.profile_tu_actividad),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
@@ -188,7 +188,8 @@ private fun ProfileHeaderBig(state: ProfileUiState, borderColor: Color) {
                 shape = RoundedCornerShape(50),
             ) {
                 Text(
-                    text = "Miembro Verificado",
+                    // CORRECCIÓN AQUÍ: Usamos stringResource
+                    text = stringResource(R.string.profile_miembro_verificado),
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
                     color = SwapiBlueLight,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)

@@ -15,17 +15,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource // IMPORTANTE
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.swapi.swapiV1.R // IMPORTANTE
 import com.swapi.swapiV1.home.productdetail.view.ProductDetailView
 import com.swapi.swapiV1.home.views.CategoryProductView
 import com.swapi.swapiV1.home.views.HomeView
 import com.swapi.swapiV1.profile.views.MyPostsView
 import com.swapi.swapiV1.profile.views.ProfileView
-import com.swapi.swapiV1.publication.views.EditPostView // Importante importar esto
+import com.swapi.swapiV1.publication.views.EditPostView
 import com.swapi.swapiV1.publication.views.NewPublicationView
 import com.swapi.swapiV1.saved.views.SavedPostsView
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
@@ -53,6 +55,7 @@ fun TabBarNavigationView(
                         tonalElevation = 0.dp,
                         modifier = Modifier.height(85.dp)
                     ) {
+                        // --- ITEM INICIO ---
                         NavigationBarItem(
                             selected = currentRoute == ScreenNavigation.Home.route,
                             onClick = {
@@ -62,8 +65,9 @@ fun TabBarNavigationView(
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
-                            label = { Text("Inicio") },
+                            // CORRECCIÓN: stringResource
+                            icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.tab_home)) },
+                            label = { Text(stringResource(R.string.tab_home)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = swapiBlue,
                                 selectedTextColor = swapiBlue,
@@ -71,7 +75,10 @@ fun TabBarNavigationView(
                                 indicatorColor = Color.Transparent
                             )
                         )
+
                         Spacer(modifier = Modifier.weight(1f))
+
+                        // --- ITEM PERFIL ---
                         NavigationBarItem(
                             selected = currentRoute == ScreenNavigation.Profile.route,
                             onClick = {
@@ -81,8 +88,9 @@ fun TabBarNavigationView(
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
-                            label = { Text("Perfil") },
+                            // CORRECCIÓN: stringResource
+                            icon = { Icon(Icons.Default.Person, contentDescription = stringResource(R.string.tab_perfil)) },
+                            label = { Text(stringResource(R.string.tab_perfil)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = swapiBlue,
                                 selectedTextColor = swapiBlue,
@@ -91,6 +99,8 @@ fun TabBarNavigationView(
                             )
                         )
                     }
+
+                    // --- BOTÓN FLOTANTE CENTRAL ---
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
@@ -113,7 +123,13 @@ fun TabBarNavigationView(
                                     .clickable { navController.navigate(ScreenNavigation.NewPublication.route) },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Add, "Publicar", tint = Color.White, modifier = Modifier.size(36.dp))
+                                Icon(
+                                    Icons.Default.Add,
+                                    // CORRECCIÓN: stringResource
+                                    contentDescription = stringResource(R.string.nav_fab_publicar_cd),
+                                    tint = Color.White,
+                                    modifier = Modifier.size(36.dp)
+                                )
                             }
                         }
                     }
@@ -148,7 +164,6 @@ fun TabBarNavigationView(
                 ProductDetailView(productId, navController)
             }
 
-            // --- NUEVO COMPOSABLE PARA EDITAR ---
             composable(
                 route = ScreenNavigation.EditPost.route,
                 arguments = listOf(navArgument("postId") { type = NavType.StringType })
