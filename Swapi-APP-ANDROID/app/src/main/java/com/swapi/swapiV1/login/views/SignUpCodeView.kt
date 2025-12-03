@@ -25,29 +25,42 @@ import androidx.navigation.NavHostController
 import com.swapi.swapiV1.R
 import com.swapi.swapiV1.login.viewmodel.LoginViewModel
 import com.swapi.swapiV1.navigation.ScreenNavigation
-import com.swapi.swapiV1.utils.ErrorMessageMapper // IMPORTANTE: Agregado
+import com.swapi.swapiV1.utils.ErrorMessageMapper
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpCodeView(
     navHostController: NavHostController,
-    viewModel: LoginViewModel, // Inyectamos el ViewModel
+    // Recibimos el ViewModel como parámetro. Esto es crucial:
+    // Significa que esta pantalla comparte el mismo ViewModel (y por tanto los mismos datos)
+    // que la pantalla anterior, o que el grafo de navegación se encarga de proveerlo.
+    viewModel: LoginViewModel,
     email: String
 ) {
+    // Estado local para el código (lo que el usuario escribe).
+    // No hace falta ponerlo en el ViewModel hasta que se envíe, porque es efímero.
     var code by remember { mutableStateOf("") }
+
+    // Observamos el estado global (isLoading, etc.)
     val uiState by viewModel.ui.collectAsState()
+
     val context = LocalContext.current
     val swapiBrandColor = Color(0xFF4A8BFF)
 
-    // Escuchar éxito de verificación
+    // 1. ESCUCHA DE NAVEGACIÓN (Éxito)
     LaunchedEffect(Unit) {
-        viewModel.navEvents.collect { event ->
+        // Usamos collectLatest para asegurar que siempre atendemos al evento más reciente
+        viewModel.navEvents.collectLatest { event ->
             if (event is LoginViewModel.LoginNavEvent.GoLogin) {
-                // CORRECCIÓN 1: Usamos stringResource para el mensaje de éxito
-                val msg = context.getString(R.string.signup_success_verify)
-                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.signup_success_verify),
+                    Toast.LENGTH_LONG
+                ).show()
 
+                // Navegamos al Login y borramos la pila para que no pueda volver atrás
                 navHostController.navigate(ScreenNavigation.Login.route) {
                     popUpTo(ScreenNavigation.Login.route) { inclusive = true }
                 }
@@ -55,10 +68,10 @@ fun SignUpCodeView(
         }
     }
 
-    // Escuchar errores (código incorrecto)
+    // 2. ESCUCHA DE ERRORES
     LaunchedEffect(Unit) {
-        viewModel.toastEvents.collect { msgCode ->
-            // CORRECCIÓN 2: Usamos el Mapper para traducir el código de error
+        viewModel.toastEvents.collectLatest { msgCode ->
+            // El Mapper traduce códigos como "VERIFICACION_CODIGO_INVALIDO" a mensajes legibles
             val message = ErrorMessageMapper.getMessage(context, msgCode)
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
@@ -78,11 +91,14 @@ fun SignUpCodeView(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            // Título
             Text(
                 text = stringResource(id = R.string.signup_code_title),
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center
             )
+
+            // Subtítulo mostrando el correo al que se envió el código
             Text(
                 text = stringResource(id = R.string.signup_code_subtitle, email),
                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -93,26 +109,36 @@ fun SignUpCodeView(
 
             Spacer(Modifier.height(16.dp))
 
+            // Campo de entrada del código
             OutlinedTextField(
                 value = code,
-                onValueChange = { if (it.length <= 6) code = it },
+                onValueChange = { newValue ->
+                    // Validación simple: Solo permitimos escribir si son 6 caracteres o menos
+                    if (newValue.length <= 6) code = newValue
+                },
                 label = { Text(stringResource(id = R.string.signup_code_label)) },
                 singleLine = true,
+                // Configuramos el teclado para que sea numérico
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                // Sintaxis actualizada de Material 3
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = swapiBrandColor,
+                    focusedLabelColor = swapiBrandColor,
+                    cursorColor = swapiBrandColor,
                     unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
                 )
             )
 
             Spacer(Modifier.height(12.dp))
 
+            // Botón de Verificar
             Button(
                 onClick = {
-                    viewModel.onVerifyCode(code) // Llamamos al backend para verificar
+                    viewModel.onVerifyCode(code)
                 },
+                // Deshabilitamos el botón si ya está cargando para evitar doble clic
                 enabled = !uiState.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -121,17 +147,25 @@ fun SignUpCodeView(
                 colors = ButtonDefaults.buttonColors(containerColor = swapiBrandColor)
             ) {
                 if (uiState.isLoading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 3.dp
+                    )
                 } else {
                     Text(
                         stringResource(id = R.string.signup_code_button),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 17.sp),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 17.sp
+                        ),
                         color = Color.White
                     )
                 }
             }
         }
 
+        // Botón Atrás (Flecha superior izquierda)
         IconButton(
             onClick = { navHostController.popBackStack() },
             modifier = Modifier
@@ -139,7 +173,7 @@ fun SignUpCodeView(
                 .padding(top = 48.dp, start = 16.dp)
         ) {
             Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(id = R.string.common_back_button_cd),
                 tint = MaterialTheme.colorScheme.onBackground
             )

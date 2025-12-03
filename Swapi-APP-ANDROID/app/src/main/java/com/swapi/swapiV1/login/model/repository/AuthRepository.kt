@@ -3,37 +3,31 @@ package com.swapi.swapiV1.login.model.repository
 import com.swapi.swapiV1.login.model.dto.*
 import com.swapi.swapiV1.login.model.network.AuthApi
 import org.json.JSONObject
+import retrofit2.Response
 import java.io.IOException
 
-// Repositorio que maneja la lógica de autenticación.
 class AuthRepository(private val api: AuthApi) {
 
     // ---------------- LOGIN ----------------
+    // Nota: Mantenemos el retorno directo de LoginResponse por compatibilidad con tu código actual,
+    // pero idealmente debería retornar Result<LoginResponse> como en el registro.
     suspend fun login(email: String, password: String): LoginResponse {
         return try {
-            val resp = api.login(LoginRequest(email, password))
+            val response = api.login(LoginRequest(email, password))
 
-            if (resp.isSuccessful) {
-                // Si el body es nulo, devolvemos código de error
-                resp.body() ?: LoginResponse(false, "ERROR_SERVIDOR_VACIO")
+            if (response.isSuccessful) {
+                // Si el servidor responde 200 OK pero el cuerpo está vacío, devolvemos error
+                response.body() ?: LoginResponse(false, "ERROR_SERVIDOR_VACIO")
             } else {
-                val msg = resp.errorBody()?.string().orEmpty()
-                val parsed = try {
-                    JSONObject(msg).optString("message", "")
-                } catch (_: Exception) {
-                    ""
-                }
-
-                LoginResponse(
-                    success = false,
-                    // Si el backend manda mensaje, intentamos usarlo (o el Mapper lo devolverá tal cual si no es código),
-                    // si no, usamos el código de credenciales inválidas por defecto.
-                    message = parsed.ifBlank { "LOGIN_CREDENCIALES_INVALIDAS" }
-                )
+                // Extraemos el mensaje de error del JSON del servidor
+                val errorMsg = parseErrorBody(response)
+                LoginResponse(success = false, message = errorMsg.ifBlank { "LOGIN_CREDENCIALES_INVALIDAS" })
             }
-        } catch (_: IOException) {
+        } catch (e: IOException) {
+            // Error de conexión (sin internet, timeout)
             LoginResponse(false, "ERROR_RED")
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            // Error de código (parseo, nulos, etc.)
             LoginResponse(false, "ERROR_GENERICO")
         }
     }
@@ -41,23 +35,15 @@ class AuthRepository(private val api: AuthApi) {
     // ---------------- REGISTER ----------------
     suspend fun register(request: RegisterRequest): Result<RegisterResponse> {
         return try {
-            val resp = api.register(request)
+            val response = api.register(request)
 
-            if (resp.isSuccessful && resp.body() != null) {
-                Result.success(resp.body()!!)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
             } else {
-                val errorMsg = resp.errorBody()?.string().orEmpty()
-                val parsed = try {
-                    JSONObject(errorMsg).optString("message", "")
-                } catch (_: Exception) {
-                    ""
-                }
-
-                Result.failure(
-                    Exception(parsed.ifBlank { "ERROR_REGISTRO_GENERICO" })
-                )
+                val errorMsg = parseErrorBody(response)
+                Result.failure(Exception(errorMsg.ifBlank { "ERROR_REGISTRO_GENERICO" }))
             }
-        } catch (_: IOException) {
+        } catch (e: IOException) {
             Result.failure(Exception("ERROR_RED"))
         } catch (e: Exception) {
             Result.failure(Exception("ERROR_GENERICO"))
@@ -67,28 +53,33 @@ class AuthRepository(private val api: AuthApi) {
     // ---------------- VERIFICAR CÓDIGO ----------------
     suspend fun verifyCode(email: String, code: String): Result<Boolean> {
         return try {
-            val request = VerifyRequest(email, code)
-            val resp = api.verify(request)
+            val response = api.verify(VerifyRequest(email, code))
 
-            if (resp.isSuccessful) {
+            if (response.isSuccessful) {
+                // Si el código es correcto, el backend devuelve 200 OK
                 Result.success(true)
             } else {
-                val errorMsg = resp.errorBody()?.string().orEmpty()
-                val parsed = try {
-                    JSONObject(errorMsg).optString("message", "")
-                } catch (_: Exception) {
-                    ""
-                }
-
-                Result.failure(
-                    // "VERIFICACION_CODIGO_INVALIDO" ya lo agregamos al Mapper en el paso anterior
-                    Exception(parsed.ifBlank { "VERIFICACION_CODIGO_INVALIDO" })
-                )
+                val errorMsg = parseErrorBody(response)
+                Result.failure(Exception(errorMsg.ifBlank { "VERIFICACION_CODIGO_INVALIDO" }))
             }
-        } catch (_: IOException) {
+        } catch (e: IOException) {
             Result.failure(Exception("ERROR_RED"))
         } catch (e: Exception) {
             Result.failure(Exception("ERROR_GENERICO"))
+        }
+    }
+
+    // ---------------- HELPER PRIVADO ----------------
+    /**
+     * Extrae el mensaje "message" del JSON de error que devuelve el backend.
+     * Retrofit no convierte automáticamente los cuerpos de error, hay que hacerlo manual.
+     */
+    private fun parseErrorBody(response: Response<*>): String {
+        return try {
+            val errorJson = response.errorBody()?.string() ?: return ""
+            JSONObject(errorJson).optString("message", "")
+        } catch (e: Exception) {
+            ""
         }
     }
 }

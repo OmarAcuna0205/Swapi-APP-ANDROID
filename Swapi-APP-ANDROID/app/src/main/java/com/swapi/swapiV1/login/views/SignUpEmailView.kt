@@ -33,11 +33,11 @@ fun SignUpEmailView(
     navHostController: NavHostController,
     viewModel: LoginViewModel
 ) {
+    // Estado local para control inmediato del texto
     var email by remember { mutableStateOf("") }
-    val swapiBrandColor = Color(0xFF4A8BFF)
 
-    // 1. Obtenemos el contexto aquí para poder usar el Toast
     val context = LocalContext.current
+    val swapiBrandColor = Color(0xFF4A8BFF)
 
     Box(
         modifier = Modifier
@@ -58,6 +58,7 @@ fun SignUpEmailView(
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center
             )
+
             Text(
                 text = stringResource(id = R.string.signup_email_subtitle),
                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -70,16 +71,17 @@ fun SignUpEmailView(
 
             OutlinedTextField(
                 value = email,
-                onValueChange = {
-                    email = it
-                    viewModel.onRegisterEmailChange(it) // Seguimos actualizando el VM
+                onValueChange = { newValue ->
+                    email = newValue
+                    // Sincronizamos con el ViewModel en tiempo real
+                    viewModel.onRegisterEmailChange(newValue)
                 },
                 label = { Text(stringResource(id = R.string.login_email_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = swapiBrandColor,
                     cursorColor = swapiBrandColor,
                     focusedLabelColor = swapiBrandColor,
@@ -90,17 +92,14 @@ fun SignUpEmailView(
 
             Spacer(Modifier.height(12.dp))
 
-            // 2. Aquí aplicamos la validación en el botón
             Button(
                 onClick = {
-                    // --- VALIDACIÓN ---
-                    // Usamos trim() para quitar espacios accidentales
-                    if (email.trim().endsWith("@ulsachihuahua.edu.mx")) {
-                        // SI ES CORRECTO: Avanzamos a la siguiente pantalla
-                        navHostController.navigate(ScreenNavigation.SignUpProfile.createRoute(email))
+                    // Validacion de dominio institucional
+                    val cleanEmail = email.trim()
+
+                    if (cleanEmail.endsWith("@ulsachihuahua.edu.mx")) {
+                        navHostController.navigate(ScreenNavigation.SignUpProfile.createRoute(cleanEmail))
                     } else {
-                        // SI ES INCORRECTO: Mostramos el mensaje de error traducido
-                        // CORRECCIÓN: Usamos context.getString para obtener el recurso dentro del onClick
                         Toast.makeText(
                             context,
                             context.getString(R.string.signup_error_domain),
@@ -116,7 +115,10 @@ fun SignUpEmailView(
             ) {
                 Text(
                     stringResource(id = R.string.common_continue),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 17.sp),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 17.sp
+                    ),
                     color = Color.White
                 )
             }
@@ -129,7 +131,7 @@ fun SignUpEmailView(
                 .padding(top = 48.dp, start = 16.dp)
         ) {
             Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(id = R.string.common_back_button_cd),
                 tint = MaterialTheme.colorScheme.onBackground
             )

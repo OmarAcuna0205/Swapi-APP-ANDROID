@@ -1,10 +1,9 @@
 package com.swapi.swapiV1.login.model.dto
 
-// Clases de datos (Data Transfer Objects) que modelan la información
-// para la comunicación con la API durante el login.
+// --- SECCIÓN DE LOGIN ---
 
 /**
- * Modela los datos que la app envía al servidor para solicitar el inicio de sesión.
+ * Estructura para enviar las credenciales al servidor.
  */
 data class LoginRequest(
     val email: String,
@@ -12,30 +11,33 @@ data class LoginRequest(
 )
 
 /**
- * Modela la respuesta que el servidor envía a la app tras el intento de login.
+ * Respuesta del servidor tras intentar loguearse.
+ * Nota: 'token' y 'user' son nulos si el login falla (success = false).
  */
 data class LoginResponse(
     val success: Boolean,
     val message: String,
-    // El token y el usuario son opcionales (nullable) porque solo se reciben en un login exitoso.
     val token: String? = null,
     val user: User? = null
 )
 
+// --- SECCIÓN DE USUARIO ---
+
 /**
- * Modela la estructura de los datos del usuario.
+ * Representación del usuario en la aplicación.
  */
 data class User(
-    val _id: String,           // Mongo usa _id, no id
-    val firstName: String,     // Coincide con backend
-    val paternalSurname: String, // Coincide con backend
+    // Se usa '_id' en lugar de 'id' para mapear automáticamente con el identificador único de MongoDB.
+    val _id: String,
+    val firstName: String,
+    val paternalSurname: String,
     val email: String,
+    // Valor por defecto 'student' para evitar nulos si el backend no envía este campo.
     val role: String? = "student"
 )
 
-// En login/model/dto/AutDtos.kt
+// --- SECCIÓN DE REGISTRO Y VERIFICACIÓN ---
 
-// 1. Lo que enviamos para registrarnos
 data class RegisterRequest(
     val email: String,
     val firstName: String,
@@ -47,14 +49,16 @@ data class RegisterRequest(
     val phone: String
 )
 
-// 2. La respuesta del registro (backend devuelve user y message)
 data class RegisterResponse(
-    val success: Boolean?, // Lo agregamos opcional por si el backend no lo manda aun
+    // Es nullable (?) por seguridad, en caso de que el backend cambie el formato de respuesta o no envíe el booleano explícitamente.
+    val success: Boolean?,
     val message: String,
     val user: User?
 )
 
-// 3. Lo que enviamos para verificar el código
+/**
+ * Usado para enviar el código de verificación (OTP) que llega por correo.
+ */
 data class VerifyRequest(
     val email: String,
     val code: String

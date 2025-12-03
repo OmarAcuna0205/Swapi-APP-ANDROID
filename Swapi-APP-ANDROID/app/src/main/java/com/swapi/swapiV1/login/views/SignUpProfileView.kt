@@ -29,44 +29,46 @@ import androidx.navigation.NavHostController
 import com.swapi.swapiV1.R
 import com.swapi.swapiV1.login.viewmodel.LoginViewModel
 import com.swapi.swapiV1.navigation.ScreenNavigation
-import com.swapi.swapiV1.utils.ErrorMessageMapper // IMPORTANTE: Agregado
+import com.swapi.swapiV1.utils.ErrorMessageMapper
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpProfileView(
     navHostController: NavHostController,
-    viewModel: LoginViewModel, // Inyectamos el ViewModel
+    viewModel: LoginViewModel,
     email: String
 ) {
-    // Estados locales para los campos de texto
+    // Variables locales para reactividad inmediata en la UI
     var name by remember { mutableStateOf("") }
     var paternal by remember { mutableStateOf("") }
     var maternal by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") } // Nota: confirmPassword no se está usando en la lógica actual del VM, pero visualmente está ahí.
 
+    // Control de visibilidad de contraseña
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val uiState by viewModel.ui.collectAsState() // Observamos estado de carga
+    // Estado global de carga
+    val uiState by viewModel.ui.collectAsState()
+
     val context = LocalContext.current
     val swapiBrandColor = Color(0xFF4A8BFF)
 
-    // Escuchar eventos de navegación
+    // 1. ESCUCHA DE NAVEGACIÓN
     LaunchedEffect(Unit) {
-        viewModel.navEvents.collect { event ->
+        viewModel.navEvents.collectLatest { event ->
             if (event is LoginViewModel.LoginNavEvent.GoVerifyCode) {
-                // Si el registro fue exitoso, vamos a verificar código
+                // Si el backend responde OK al registro, pasamos a verificar el código
                 navHostController.navigate(ScreenNavigation.SignUpCode.createRoute(email))
             }
         }
     }
 
-    // Escuchar eventos de toast (Errores)
+    // 2. ESCUCHA DE ERRORES (Toasts)
     LaunchedEffect(Unit) {
-        viewModel.toastEvents.collect { msgCode ->
-            // CORRECCIÓN: Usamos el Mapper para traducir el código de error
+        viewModel.toastEvents.collectLatest { msgCode ->
             val message = ErrorMessageMapper.getMessage(context, msgCode)
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
@@ -92,6 +94,7 @@ fun SignUpProfileView(
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center
             )
+
             Text(
                 text = stringResource(id = R.string.signup_profile_subtitle, email),
                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -102,7 +105,16 @@ fun SignUpProfileView(
 
             Spacer(Modifier.height(12.dp))
 
-            // --- NOMBRE ---
+            // Defino los colores una vez para reutilizarlos en todos los campos
+            val commonTextFieldColors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = swapiBrandColor,
+                focusedLabelColor = swapiBrandColor,
+                cursorColor = swapiBrandColor,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+                unfocusedLabelColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+            )
+
+            // --- CAMPO NOMBRE ---
             OutlinedTextField(
                 value = name,
                 onValueChange = {
@@ -113,67 +125,56 @@ fun SignUpProfileView(
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = swapiBrandColor,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-                )
+                colors = commonTextFieldColors
             )
 
-            // --- APELLIDO PATERNO ---
+            // --- CAMPO APELLIDO PATERNO ---
             OutlinedTextField(
                 value = paternal,
                 onValueChange = {
                     paternal = it
                     viewModel.onRegisterPaternalChange(it)
                 },
-                // CORRECCIÓN: Usamos stringResource
                 label = { Text(stringResource(R.string.signup_lastname_paternal)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = swapiBrandColor,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-                )
+                colors = commonTextFieldColors
             )
 
-            // --- APELLIDO MATERNO ---
+            // --- CAMPO APELLIDO MATERNO ---
             OutlinedTextField(
                 value = maternal,
                 onValueChange = {
                     maternal = it
                     viewModel.onRegisterMaternalChange(it)
                 },
-                // CORRECCIÓN: Usamos stringResource
                 label = { Text(stringResource(R.string.signup_lastname_maternal)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = swapiBrandColor,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-                )
+                colors = commonTextFieldColors
             )
 
-            // --- CELULAR ---
+            // --- CAMPO CELULAR ---
             OutlinedTextField(
                 value = phone,
                 onValueChange = {
-                    phone = it
-                    viewModel.onRegisterPhoneChange(it)
+                    // Limitamos a 10 dígitos para evitar números inválidos visualmente
+                    if (it.length <= 10) {
+                        phone = it
+                        viewModel.onRegisterPhoneChange(it)
+                    }
                 },
                 label = { Text(stringResource(id = R.string.signup_profile_phone_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = swapiBrandColor,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-                )
+                colors = commonTextFieldColors
             )
 
-            // --- CONTRASEÑA ---
+            // --- CAMPO CONTRASEÑA ---
             OutlinedTextField(
                 value = password,
                 onValueChange = {
@@ -186,26 +187,24 @@ fun SignUpProfileView(
                 trailingIcon = {
                     val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(icon, contentDescription = null)
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                        )
                     }
                 },
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = swapiBrandColor,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-                )
+                colors = commonTextFieldColors
             )
 
             Spacer(Modifier.height(12.dp))
 
             // --- BOTÓN REGISTRARME ---
             Button(
-                onClick = {
-                    // Llamamos a la función del ViewModel que hace la petición al backend
-                    viewModel.onRegisterUser()
-                },
-                enabled = !uiState.isLoading, // Deshabilitar si está cargando
+                onClick = { viewModel.onRegisterUser() },
+                enabled = !uiState.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -213,17 +212,25 @@ fun SignUpProfileView(
                 colors = ButtonDefaults.buttonColors(containerColor = swapiBrandColor)
             ) {
                 if (uiState.isLoading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 3.dp
+                    )
                 } else {
                     Text(
                         stringResource(id = R.string.signup_profile_button),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 17.sp),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 17.sp
+                        ),
                         color = Color.White
                     )
                 }
             }
         }
 
+        // Botón Atrás
         IconButton(
             onClick = { navHostController.popBackStack() },
             modifier = Modifier
@@ -231,7 +238,7 @@ fun SignUpProfileView(
                 .padding(top = 48.dp, start = 16.dp)
         ) {
             Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(id = R.string.common_back_button_cd),
                 tint = MaterialTheme.colorScheme.onBackground
             )

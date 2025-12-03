@@ -1,24 +1,24 @@
 package com.swapi.swapiV1.login.model.network
 
-import android.content.Context
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 
-class AuthInterceptor(private val context: Context) : Interceptor {
-    override fun intercept(chain: Interceptor.Chain): Response {
-        val dataStore = DataStoreManager(context)
+class AuthInterceptor(private val dataStoreManager: DataStoreManager) : Interceptor {
 
-        // Obtenemos el token de forma síncrona (bloqueando este hilo secundario)
+    override fun intercept(chain: Interceptor.Chain): Response {
+        // Obtenemos el token almacenado.
+        // Usamos runBlocking porque 'intercept' es síncrono, pero DataStore es asíncrono (Flow).
+        // Esto pausa momentáneamente el hilo de la red (no el de la UI) hasta tener el dato.
         val token = runBlocking {
-            dataStore.getAccessToken().first()
+            dataStoreManager.getAccessToken().first()
         }
 
         val requestBuilder = chain.request().newBuilder()
 
-        // Si tenemos token, lo pegamos en la cabecera
+        // Si existe un token válido, lo inyectamos en la cabecera "Authorization".
         if (!token.isNullOrBlank()) {
             requestBuilder.addHeader("Authorization", "Bearer $token")
         }
