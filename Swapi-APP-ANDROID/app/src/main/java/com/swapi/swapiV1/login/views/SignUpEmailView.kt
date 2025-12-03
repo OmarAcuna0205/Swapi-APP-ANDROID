@@ -97,13 +97,13 @@ fun SignUpEmailView(
                     // Usamos trim() para quitar espacios accidentales
                     if (email.trim().endsWith("@ulsachihuahua.edu.mx")) {
                         // SI ES CORRECTO: Avanzamos a la siguiente pantalla
-                        // Nota: Usé tu ruta original ScreenNavigation.SignUpProfile
                         navHostController.navigate(ScreenNavigation.SignUpProfile.createRoute(email))
                     } else {
-                        // SI ES INCORRECTO: Mostramos el mensaje de error
+                        // SI ES INCORRECTO: Mostramos el mensaje de error traducido
+                        // CORRECCIÓN: Usamos context.getString para obtener el recurso dentro del onClick
                         Toast.makeText(
                             context,
-                            "Solo se permiten correos institucionales (@ulsachihuahua.edu.mx)",
+                            context.getString(R.string.signup_error_domain),
                             Toast.LENGTH_LONG
                         ).show()
                     }

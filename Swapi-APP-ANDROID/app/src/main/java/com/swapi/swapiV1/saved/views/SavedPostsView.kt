@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -28,10 +27,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.swapi.swapiV1.R
 import com.swapi.swapiV1.navigation.ScreenNavigation
-import com.swapi.swapiV1.sales.views.SaleProductCard
+import com.swapi.swapiV1.sales.views.SaleProductCard // <--- ESTE IMPORT ES CLAVE
 import com.swapi.swapiV1.saved.viewmodel.SavedPostsViewModel
 import com.swapi.swapiV1.saved.viewmodel.SavedUIState
-import com.swapi.swapiV1.utils.ErrorMessageMapper // Asegúrate de importar esto
+import com.swapi.swapiV1.utils.ErrorMessageMapper
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,7 +38,7 @@ import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 fun SavedPostsView(navController: NavController) {
     val viewModel: SavedPostsViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current // Necesario para el Mapper
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.loadSavedPosts()
@@ -83,7 +82,6 @@ fun SavedPostsView(navController: NavController) {
                         CircularProgressIndicator(color = swapiBrandColor)
                     }
                     is SavedUIState.Error -> {
-                        // --- CORRECCIÓN: Usamos el Mapper para traducir el código ---
                         val errorText = ErrorMessageMapper.getMessage(context, state.code)
                         Text(text = errorText, color = MaterialTheme.colorScheme.error)
                     }
@@ -100,7 +98,6 @@ fun SavedPostsView(navController: NavController) {
                                     modifier = Modifier.size(72.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                                 )
-                                // --- CORRECCIÓN: Usamos stringResource ---
                                 Text(stringResource(R.string.saved_empty_state))
                             }
                         } else {
@@ -165,11 +162,9 @@ private fun SavedTopBar(
                     .padding(start = 8.dp, end = 20.dp, top = 20.dp, bottom = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // --- BOTÓN DE REGRESAR ---
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        // --- CORRECCIÓN: Usamos stringResource ---
                         contentDescription = stringResource(R.string.common_back_button_cd),
                         tint = MaterialTheme.colorScheme.onSurface
                     )

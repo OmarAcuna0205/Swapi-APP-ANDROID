@@ -30,7 +30,7 @@ import com.swapi.swapiV1.publication.viewmodel.EditPostViewModel
 import com.swapi.swapiV1.publication.viewmodel.EditPostViewModelFactory
 import com.swapi.swapiV1.publication.viewmodel.EditUiState
 import com.swapi.swapiV1.utils.Constants
-import com.swapi.swapiV1.utils.ErrorMessageMapper // Mapper
+import com.swapi.swapiV1.utils.ErrorMessageMapper
 import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,14 +44,11 @@ fun EditPostView(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val updateSuccess by viewModel.updateSuccess.collectAsStateWithLifecycle()
-    val errorCode by viewModel.errorCode.collectAsStateWithLifecycle() // Código de error
+    val errorCode by viewModel.errorCode.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
-
-    // ✅ COLOR ACTUALIZADO
     val brandColor = Color(0xFF0064E0)
 
-    // Variables de estado
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
@@ -59,33 +56,26 @@ fun EditPostView(
     var currentImageUrl by remember { mutableStateOf("") }
 
     var expanded by remember { mutableStateOf(false) }
-    // Mapeo para traducción de categorías en el dropdown
+
     val categoriasMap = mapOf(
         stringResource(R.string.ventas_title) to "ventas",
         stringResource(R.string.rentas_title) to "rentas",
         stringResource(R.string.new_pub_categoria_info) to "anuncios",
         stringResource(R.string.servicios_title) to "servicios"
     )
-    // Inverso para mostrar el nombre bonito si viene del backend
     val categoriasBackendMap = categoriasMap.entries.associate { (k, v) -> v to k }
-
     val categoriasVisuales = categoriasMap.keys.toList()
 
-    // --- PRECARGA DE DATOS ---
     LaunchedEffect(uiState) {
         if (uiState is EditUiState.Success) {
             val product = (uiState as EditUiState.Success).product
             if (titulo.isEmpty()) {
                 titulo = product.title
                 descripcion = product.description
-
                 val df = DecimalFormat("#.##")
                 precio = df.format(product.price)
-
-                // Intentamos traducir la categoría del backend al nombre visual
                 val catBackend = product.category.lowercase()
                 categoria = categoriasBackendMap[catBackend] ?: catBackend.replaceFirstChar { it.uppercase() }
-
                 if (product.images.isNotEmpty()) {
                     currentImageUrl = Constants.BASE_URL + "storage/" + product.images[0]
                 }
@@ -93,24 +83,16 @@ fun EditPostView(
         }
     }
 
-    // --- RESPUESTA DE ACTUALIZACIÓN ---
     LaunchedEffect(updateSuccess) {
         if (updateSuccess == true) {
-            // Mensaje de éxito traducido
             val msg = ErrorMessageMapper.getMessage(context, "POST_UPDATED_SUCCESS")
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-
-            navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.set("refresh_home", true)
-
+            navController.previousBackStackEntry?.savedStateHandle?.set("refresh_home", true)
             navController.popBackStack()
             viewModel.resetState()
         } else if (updateSuccess == false) {
-            // Mensaje de error traducido usando el código
             val errorMsg = ErrorMessageMapper.getMessage(context, errorCode ?: "ERROR_UPDATE_POST")
             Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
-
             viewModel.resetState()
         }
     }
@@ -118,7 +100,6 @@ fun EditPostView(
     Scaffold(
         topBar = {
             TopAppBar(
-                // Usamos string resource genérico o uno específico "Editar Publicación"
                 title = { Text(stringResource(R.string.profile_editar)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -137,35 +118,22 @@ fun EditPostView(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                        )
+                        listOf(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                     )
                 )
                 .padding(padding)
         ) {
             when (val state = uiState) {
                 is EditUiState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = brandColor
-                    )
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = brandColor)
                 }
                 is EditUiState.Error -> {
-                    // Traducimos el error de carga también
                     val msg = ErrorMessageMapper.getMessage(context, state.msg)
-                    Text(
-                        text = msg,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    Text(text = msg, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
                 }
                 is EditUiState.Success -> {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
+                        modifier = Modifier.fillMaxWidth().padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         OutlinedTextField(
@@ -180,9 +148,7 @@ fun EditPostView(
                             value = descripcion,
                             onValueChange = { descripcion = it },
                             label = { Text(stringResource(R.string.new_pub_descripcion_label)) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 120.dp),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
                             shape = RoundedCornerShape(12.dp),
                             minLines = 4,
                             maxLines = 8
@@ -207,47 +173,26 @@ fun EditPostView(
                                 readOnly = true,
                                 label = { Text(stringResource(R.string.new_pub_categoria_label)) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                                modifier = Modifier
-                                    .menuAnchor()
-                                    .fillMaxWidth(),
+                                modifier = Modifier.menuAnchor().fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp)
                             )
-                            ExposedDropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false }
-                            ) {
+                            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                                 categoriasVisuales.forEach { option ->
-                                    DropdownMenuItem(
-                                        text = { Text(option) },
-                                        onClick = {
-                                            categoria = option
-                                            expanded = false
-                                        }
-                                    )
+                                    DropdownMenuItem(text = { Text(option) }, onClick = { categoria = option; expanded = false })
                                 }
                             }
                         }
 
-                        // Imagen (Solo visualización)
                         if (currentImageUrl.isNotEmpty()) {
                             Text(
-                                "Imagen actual", // Podrías agregar stringResource aquí también
+                                stringResource(R.string.edit_imagen_actual),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(180.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant)
                             ) {
-                                AsyncImage(
-                                    model = currentImageUrl,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
+                                AsyncImage(model = currentImageUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                             }
                         }
 
@@ -256,30 +201,17 @@ fun EditPostView(
                         Button(
                             onClick = {
                                 if (titulo.isNotBlank() && precio.isNotBlank() && categoria.isNotBlank()) {
-                                    // Convertimos nombre visual a valor backend
                                     val catBackend = categoriasMap[categoria] ?: "ventas"
-
-                                    viewModel.saveChanges(
-                                        title = titulo,
-                                        description = descripcion,
-                                        price = precio,
-                                        category = catBackend
-                                    )
+                                    viewModel.saveChanges(titulo, descripcion, precio, catBackend)
                                 } else {
-                                    // Toast local simple o también traducible si quieres
-                                    Toast.makeText(context, "Completa los campos", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.edit_completa_campos), Toast.LENGTH_SHORT).show()
                                 }
                             },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(55.dp),
+                            modifier = Modifier.fillMaxWidth().height(55.dp),
                             shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = brandColor,
-                                contentColor = Color.White
-                            )
+                            colors = ButtonDefaults.buttonColors(containerColor = brandColor, contentColor = Color.White)
                         ) {
-                            Text("Guardar Cambios", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.common_guardar_cambios), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }

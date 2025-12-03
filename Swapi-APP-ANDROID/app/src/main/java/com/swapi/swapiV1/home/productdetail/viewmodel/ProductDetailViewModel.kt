@@ -37,7 +37,6 @@ class ProductDetailViewModel(
         viewModelScope.launch {
             _uiState.value = ProductDetailUiState.Loading
             try {
-                // --- CORRECCIÓN AQUÍ: Usamos 'getProductById' que es como se llama en tu Repo ---
                 val product = homeRepository.getProductById(productId)
 
                 if (product != null) {
@@ -48,22 +47,26 @@ class ProductDetailViewModel(
                     _isSaved.value = isInMyList
 
                 } else {
-                    _uiState.value = ProductDetailUiState.Error("Producto no encontrado")
+                    // CORRECCIÓN 1: Usamos código de error (ya mapeado en pasos anteriores)
+                    _uiState.value = ProductDetailUiState.Error("POST_NO_ENCONTRADO")
                 }
             } catch (e: Exception) {
-                _uiState.value = ProductDetailUiState.Error("Error: ${e.message}")
+                // CORRECCIÓN 2: Usamos el nuevo código de error genérico para producto
+                _uiState.value = ProductDetailUiState.Error("ERROR_LOAD_PRODUCT")
             }
         }
     }
 
     fun toggleSave() {
         viewModelScope.launch {
-            val response = userRepository.toggleSave(productId)
-
-            if (response != null) {
-                _isSaved.value = response.saved
-            } else {
-                // Opcional: Manejar error
+            try {
+                val response = userRepository.toggleSave(productId)
+                if (response != null) {
+                    _isSaved.value = response.saved
+                }
+            } catch (_: Exception) {
+                // Si quisieras manejar error en el toggle, podrías enviar un evento aquí,
+                // pero por ahora lo dejamos seguro para que no crashee.
             }
         }
     }

@@ -137,4 +137,60 @@
     <string name="sales_empty_list">No sales listings available yet.</string>
     <string name="sale_card_user_prefix">User:</string>
 
+    <string name="common_atras_cd">Back</string>
+    <string name="common_cancelar">Cancel</string>
+    <string name="common_guardar_cambios">Save Changes</string>
+    <string name="common_limpiar_cd">Clear</string>
+    <string name="common_cargando">Loading...</string>
+    <string name="common_publicando">Publishing...</string>
+    <string name="common_usuario_default">User</string>
+
+    <string name="product_ubicacion_default">Chihuahua, Chih.</string>
+    <string name="product_info_vendedor">Seller Information</string>
+    <string name="product_miembro_comunidad">ULSA Community Member</string>
+    <string name="product_enviar_mensaje">Send Message</string>
+
+    <string name="myposts_empty">You haven\'t published anything yet.</string>
+    <string name="myposts_search_empty">No results found.</string>
+    <string name="myposts_delete_title">Delete Post</string>
+    <string name="myposts_delete_msg">Are you sure you want to delete this post? This action cannot be undone.</string>
+    <string name="myposts_delete_confirm">Delete</string>
+    <string name="myposts_search_hint">Search my posts...</string>
+
+    <string name="edit_imagen_actual">Current Image</string>
+    <string name="edit_completa_campos">Please complete all fields</string>
+
+    <string name="category_search_hint">Search in %1$s...</string>
+    <string name="category_empty">No %1$s available.</string>
+
+    <string name="new_pub_llenar_campos">Please fill in all fields</string>
+
+    <string name="signup_success_verify">Account verified. Please log in.</string>
+    <string name="signup_error_domain">Only institutional emails are allowed (@ulsachihuahua.edu.mx)</string>
+    <string name="signup_lastname_paternal">Paternal Surname</string>
+    <string name="signup_lastname_maternal">Maternal Surname</string>
+
+    <string name="profile_tu_actividad">Your Activity</string>
+    <string name="profile_miembro_verificado">Verified Member</string>
+
+    <string name="login_error_campos">Email and password are required</string>
+    <string name="login_error_generico">Network or server error</string>
+    <string name="registro_error_campos">Complete all required fields</string>
+    <string name="verificacion_codigo_vacio">Enter the code</string>
+    <string name="verificacion_codigo_invalido">Invalid code</string>
+
+    <string name="action_editar_cd">Edit post</string>
+    <string name="action_eliminar_cd">Delete post</string>
+
+    <string name="repo_error_servidor_vacio">Empty server response</string>
+    <string name="repo_login_credenciales">Invalid credentials</string>
+    <string name="repo_error_registro">Registration error</string>
+
+    <string name="home_error_load">Error loading products</string>
+
+    <string name="product_error_load">Error loading product</string>
+
+    <string name="tab_perfil">Profile</string>
+    <string name="nav_fab_publicar_cd">Publish new</string>
+
 </resources>

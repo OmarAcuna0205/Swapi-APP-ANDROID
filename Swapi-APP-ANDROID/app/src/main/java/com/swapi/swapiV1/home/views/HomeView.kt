@@ -42,6 +42,8 @@ import com.swapi.swapiV1.home.viewmodel.HomeUIState
 import com.swapi.swapiV1.home.viewmodel.HomeViewModel
 import com.swapi.swapiV1.home.viewmodel.HomeViewModelFactory
 import com.swapi.swapiV1.navigation.ScreenNavigation
+import com.swapi.swapiV1.utils.Constants
+import com.swapi.swapiV1.utils.ErrorMessageMapper
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 import java.text.NumberFormat
@@ -105,9 +107,11 @@ fun HomeView(
                     }
                 }
                 is HomeUIState.Error -> {
+                    // CORRECCIÓN: Usar Mapper para el error
+                    val errorMsg = ErrorMessageMapper.getMessage(androidx.compose.ui.platform.LocalContext.current, state.message)
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = state.message,
+                            text = errorMsg,
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(16.dp)
@@ -132,6 +136,14 @@ fun HomeView(
                         filteredProducts.groupBy { it.category.lowercase() }
                     }
                     val isEmpty = filteredProducts.isEmpty()
+
+                    // CORRECCIÓN: Mapa para traducir los títulos de las secciones
+                    val categoryTitles = mapOf(
+                        "ventas" to stringResource(R.string.ventas_title),
+                        "rentas" to stringResource(R.string.rentas_title),
+                        "servicios" to stringResource(R.string.servicios_title),
+                        "anuncios" to stringResource(R.string.anuncios_title)
+                    )
 
                     // --- CONTENIDO SCROLLEABLE ---
                     Column(
@@ -164,7 +176,8 @@ fun HomeView(
                                 val productsInCat = productsByCategory[categoryKey] ?: emptyList()
 
                                 if (productsInCat.isNotEmpty()) {
-                                    val title = categoryKey.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+                                    // CORRECCIÓN: Usar el título traducido, o fallback al key capitalizado
+                                    val title = categoryTitles[categoryKey] ?: categoryKey.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
                                     Column(modifier = Modifier.padding(bottom = 24.dp)) {
                                         SectionHeader(
@@ -264,8 +277,18 @@ fun SectionHeader(title: String, onSeeMoreClicked: () -> Unit) {
 fun ModernProductCard(product: Product, navController: NavController) {
     val priceColor = Color(0xFF448AFF)
     val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
-    val baseUrl = "http://10.0.2.2:3000/storage/"
+
+    val baseUrl = Constants.BASE_URL + "storage/"
     val imageUrl = if (product.images.isNotEmpty()) baseUrl + product.images[0] else ""
+
+    // --- CORRECCIÓN FINAL: Traducir la etiqueta de la tarjeta ---
+    val categoryLabel = when(product.category.lowercase()) {
+        "ventas" -> stringResource(R.string.ventas_title)
+        "rentas" -> stringResource(R.string.rentas_title)
+        "servicios" -> stringResource(R.string.servicios_title)
+        "anuncios" -> stringResource(R.string.anuncios_title)
+        else -> product.category // Fallback por si llega algo raro
+    }
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -321,9 +344,9 @@ fun ModernProductCard(product: Product, navController: NavController) {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // --- SECCIÓN CORREGIDA: Manejo seguro de Author ---
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val authorName = product.author?.firstName ?: "Usuario"
+                    val defaultUser = stringResource(R.string.common_usuario_default)
+                    val authorName = product.author?.firstName ?: defaultUser
                     val initial = authorName.take(1).uppercase()
 
                     Box(
@@ -349,7 +372,6 @@ fun ModernProductCard(product: Product, navController: NavController) {
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                // ------------------------------------------------
             }
 
             if (product.category.isNotBlank()) {
@@ -359,7 +381,8 @@ fun ModernProductCard(product: Product, navController: NavController) {
                     modifier = Modifier.align(Alignment.TopEnd)
                 ) {
                     Text(
-                        text = product.category.uppercase(),
+                        // USAMOS LA ETIQUETA TRADUCIDA AQUÍ
+                        text = categoryLabel.uppercase(),
                         color = MaterialTheme.colorScheme.onSecondary,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,

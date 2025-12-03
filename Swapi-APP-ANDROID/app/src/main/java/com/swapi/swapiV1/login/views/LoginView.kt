@@ -36,6 +36,7 @@ import com.swapi.swapiV1.login.model.repository.AuthRepository
 import com.swapi.swapiV1.login.viewmodel.LoginViewModel
 import com.swapi.swapiV1.login.viewmodel.LoginViewModelFactory
 import com.swapi.swapiV1.navigation.ScreenNavigation
+import com.swapi.swapiV1.utils.ErrorMessageMapper // IMPORTANTE
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 import kotlinx.coroutines.flow.collectLatest
@@ -47,11 +48,7 @@ fun LoginView(
     navHostController: NavHostController,
     dataStore: DataStoreManager
 ) {
-    // Contexto para el Toast
     val context = LocalContext.current
-
-    // 1. Inyección de dependencias manual (Repository + Factory)
-    // Usamos 'remember' para no recrear el repo en cada recomposición
     val repo = remember { AuthRepository(RetrofitProvider.authApi) }
     val vm: LoginViewModel = viewModel(
         factory = LoginViewModelFactory(repo, dataStore)
@@ -61,39 +58,32 @@ fun LoginView(
     var passwordVisible by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    // Función auxiliar para mostrar mensajes
-    fun showToastSafe(text: String) {
-        Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
-    }
-
-    // 2. Escuchar eventos de Toast (Errores, mensajes)
+    // USAMOS EL MAPPER AQUÍ
     LaunchedEffect(vm) {
-        vm.toastEvents.collectLatest { msg -> showToastSafe(msg) }
+        vm.toastEvents.collectLatest { msgCode ->
+            val message = ErrorMessageMapper.getMessage(context, msgCode)
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
-    // 3. Escuchar eventos de Navegación (Login Exitoso)
     LaunchedEffect(Unit) {
         vm.navEvents.collectLatest { event ->
             when (event) {
                 is LoginViewModel.LoginNavEvent.GoHome -> {
-                    // Guardar sesión localmente también (por si acaso)
                     scope.launch {
                         dataStore.setLoggedIn(true)
                         dataStore.setUserName(event.userName ?: "Usuario")
                     }
-                    // Navegar al TabBar y borrar el Login del historial (back stack)
                     navHostController.navigate("tabbar") {
                         popUpTo(ScreenNavigation.Login.route) { inclusive = true }
                         launchSingleTop = true
                     }
                 }
-                // Ignoramos los eventos de registro aquí (se manejan en las otras pantallas)
                 else -> {}
             }
         }
     }
 
-    // --- INTERFAZ DE USUARIO ---
     val swapiBrandColor = Color(0xFF4A8BFF)
 
     Box(
@@ -110,16 +100,12 @@ fun LoginView(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // --- LOGO ---
             Image(
                 painter = painterResource(id = R.drawable.swapi),
                 contentDescription = stringResource(id = R.string.login_logo_cd),
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
+                modifier = Modifier.size(100.dp).clip(CircleShape)
             )
 
-            // --- TÍTULOS ---
             Text(
                 text = stringResource(id = R.string.login_title),
                 style = MaterialTheme.typography.headlineSmall.copy(
@@ -141,7 +127,6 @@ fun LoginView(
 
             Spacer(Modifier.height(16.dp))
 
-            // --- EMAIL ---
             OutlinedTextField(
                 value = ui.email,
                 onValueChange = vm::onEmailChange,
@@ -158,7 +143,6 @@ fun LoginView(
                 )
             )
 
-            // --- CONTRASEÑA ---
             OutlinedTextField(
                 value = ui.password,
                 onValueChange = vm::onPasswordChange,
@@ -184,19 +168,15 @@ fun LoginView(
                     unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
                     unfocusedLabelColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                 ),
-                // Al dar enter en el teclado, intenta loguear
                 keyboardActions = KeyboardActions(onDone = { vm.login() })
             )
 
             Spacer(Modifier.height(12.dp))
 
-            // --- BOTÓN LOGIN ---
             Button(
                 onClick = { vm.login() },
                 enabled = !ui.isLoading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = swapiBrandColor,
@@ -224,8 +204,7 @@ fun LoginView(
 
             Spacer(Modifier.height(8.dp))
 
-            // --- LINK OLVIDASTE CONTRASEÑA ---
-            TextButton(onClick = { /* TODO: Implementar recuperación */ }) {
+            TextButton(onClick = { /* TODO */ }) {
                 Text(
                     stringResource(id = R.string.login_forgot_password),
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -235,11 +214,8 @@ fun LoginView(
                 )
             }
 
-            // --- DIVIDER "O" ---
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 HorizontalDivider(
@@ -260,12 +236,9 @@ fun LoginView(
                 )
             }
 
-            // --- BOTÓN SIGNUP (Crear cuenta) ---
             OutlinedButton(
                 onClick = { navHostController.navigate(ScreenNavigation.SignUpEmail.route) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.secondary

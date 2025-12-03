@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -23,11 +25,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.swapi.swapiV1.R
 import com.swapi.swapiV1.home.model.repository.PostRepository
 import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.profile.viewmodel.MyPostsUiState
 import com.swapi.swapiV1.profile.viewmodel.MyPostsViewModel
 import com.swapi.swapiV1.profile.viewmodel.MyPostsViewModelFactory
+import com.swapi.swapiV1.utils.ErrorMessageMapper // IMPORTANTE
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,19 +44,19 @@ fun MyPostsView(navController: NavController) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val deleteSuccess by viewModel.deleteSuccess.collectAsStateWithLifecycle()
 
-    // Estado para la búsqueda
-    var searchQuery by remember { mutableStateOf("") }
+    // Obtenemos el contexto para el Mapper
+    val context = LocalContext.current
 
-    // Estado para el diálogo de eliminar
+    var searchQuery by remember { mutableStateOf("") }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var postToDeleteId by remember { mutableStateOf<String?>(null) }
 
     val swapiBrandColor = Color(0xFF4A8BFF)
 
-    // --- LÓGICA DE ACTUALIZACIÓN ---
     fun notifyHomeToRefresh() {
         try {
-            navController.getBackStackEntry("home")
+            // Asegúrate de que la ruta coincida con la de tu ScreenNavigation.Home.route (usualmente "home")
+            navController.getBackStackEntry(ScreenNavigation.Home.route)
                 .savedStateHandle["refresh_home"] = true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -79,12 +83,11 @@ fun MyPostsView(navController: NavController) {
         }
     }
 
-    // --- DIÁLOGO DE CONFIRMACIÓN ---
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Eliminar publicación") },
-            text = { Text("¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.") },
+            title = { Text(stringResource(R.string.myposts_delete_title)) },
+            text = { Text(stringResource(R.string.myposts_delete_msg)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -93,15 +96,14 @@ fun MyPostsView(navController: NavController) {
                         postToDeleteId = null
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) { Text("Eliminar") }
+                ) { Text(stringResource(R.string.myposts_delete_confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancelar") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.common_cancelar)) }
             }
         )
     }
 
-    // --- UI PRINCIPAL ---
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -113,7 +115,7 @@ fun MyPostsView(navController: NavController) {
                     )
                 )
             )
-            .dismissKeyboardOnClick() // Ocultar teclado al tocar fuera
+            .dismissKeyboardOnClick()
     ) {
         Scaffold(
             containerColor = Color.Transparent,
@@ -127,9 +129,7 @@ fun MyPostsView(navController: NavController) {
             }
         ) { padding ->
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
+                modifier = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
             ) {
                 when (val state = uiState) {
@@ -137,8 +137,10 @@ fun MyPostsView(navController: NavController) {
                         CircularProgressIndicator(color = swapiBrandColor)
                     }
                     is MyPostsUiState.Error -> {
+                        // --- CORRECCIÓN: Usamos el Mapper aquí ---
+                        val errorMsg = ErrorMessageMapper.getMessage(context, state.message)
                         Text(
-                            text = state.message,
+                            text = errorMsg,
                             color = MaterialTheme.colorScheme.error,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(16.dp)
@@ -148,15 +150,13 @@ fun MyPostsView(navController: NavController) {
                         val allPosts = state.posts
 
                         if (allPosts.isEmpty()) {
-                            // Estado vacío general (no ha publicado nada nunca)
                             Text(
-                                text = "Aún no has publicado nada.",
+                                text = stringResource(R.string.myposts_empty),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
                         } else {
-                            // Filtramos por la búsqueda
                             val filteredPosts = if (searchQuery.isBlank()) allPosts else {
                                 allPosts.filter {
                                     it.title.contains(searchQuery, ignoreCase = true) ||
@@ -165,7 +165,6 @@ fun MyPostsView(navController: NavController) {
                             }
 
                             if (filteredPosts.isEmpty()) {
-                                // Estado vacío de búsqueda (no coincide nada)
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -177,13 +176,12 @@ fun MyPostsView(navController: NavController) {
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                     )
                                     Text(
-                                        text = "No se encontraron resultados.",
+                                        text = stringResource(R.string.myposts_search_empty),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             } else {
-                                // Lista de resultados
                                 LazyVerticalGrid(
                                     columns = GridCells.Fixed(1),
                                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
@@ -191,6 +189,7 @@ fun MyPostsView(navController: NavController) {
                                     modifier = Modifier.fillMaxSize()
                                 ) {
                                     items(filteredPosts, key = { it.id }) { post ->
+                                        // MyPostCard está en el mismo paquete, no requiere import
                                         MyPostCard(
                                             product = post,
                                             onClick = {
@@ -215,7 +214,6 @@ fun MyPostsView(navController: NavController) {
     }
 }
 
-// --- COMPONENTE BARRA DE BÚSQUEDA ---
 @Composable
 private fun MyPostsTopBar(
     searchQuery: String,
@@ -243,7 +241,6 @@ private fun MyPostsTopBar(
                     )
                 )
         ) {
-            // Fila con Botón Atrás y Título
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -253,13 +250,13 @@ private fun MyPostsTopBar(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Atrás",
+                        contentDescription = stringResource(R.string.common_atras_cd),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
                 Text(
-                    text = "Mis Publicaciones",
+                    text = stringResource(R.string.profile_mis_publicaciones),
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.5.sp
@@ -269,7 +266,6 @@ private fun MyPostsTopBar(
                 )
             }
 
-            // Campo de Búsqueda
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = onQueryChange,
@@ -279,7 +275,7 @@ private fun MyPostsTopBar(
                     .padding(bottom = 20.dp),
                 placeholder = {
                     Text(
-                        "Buscar en mis posts...",
+                        stringResource(R.string.myposts_search_hint),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )

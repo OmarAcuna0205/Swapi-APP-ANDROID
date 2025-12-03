@@ -31,7 +31,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.swapi.swapiV1.R
 import com.swapi.swapiV1.publication.viewmodel.NewPublicationViewModel
-import com.swapi.swapiV1.utils.ErrorMessageMapper // IMPORTANTE: El mapper que creamos
+import com.swapi.swapiV1.utils.ErrorMessageMapper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +44,7 @@ fun NewPublicationView(
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val publishSuccess by viewModel.publishSuccess.collectAsStateWithLifecycle()
 
-    // --- CORRECCIÓN: Observamos el CÓDIGO de error, no el mensaje ---
+    // Observamos el CÓDIGO de error
     val errorCode by viewModel.errorCode.collectAsStateWithLifecycle()
 
     var titulo by remember { mutableStateOf("") }
@@ -57,13 +57,15 @@ fun NewPublicationView(
     // 2. Escuchamos el resultado
     LaunchedEffect(publishSuccess) {
         if (publishSuccess == true) {
-            Toast.makeText(context, "¡Publicado con éxito!", Toast.LENGTH_LONG).show()
+            // CORRECCIÓN 1: Mensaje de éxito traducido
+            val successMsg = context.getString(R.string.msg_post_created_success)
+            Toast.makeText(context, successMsg, Toast.LENGTH_LONG).show()
+
             navController.previousBackStackEntry?.savedStateHandle?.set("refresh_home", true)
             navController.popBackStack()
             viewModel.resetState()
         } else if (publishSuccess == false) {
-
-            // --- AQUÍ LA MAGIA: Traducimos el código ---
+            // Traducimos el código de error con el Mapper
             val errorMsg = ErrorMessageMapper.getMessage(context, errorCode)
             Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
 
@@ -85,7 +87,6 @@ fun NewPublicationView(
     )
     val categoriasVisuales = categoriasMap.keys.toList()
 
-    // ✅ COLOR ACTUALIZADO (Mismo que 'Enviar mensaje')
     val swapiBrandColor = Color(0xFF0064E0)
 
     Scaffold(
@@ -242,7 +243,9 @@ fun NewPublicationView(
                                 imageUri = selectedImageUri
                             )
                         } else {
-                            Toast.makeText(context, "Por favor llena los campos", Toast.LENGTH_SHORT).show()
+                            // CORRECCIÓN 2: Mensaje de validación traducido
+                            val validationMsg = context.getString(R.string.new_pub_llenar_campos)
+                            Toast.makeText(context, validationMsg, Toast.LENGTH_SHORT).show()
                         }
                     },
                     modifier = Modifier
@@ -256,12 +259,13 @@ fun NewPublicationView(
                     )
                 ) {
                     if (isLoading) {
-                        Text("Publicando...", fontSize = 18.sp)
+                        // CORRECCIÓN 3: Texto de carga traducido
+                        Text(stringResource(R.string.common_publicando), fontSize = 18.sp)
                     } else {
                         Text(
                             stringResource(R.string.new_pub_boton_publicar),
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold // Añadí Bold para que se parezca más
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }

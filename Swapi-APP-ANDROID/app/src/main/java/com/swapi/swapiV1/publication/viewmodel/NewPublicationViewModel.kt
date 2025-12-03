@@ -19,7 +19,6 @@ class NewPublicationViewModel : ViewModel() {
     private val _publishSuccess = MutableStateFlow<Boolean?>(null)
     val publishSuccess: StateFlow<Boolean?> = _publishSuccess
 
-    // ✅ SOLO CÓDIGO DE ERROR (ej. "PALABRAS_OFENSIVAS")
     private val _errorCode = MutableStateFlow<String?>(null)
     val errorCode: StateFlow<String?> = _errorCode
 

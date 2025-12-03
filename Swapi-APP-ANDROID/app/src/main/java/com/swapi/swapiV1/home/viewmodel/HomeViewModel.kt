@@ -3,7 +3,6 @@ package com.swapi.swapiV1.home.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swapi.swapiV1.home.model.repository.HomeRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,7 +39,8 @@ class HomeViewModel(
                 val products = repository.getProducts()
                 _uiState.value = HomeUIState.Success(products)
             } catch (e: Exception) {
-                _uiState.value = HomeUIState.Error("Error al cargar: ${e.message}")
+                // CORRECCIÓN: Usamos un código en lugar de texto hardcodeado
+                _uiState.value = HomeUIState.Error("ERROR_LOAD_HOME")
             } finally {
                 // Siempre apagamos el indicador de refresh
                 _isRefreshing.value = false
@@ -56,6 +56,4 @@ class HomeViewModel(
         _isRefreshing.value = true
         loadProducts()
     }
-
-    // Ya no necesitamos onToggleSearchBar ni showSearchBar
 }
