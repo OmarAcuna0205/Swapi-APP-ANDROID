@@ -28,7 +28,7 @@ import com.swapi.swapiV1.home.viewmodel.HomeUIState
 import com.swapi.swapiV1.home.viewmodel.HomeViewModel
 import com.swapi.swapiV1.home.viewmodel.HomeViewModelFactory
 import com.swapi.swapiV1.navigation.ScreenNavigation
-import com.swapi.swapiV1.sales.views.SaleProductCard
+import com.swapi.swapiV1.home.views.CategoryProductCardView
 import com.swapi.swapiV1.utils.ErrorMessageMapper
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 import java.util.Locale
@@ -37,18 +37,26 @@ import java.util.Locale
 @Composable
 fun CategoryProductView(
     navController: NavController,
-    category: String
+    category: String // Recibimos la categoria como argumento de navegacion
 ) {
+    // Inicializamos el ViewModel utilizando un Factory para inyectar el repositorio.
+    // Esto asegura una correcta separacion de responsabilidades y facilita el testing.
     val repository = remember { HomeRepository() }
     val factory = HomeViewModelFactory(repository)
     val viewModel: HomeViewModel = viewModel(factory = factory)
 
+    // Recolectamos el estado de la UI de manera reactiva y consciente del ciclo de vida.
+    // Esto significa que la UI se actualizara automaticamente cuando los datos cambien
+    // y detendra la recoleccion si la app pasa a segundo plano para ahorrar recursos.
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Estado local para almacenar el texto que el usuario escribe en el buscador
     var searchQuery by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    // --- 1. TRADUCCIÓN DEL TÍTULO ---
-    // Mapeamos el ID del backend (ej: "ventas") al stringResource correspondiente
+    // Logica de mapeo para internacionalizacion:
+    // Convertimos el ID de la categoria (que viene del backend/navegacion)
+    // al recurso de string correspondiente en el archivo strings.xml.
     val displayTitle = when(category.lowercase()) {
         "ventas" -> stringResource(R.string.ventas_title)
         "rentas" -> stringResource(R.string.rentas_title)
@@ -64,7 +72,7 @@ fun CategoryProductView(
             CategoryTopBar(
                 title = displayTitle,
                 searchQuery = searchQuery,
-                onQueryChange = { searchQuery = it },
+                onQueryChange = { searchQuery = it }, // Actualizamos el estado local de busqueda
                 onBack = { navController.popBackStack() },
                 brandColor = swapiBrandColor
             )
@@ -82,14 +90,17 @@ fun CategoryProductView(
                     )
                 )
                 .padding(paddingValues)
-                .dismissKeyboardOnClick(),
+                .dismissKeyboardOnClick(), // Utilidad para ocultar teclado al tocar el fondo
             contentAlignment = Alignment.Center
         ) {
+            // Manejo de estados de la UI (Patron MVI/MVVM):
+            // Renderizamos diferentes componentes segun el estado actual de los datos (Carga, Error o Exito).
             when (val state = uiState) {
                 is HomeUIState.Loading -> CircularProgressIndicator(color = swapiBrandColor)
 
                 is HomeUIState.Error -> {
-                    // --- 2. MANEJO DE ERRORES CON MAPPER ---
+                    // Si hay error, usamos el Mapper para traducir el codigo tecnico
+                    // a un mensaje legible para el usuario definido en los recursos.
                     val msg = ErrorMessageMapper.getMessage(context, state.message)
                     Text(
                         text = msg,
@@ -98,6 +109,9 @@ fun CategoryProductView(
                 }
 
                 is HomeUIState.Success -> {
+                    // Logica de filtrado en el cliente:
+                    // 1. Filtramos primero por la categoria de esta pantalla.
+                    // 2. Luego aplicamos el filtro de busqueda si el usuario escribio algo.
                     val filteredList = state.products.filter { product ->
                         val isCategoryMatch = product.category.equals(category, ignoreCase = true)
                         val isSearchMatch = if (searchQuery.isBlank()) true else {
@@ -108,6 +122,8 @@ fun CategoryProductView(
                     }
 
                     if (filteredList.isNotEmpty()) {
+                        // Renderizado eficiente de la lista usando LazyVerticalGrid.
+                        // Solo renderiza los elementos visibles para optimizar memoria.
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(1),
                             contentPadding = PaddingValues(16.dp),
@@ -115,7 +131,8 @@ fun CategoryProductView(
                             modifier = Modifier.fillMaxSize()
                         ) {
                             items(filteredList, key = { it.id }) { product ->
-                                SaleProductCard(
+                                // Reutilizamos el componente de tarjeta para cada producto
+                                CategoryProductCardView(
                                     product = product,
                                     onClick = {
                                         navController.navigate(ScreenNavigation.ProductDetail.createRoute(product.id))
@@ -124,7 +141,8 @@ fun CategoryProductView(
                             }
                         }
                     } else {
-                        // --- 3. ESTADO VACÍO CON FORMATO ---
+                        // Estado vacio: Se muestra cuando no hay productos en la categoria
+                        // o la busqueda no arroja resultados.
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -137,7 +155,6 @@ fun CategoryProductView(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                             )
                             Text(
-                                // "No hay Ventas disponibles" / "No Sales available"
                                 text = stringResource(R.string.category_empty, displayTitle),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -150,6 +167,8 @@ fun CategoryProductView(
     }
 }
 
+// Componente extraido para la barra superior (TopBar).
+// Esto mejora la legibilidad y permite reutilizar o modificar la cabecera independientemente.
 @Composable
 private fun CategoryTopBar(
     title: String,
@@ -168,6 +187,7 @@ private fun CategoryTopBar(
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
         ) {
+            // Fila para el boton de regreso y el titulo
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -177,7 +197,7 @@ private fun CategoryTopBar(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.common_atras_cd) // --- 4. CD ---
+                        contentDescription = stringResource(R.string.common_atras_cd)
                     )
                 }
                 Text(
@@ -188,13 +208,13 @@ private fun CategoryTopBar(
                 )
             }
 
+            // Campo de texto de busqueda con estilos personalizados
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = onQueryChange,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
-                // --- 5. PLACEHOLDER DINÁMICO ---
                 placeholder = { Text(stringResource(R.string.category_search_hint, title)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 shape = RoundedCornerShape(12.dp),

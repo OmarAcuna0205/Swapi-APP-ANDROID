@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,14 +56,19 @@ fun HomeView(
     navController: NavController,
     dataStore: DataStoreManager
 ) {
+    // Inyección de dependencias manual para el ViewModel
     val factory = HomeViewModelFactory(HomeRepository())
     val viewModel: HomeViewModel = viewModel(factory = factory)
 
+    // Observamos los estados de forma eficiente para el ciclo de vida
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchText by viewModel.searchText.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
-    // --- LOGICA DE REFRESH ---
+    // --- LÓGICA DE AUTO-REFRESH (Comunicación entre pantallas) ---
+    // Esto permite que si el usuario crea un post en otra pantalla y vuelve aquí,
+    // la lista se actualice automáticamente sin que tenga que estirar la pantalla.
     val currentBackStack = navController.currentBackStackEntry
     val refreshHomeState by currentBackStack?.savedStateHandle
         ?.getStateFlow("refresh_home", false)
@@ -71,18 +77,23 @@ fun HomeView(
     LaunchedEffect(refreshHomeState) {
         if (refreshHomeState) {
             viewModel.onRefresh()
+            // Importante: Reseteamos la bandera a false para evitar bucles infinitos
             currentBackStack?.savedStateHandle?.set("refresh_home", false)
         }
     }
-    // -------------------------
 
-    // Configuración del Pull to Refresh
+    // --- LÓGICA DE PULL-TO-REFRESH (Gesto manual) ---
     val pullRefreshState = rememberPullToRefreshState()
+
+    // Si el usuario estira la pantalla, avisamos al ViewModel
     if (pullRefreshState.isRefreshing) {
         LaunchedEffect(true) {
             viewModel.onRefresh()
         }
     }
+
+    // Sincronización inversa: Cuando el ViewModel termina de cargar (isRefreshing = false),
+    // avisamos a la UI que esconda el indicador de carga.
     LaunchedEffect(isRefreshing) {
         if (!isRefreshing) {
             pullRefreshState.endRefresh()
@@ -97,6 +108,7 @@ fun HomeView(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .dismissKeyboardOnClick()
+                // Vincula el gesto físico con el estado del refresh
                 .nestedScroll(pullRefreshState.nestedScrollConnection),
             contentAlignment = Alignment.TopCenter
         ) {
@@ -107,14 +119,14 @@ fun HomeView(
                     }
                 }
                 is HomeUIState.Error -> {
-                    // CORRECCIÓN: Usar Mapper para el error
-                    val errorMsg = ErrorMessageMapper.getMessage(androidx.compose.ui.platform.LocalContext.current, state.message)
+                    val errorMsg = ErrorMessageMapper.getMessage(context, state.message)
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
                             text = errorMsg,
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(16.dp),
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -122,6 +134,7 @@ fun HomeView(
                     val userName by dataStore.userNameFlow.collectAsState(initial = "...")
                     val allProducts = state.products
 
+                    // Filtrado local en tiempo real para una búsqueda instantánea
                     val filteredProducts = if (searchText.isNotBlank()) {
                         allProducts.filter {
                             it.title.contains(searchText, ignoreCase = true) ||
@@ -131,13 +144,16 @@ fun HomeView(
                         allProducts
                     }
 
+                    // Definimos el orden estricto en el que queremos que aparezcan las secciones
                     val categoriesOrder = listOf("ventas", "rentas", "servicios", "anuncios")
+
+                    // Agrupamos los productos una sola vez usando 'remember' para optimizar rendimiento
                     val productsByCategory = remember(filteredProducts) {
                         filteredProducts.groupBy { it.category.lowercase() }
                     }
                     val isEmpty = filteredProducts.isEmpty()
 
-                    // CORRECCIÓN: Mapa para traducir los títulos de las secciones
+                    // Mapa para traducir las claves técnicas de la BD a texto de UI
                     val categoryTitles = mapOf(
                         "ventas" to stringResource(R.string.ventas_title),
                         "rentas" to stringResource(R.string.rentas_title),
@@ -145,44 +161,45 @@ fun HomeView(
                         "anuncios" to stringResource(R.string.anuncios_title)
                     )
 
-                    // --- CONTENIDO SCROLLEABLE ---
+                    // --- CONTENIDO PRINCIPAL SCROLLEABLE ---
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
                     ) {
-                        // 1. BARRA DE BÚSQUEDA
+                        // 1. Barra de búsqueda superior
                         Spacer(modifier = Modifier.height(8.dp))
                         SwapiTopBar(
                             searchText = searchText,
                             onSearchTextChange = viewModel::onSearchTextChange
                         )
 
-                        // 2. BIENVENIDA
-                        AnimatedVisibility(visible = !isEmpty) {
-                            if (searchText.isBlank()) {
-                                Text(
-                                    text = stringResource(R.string.home_bienvenida, userName),
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp)
-                                )
-                            }
+                        // 2. Mensaje de Bienvenida (Se oculta al buscar para ahorrar espacio)
+                        AnimatedVisibility(visible = !isEmpty && searchText.isBlank()) {
+                            Text(
+                                text = stringResource(R.string.home_bienvenida, userName),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                modifier = Modifier.padding(16.dp)
+                            )
                         }
 
-                        // 3. CATEGORÍAS
+                        // 3. Renderizado de Secciones
                         if (!isEmpty) {
                             categoriesOrder.forEach { categoryKey ->
                                 val productsInCat = productsByCategory[categoryKey] ?: emptyList()
 
                                 if (productsInCat.isNotEmpty()) {
-                                    // CORRECCIÓN: Usar el título traducido, o fallback al key capitalizado
-                                    val title = categoryTitles[categoryKey] ?: categoryKey.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+                                    val title = categoryTitles[categoryKey]
+                                        ?: categoryKey.replaceFirstChar {
+                                            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+                                        }
 
                                     Column(modifier = Modifier.padding(bottom = 24.dp)) {
                                         SectionHeader(
                                             title = title,
                                             onSeeMoreClicked = {
+                                                // Navegación específica por categoría
                                                 when (categoryKey) {
                                                     "ventas" -> navController.navigate(ScreenNavigation.Sales.route)
                                                     "rentas" -> navController.navigate(ScreenNavigation.Rents.route)
@@ -192,6 +209,8 @@ fun HomeView(
                                             }
                                         )
                                         Spacer(modifier = Modifier.height(8.dp))
+
+                                        // Carrusel horizontal de productos
                                         LazyRow(
                                             contentPadding = PaddingValues(horizontal = 16.dp),
                                             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -203,9 +222,10 @@ fun HomeView(
                                     }
                                 }
                             }
-                            Spacer(modifier = Modifier.height(16.dp))
+                            // Espacio extra al final para que el último elemento no quede pegado al borde
+                            Spacer(modifier = Modifier.height(80.dp))
                         } else {
-                            // Estado Vacío (Sin resultados)
+                            // Estado Vacío: Cuando la búsqueda no arroja resultados
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -236,7 +256,7 @@ fun HomeView(
                 }
             }
 
-            // Indicador de Refresh
+            // Componente visual del indicador de carga (la ruedita superior)
             PullToRefreshContainer(
                 state = pullRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter),
@@ -281,13 +301,13 @@ fun ModernProductCard(product: Product, navController: NavController) {
     val baseUrl = Constants.BASE_URL + "storage/"
     val imageUrl = if (product.images.isNotEmpty()) baseUrl + product.images[0] else ""
 
-    // --- CORRECCIÓN FINAL: Traducir la etiqueta de la tarjeta ---
+    // Traducción de la etiqueta flotante sobre la imagen
     val categoryLabel = when(product.category.lowercase()) {
         "ventas" -> stringResource(R.string.ventas_title)
         "rentas" -> stringResource(R.string.rentas_title)
         "servicios" -> stringResource(R.string.servicios_title)
         "anuncios" -> stringResource(R.string.anuncios_title)
-        else -> product.category // Fallback por si llega algo raro
+        else -> product.category
     }
 
     Card(
@@ -300,6 +320,7 @@ fun ModernProductCard(product: Product, navController: NavController) {
                 navController.navigate(ScreenNavigation.ProductDetail.createRoute(product.id))
             }
     ) {
+        // Usamos un Box para apilar capas: Imagen al fondo -> Gradiente oscuro -> Texto encima
         Box(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
                 model = imageUrl,
@@ -307,16 +328,22 @@ fun ModernProductCard(product: Product, navController: NavController) {
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
+
+            // Capa de gradiente negro: Esencial para que el texto blanco se lea
+            // sobre cualquier tipo de foto (clara u oscura).
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         brush = Brush.verticalGradient(
                             colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f)),
+                            // El gradiente empieza un poco antes de la mitad para suavizar la transición
                             startY = 0.4f * 200.dp.value
                         )
                     )
             )
+
+            // Información del producto alineada abajo
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -325,6 +352,7 @@ fun ModernProductCard(product: Product, navController: NavController) {
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // Columna izquierda: Título y Precio
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = product.title,
@@ -344,9 +372,11 @@ fun ModernProductCard(product: Product, navController: NavController) {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
 
+                // Columna derecha: Avatar circular del autor
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     val defaultUser = stringResource(R.string.common_usuario_default)
                     val authorName = product.author?.firstName ?: defaultUser
+                    // Tomamos la primera letra del nombre para crear un avatar genérico
                     val initial = authorName.take(1).uppercase()
 
                     Box(
@@ -374,6 +404,7 @@ fun ModernProductCard(product: Product, navController: NavController) {
                 }
             }
 
+            // Etiqueta de Categoría (Esquina superior derecha)
             if (product.category.isNotBlank()) {
                 Surface(
                     color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.9f),
@@ -381,7 +412,6 @@ fun ModernProductCard(product: Product, navController: NavController) {
                     modifier = Modifier.align(Alignment.TopEnd)
                 ) {
                     Text(
-                        // USAMOS LA ETIQUETA TRADUCIDA AQUÍ
                         text = categoryLabel.uppercase(),
                         color = MaterialTheme.colorScheme.onSecondary,
                         fontSize = 10.sp,
