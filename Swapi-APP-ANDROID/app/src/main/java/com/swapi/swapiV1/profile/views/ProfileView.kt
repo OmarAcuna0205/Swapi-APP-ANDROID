@@ -47,7 +47,7 @@ fun ProfileView(
     )
     val uiState by viewModel.uiState.collectAsState()
 
-    // Definimos el color suavizado (un poco menos brilloso)
+    // Definimos el color para bordes y texto
     val softenedBlueLight = SwapiBlueLight.copy(alpha = 0.9f)
 
     Scaffold(
@@ -77,7 +77,6 @@ fun ProfileView(
 
             // 1. Cabecera (Avatar y Nombre)
             Spacer(modifier = Modifier.height(10.dp))
-            // Pasamos el color suavizado a la cabecera
             ProfileHeaderBig(uiState, softenedBlueLight)
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -96,22 +95,26 @@ fun ProfileView(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Tarjeta: Mis Publicaciones (Color suavizado)
+                // Tarjeta: Mis Publicaciones (Estilo Outlined)
                 DashboardCard(
                     title = stringResource(R.string.profile_mis_publicaciones),
                     icon = Icons.Default.Layers,
                     modifier = Modifier.weight(1f),
-                    containerColor = softenedBlueLight, // <--- Color ajustado
-                    contentColor = SwapiWhite
+                    // Fondo "vacío" (Surface)
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    // Color para Borde, Icono y Texto
+                    contentColor = softenedBlueLight
                 ) { navController.navigate(ScreenNavigation.MyPosts.route) }
 
-                // Tarjeta: Guardados (Color suavizado)
+                // Tarjeta: Guardados (Estilo Outlined)
                 DashboardCard(
                     title = stringResource(R.string.profile_guardados),
                     icon = Icons.Default.BookmarkBorder,
                     modifier = Modifier.weight(1f),
-                    containerColor = softenedBlueLight, // <--- Color ajustado
-                    contentColor = SwapiWhite
+                    // Fondo "vacío" (Surface)
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    // Color para Borde, Icono y Texto
+                    contentColor = softenedBlueLight
                 ) { navController.navigate(ScreenNavigation.SavedPosts.route) }
             }
 
@@ -121,8 +124,8 @@ fun ProfileView(
             // 4. Botón Cerrar Sesión
             LogoutButton(onLogout = onLogout)
 
-            // 5. Espacio inferior AUMENTADO para subir el botón
-            Spacer(modifier = Modifier.height(80.dp)) // Antes era 30.dp
+            // 5. Espacio inferior AUMENTADO
+            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }
@@ -138,7 +141,7 @@ private fun ProfileHeaderBig(state: ProfileUiState, borderColor: Color) {
             modifier = Modifier
                 .size(110.dp)
                 .border(
-                    BorderStroke(3.dp, borderColor), // <--- Usa el color pasado como parámetro
+                    BorderStroke(3.dp, borderColor),
                     CircleShape
                 )
         ) {
@@ -149,7 +152,6 @@ private fun ProfileHeaderBig(state: ProfileUiState, borderColor: Color) {
                         fontWeight = FontWeight.Bold,
                         fontSize = 48.sp
                     ),
-                    // Mantenemos el texto e icono con el color original para contraste
                     color = SwapiBlueLight
                 )
             } else {
@@ -180,7 +182,7 @@ private fun ProfileHeaderBig(state: ProfileUiState, borderColor: Color) {
 
             Spacer(Modifier.height(6.dp))
 
-            // Badge (Mantenemos el estilo original que ya era sutil)
+            // Badge
             Surface(
                 color = SwapiBlueLight.copy(alpha = 0.1f),
                 shape = RoundedCornerShape(50),
@@ -210,6 +212,8 @@ private fun DashboardCard(
         modifier = modifier.height(120.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         shape = RoundedCornerShape(24.dp),
+        // AQUI ESTÁ EL CAMBIO PRINCIPAL: Agregamos borde
+        border = BorderStroke(2.dp, contentColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -222,7 +226,7 @@ private fun DashboardCard(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = contentColor,
+                tint = contentColor, // Icono toma el color del borde
                 modifier = Modifier.size(34.dp)
             )
 
@@ -234,7 +238,7 @@ private fun DashboardCard(
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.5.sp
                 ),
-                color = contentColor,
+                color = contentColor, // Texto toma el color del borde
                 textAlign = TextAlign.Center
             )
         }
