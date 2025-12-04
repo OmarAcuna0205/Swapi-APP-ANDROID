@@ -12,7 +12,7 @@ import androidx.compose.ui.text.googlefonts.Font // 👈 OJO: este es el correct
 val provider = GoogleFont.Provider(
     providerAuthority = "com.google.android.gms.fonts",
     providerPackage = "com.google.android.gms",
-    certificates = com.swapi.swapiV1.R.array.com_google_android_gms_fonts_certs // 👈 usar tu paquete aquí
+    certificates = com.swapi.swapiV1.R.array.com_google_android_gms_fonts_certs
 )
 
 // 2. Nombre de la fuente

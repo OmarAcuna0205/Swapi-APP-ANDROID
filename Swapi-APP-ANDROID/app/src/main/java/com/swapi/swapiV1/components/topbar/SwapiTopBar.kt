@@ -69,7 +69,6 @@ fun SwapiTopBar(
                     }
                 }
             },
-            // Redondeamos las esquinas al 50% de la altura (aprox) para efecto píldora
             shape = RoundedCornerShape(24.dp),
             singleLine = true,
 

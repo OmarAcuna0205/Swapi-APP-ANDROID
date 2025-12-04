@@ -14,21 +14,24 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.swapi.swapiV1.R
 
+/**
+ * Componente Composable que renderiza la barra de navegación inferior del Onboarding.
+ * Contiene los controles para avanzar o retroceder entre las páginas de introducción.
+ */
 @Composable
 fun BottomBarView(
-    isLastPage: Boolean,
-    page: Int,
-    total: Int,
-    onPrev: () -> Unit,
-    onNext: () -> Unit
+    isLastPage: Boolean, // Indica si estamos en la última diapositiva para cambiar el texto del botón.
+    page: Int,           // Índice de la página actual.
+    total: Int,          // Total de páginas (no usado visualmente aquí, pero útil para contexto).
+    onPrev: () -> Unit,  // Callback para manejar el evento de retroceso.
+    onNext: () -> Unit   // Callback para manejar el evento de avance o finalización.
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        // CAMBIO: Se añade una condición para que el botón solo exista
-        // si la página actual NO es la primera (índice 0).
+        // Condición lógica: El botón "Anterior" solo se muestra si NO estamos en la primera página (índice 0).
         if (page > 0) {
             TextButton(
                 onClick = onPrev
@@ -41,6 +44,8 @@ fun BottomBarView(
             }
         }
 
+        // Este Spacer con weight(1f) ocupa todo el espacio disponible horizontalmente,
+        // empujando el botón "Siguiente" hacia el extremo derecho de la fila.
         Spacer(Modifier.weight(1f))
 
         Button(
@@ -52,6 +57,7 @@ fun BottomBarView(
                 contentColor = Color.White
             )
         ) {
+            // Lógica de UI: Si es la última página, mostramos "Empezar", de lo contrario "Siguiente".
             Text(
                 text = if (isLastPage) stringResource(id = R.string.onboarding_start_button)
                 else stringResource(id = R.string.onboarding_next_button),

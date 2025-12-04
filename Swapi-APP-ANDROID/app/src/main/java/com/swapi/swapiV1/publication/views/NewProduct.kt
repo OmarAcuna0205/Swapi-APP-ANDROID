@@ -39,33 +39,39 @@ fun NewPublicationView(
     navController: NavController,
     viewModel: NewPublicationViewModel = viewModel()
 ) {
-    // Variables de estado y contexto
+    // Variables de estado y contexto para acceder a recursos y mostrar Toasts.
     val context = LocalContext.current
+
+    // Observamos los estados del ViewModel de manera segura para el ciclo de vida.
+    // 'isLoading' controla la visualización del indicador de progreso.
+    // 'publishSuccess' indica si la operación fue exitosa o fallida.
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val publishSuccess by viewModel.publishSuccess.collectAsStateWithLifecycle()
 
-    // Observamos el CÓDIGO de error
+    // Observamos el código de error específico del backend para mostrar mensajes precisos.
     val errorCode by viewModel.errorCode.collectAsStateWithLifecycle()
 
+    // Estados locales para los campos del formulario.
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var expanded by remember { mutableStateOf(false) } // Controla la visibilidad del menú desplegable.
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) } // URI de la imagen seleccionada.
 
-    // 2. Escuchamos el resultado
+    // Efecto secundario: Maneja la respuesta de la operación de publicación.
     LaunchedEffect(publishSuccess) {
         if (publishSuccess == true) {
-            // CORRECCIÓN 1: Mensaje de éxito traducido
+            // Éxito: Mostramos mensaje, refrescamos Home y navegamos atrás.
             val successMsg = context.getString(R.string.msg_post_created_success)
             Toast.makeText(context, successMsg, Toast.LENGTH_LONG).show()
 
+            // Comunicación entre fragmentos: Indicamos al Home que debe recargar la lista.
             navController.previousBackStackEntry?.savedStateHandle?.set("refresh_home", true)
             navController.popBackStack()
-            viewModel.resetState()
+            viewModel.resetState() // Limpiamos el estado del ViewModel.
         } else if (publishSuccess == false) {
-            // Traducimos el código de error con el Mapper
+            // Error: Traducimos el código de error y mostramos un mensaje al usuario.
             val errorMsg = ErrorMessageMapper.getMessage(context, errorCode)
             Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
 
@@ -73,12 +79,14 @@ fun NewPublicationView(
         }
     }
 
+    // Selector de imágenes (Photo Picker):
+    // Utiliza el contrato estándar de Android para seleccionar imágenes de la galería de manera segura.
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri -> if (uri != null) selectedImageUri = uri }
     )
 
-    // Mapeo: Lo que ve el usuario -> Lo que espera el backend
+    // Mapa de categorías para la traducción UI <-> Backend.
     val categoriasMap = mapOf(
         stringResource(R.string.ventas_title) to "ventas",
         stringResource(R.string.rentas_title) to "rentas",
@@ -121,6 +129,7 @@ fun NewPublicationView(
                 )
                 .padding(padding)
         ) {
+            // Indicador de carga superpuesto
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
@@ -134,13 +143,14 @@ fun NewPublicationView(
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Campos de texto del formulario
                 OutlinedTextField(
                     value = titulo,
                     onValueChange = { titulo = it },
                     label = { Text(stringResource(R.string.new_pub_titulo_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    enabled = !isLoading
+                    enabled = !isLoading // Deshabilita interacción durante la carga
                 )
 
                 OutlinedTextField(
@@ -156,6 +166,7 @@ fun NewPublicationView(
                     enabled = !isLoading
                 )
 
+                // Validación de entrada numérica para el precio
                 OutlinedTextField(
                     value = precio,
                     onValueChange = { if (it.all { char -> char.isDigit() }) precio = it },
@@ -166,6 +177,7 @@ fun NewPublicationView(
                     enabled = !isLoading
                 )
 
+                // Menú desplegable para selección de categoría
                 ExposedDropdownMenuBox(
                     expanded = expanded,
                     onExpandedChange = { if (!isLoading) expanded = !expanded }
@@ -173,7 +185,7 @@ fun NewPublicationView(
                     OutlinedTextField(
                         value = categoria,
                         onValueChange = {},
-                        readOnly = true,
+                        readOnly = true, // El usuario debe seleccionar del menú
                         label = { Text(stringResource(R.string.new_pub_categoria_label)) },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -200,6 +212,7 @@ fun NewPublicationView(
                     }
                 }
 
+                // Área de selección de imagen
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -207,6 +220,7 @@ fun NewPublicationView(
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                         .clickable(enabled = !isLoading) {
+                            // Lanza el selector de imágenes (solo imágenes)
                             galleryLauncher.launch(
                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                             )
@@ -221,6 +235,7 @@ fun NewPublicationView(
                             modifier = Modifier.size(48.dp)
                         )
                     } else {
+                        // Muestra la imagen seleccionada utilizando Coil
                         AsyncImage(
                             model = selectedImageUri,
                             contentDescription = stringResource(R.string.new_pub_imagen_seleccionada_cd),
@@ -230,8 +245,10 @@ fun NewPublicationView(
                     }
                 }
 
+                // Botón de acción principal
                 Button(
                     onClick = {
+                        // Validación de campos obligatorios antes de enviar al ViewModel
                         if (titulo.isNotBlank() && precio.isNotBlank() && categoria.isNotBlank()) {
                             val backendCategory = categoriasMap[categoria] ?: "ventas"
                             viewModel.publish(
@@ -243,7 +260,6 @@ fun NewPublicationView(
                                 imageUri = selectedImageUri
                             )
                         } else {
-                            // CORRECCIÓN 2: Mensaje de validación traducido
                             val validationMsg = context.getString(R.string.new_pub_llenar_campos)
                             Toast.makeText(context, validationMsg, Toast.LENGTH_SHORT).show()
                         }
@@ -259,7 +275,6 @@ fun NewPublicationView(
                     )
                 ) {
                     if (isLoading) {
-                        // CORRECCIÓN 3: Texto de carga traducido
                         Text(stringResource(R.string.common_publicando), fontSize = 18.sp)
                     } else {
                         Text(
