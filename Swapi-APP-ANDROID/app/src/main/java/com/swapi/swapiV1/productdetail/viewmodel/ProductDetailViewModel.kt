@@ -22,7 +22,7 @@ sealed class ProductDetailUiState {
 class ProductDetailViewModel(
     private val productId: String,
     private val homeRepository: HomeRepository,
-    private val userRepository: UserRepository // Ahora se inyecta, no se instancia dentro
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     // Estado principal de la carga del producto

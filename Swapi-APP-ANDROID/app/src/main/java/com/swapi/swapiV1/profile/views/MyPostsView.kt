@@ -31,31 +31,34 @@ import com.swapi.swapiV1.navigation.ScreenNavigation
 import com.swapi.swapiV1.profile.viewmodel.MyPostsUiState
 import com.swapi.swapiV1.profile.viewmodel.MyPostsViewModel
 import com.swapi.swapiV1.profile.viewmodel.MyPostsViewModelFactory
-import com.swapi.swapiV1.utils.ErrorMessageMapper // IMPORTANTE
+import com.swapi.swapiV1.utils.ErrorMessageMapper
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyPostsView(navController: NavController) {
+    // Inicialización del ViewModel con Factory para inyectar el repositorio
     val repository = remember { PostRepository() }
     val factory = MyPostsViewModelFactory(repository)
     val viewModel: MyPostsViewModel = viewModel(factory = factory)
 
+    // Recolectamos el estado de la UI y el evento de eliminación exitosa
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val deleteSuccess by viewModel.deleteSuccess.collectAsStateWithLifecycle()
 
-    // Obtenemos el contexto para el Mapper
     val context = LocalContext.current
 
+    // Estados locales para la búsqueda y el diálogo de confirmación de eliminación
     var searchQuery by remember { mutableStateOf("") }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var postToDeleteId by remember { mutableStateOf<String?>(null) }
 
     val swapiBrandColor = Color(0xFF4A8BFF)
 
+    // Función auxiliar para notificar al Home que debe recargar los datos
+    // Esto es necesario porque si borramos un post aquí, debe desaparecer también del Home.
     fun notifyHomeToRefresh() {
         try {
-            // Asegúrate de que la ruta coincida con la de tu ScreenNavigation.Home.route (usualmente "home")
             navController.getBackStackEntry(ScreenNavigation.Home.route)
                 .savedStateHandle["refresh_home"] = true
         } catch (e: Exception) {
@@ -63,13 +66,15 @@ fun MyPostsView(navController: NavController) {
         }
     }
 
+    // Efecto que reacciona cuando se elimina un post exitosamente
     LaunchedEffect(deleteSuccess) {
         if (deleteSuccess) {
-            notifyHomeToRefresh()
-            viewModel.resetDeleteState()
+            notifyHomeToRefresh() // Avisamos al Home
+            viewModel.resetDeleteState() // Reseteamos la bandera para evitar bucles
         }
     }
 
+    // Lógica para detectar si volvemos de editar un post y necesitamos refrescar la lista
     val currentBackStackEntry = navController.currentBackStackEntry
     val shouldRefreshFromEdit by currentBackStackEntry?.savedStateHandle
         ?.getStateFlow("refresh_home", false)
@@ -77,12 +82,13 @@ fun MyPostsView(navController: NavController) {
 
     LaunchedEffect(shouldRefreshFromEdit) {
         if (shouldRefreshFromEdit) {
-            viewModel.loadMyPosts()
-            notifyHomeToRefresh()
+            viewModel.loadMyPosts() // Recargamos la lista local
+            notifyHomeToRefresh()   // Propagamos la actualización al Home
             currentBackStackEntry?.savedStateHandle?.set("refresh_home", false)
         }
     }
 
+    // Diálogo de confirmación antes de eliminar permanentemente
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -132,12 +138,13 @@ fun MyPostsView(navController: NavController) {
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
             ) {
+                // Manejo de estados de la UI (Carga, Error, Éxito)
                 when (val state = uiState) {
                     is MyPostsUiState.Loading -> {
                         CircularProgressIndicator(color = swapiBrandColor)
                     }
                     is MyPostsUiState.Error -> {
-                        // --- CORRECCIÓN: Usamos el Mapper aquí ---
+                        // Usamos ErrorMessageMapper para traducir códigos de error del backend
                         val errorMsg = ErrorMessageMapper.getMessage(context, state.message)
                         Text(
                             text = errorMsg,
@@ -150,6 +157,7 @@ fun MyPostsView(navController: NavController) {
                         val allPosts = state.posts
 
                         if (allPosts.isEmpty()) {
+                            // Estado vacío general (el usuario no tiene publicaciones)
                             Text(
                                 text = stringResource(R.string.myposts_empty),
                                 style = MaterialTheme.typography.bodyLarge,
@@ -157,6 +165,7 @@ fun MyPostsView(navController: NavController) {
                                 textAlign = TextAlign.Center
                             )
                         } else {
+                            // Filtrado local por búsqueda (título o categoría)
                             val filteredPosts = if (searchQuery.isBlank()) allPosts else {
                                 allPosts.filter {
                                     it.title.contains(searchQuery, ignoreCase = true) ||
@@ -165,6 +174,7 @@ fun MyPostsView(navController: NavController) {
                             }
 
                             if (filteredPosts.isEmpty()) {
+                                // Estado vacío de búsqueda (sin coincidencias)
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -182,6 +192,7 @@ fun MyPostsView(navController: NavController) {
                                     )
                                 }
                             } else {
+                                // Lista de tarjetas con acciones de gestión
                                 LazyVerticalGrid(
                                     columns = GridCells.Fixed(1),
                                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
@@ -189,7 +200,6 @@ fun MyPostsView(navController: NavController) {
                                     modifier = Modifier.fillMaxSize()
                                 ) {
                                     items(filteredPosts, key = { it.id }) { post ->
-                                        // MyPostCard está en el mismo paquete, no requiere import
                                         MyPostCard(
                                             product = post,
                                             onClick = {
@@ -199,6 +209,7 @@ fun MyPostsView(navController: NavController) {
                                                 navController.navigate(ScreenNavigation.EditPost.createRoute(post.id))
                                             },
                                             onDeleteClick = {
+                                                // Preparamos el ID y mostramos el diálogo de confirmación
                                                 postToDeleteId = post.id
                                                 showDeleteDialog = true
                                             }
@@ -214,6 +225,7 @@ fun MyPostsView(navController: NavController) {
     }
 }
 
+// Componente privado para la barra superior, mejora la modularidad del código
 @Composable
 private fun MyPostsTopBar(
     searchQuery: String,

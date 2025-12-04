@@ -31,15 +31,22 @@ import com.swapi.swapiV1.ui.theme.SwapiTheme
 import com.swapi.swapiV1.utils.datastore.DataStoreManager
 import kotlinx.coroutines.launch
 
+/**
+ * Punto de entrada principal de la aplicación.
+ * Configura la navegación, inicializa dependencias globales y gestiona el flujo inicial (Splash/Onboarding/Login).
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 1. INICIALIZAR RETROFIT (Vital para que funcione el Interceptor)
+        // 1. INICIALIZAR RETROFIT:
+        // Es vital configurar el RetrofitProvider con el contexto de la aplicación al inicio.
+        // Esto permite que el AuthInterceptor acceda al DataStore para leer/guardar el token JWT.
         RetrofitProvider.setup(applicationContext)
 
-        enableEdgeToEdge()
+        enableEdgeToEdge() // Habilita el diseño de borde a borde (status bar transparente).
 
+        // Instancia única del gestor de persistencia local.
         val dataStore = DataStoreManager(this)
 
         setContent {
@@ -47,43 +54,54 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val scope = rememberCoroutineScope()
 
-                // ViewModels
+                // ViewModel para el Onboarding (lógica de paginación).
                 val onboardingViewModel: OnboardingViewModel = viewModel()
 
-                // --- INYECCIÓN DEL LOGIN VIEWMODEL COMPARTIDO ---
+                // --- INYECCIÓN DE DEPENDENCIAS (Login) ---
+                // Creamos una instancia compartida del LoginViewModel para que los datos persistan
+                // a través de los pasos del registro (Email -> Código -> Perfil).
                 val authRepository = AuthRepository(AuthApiImpl.service)
-
-                // CORRECCIÓN AQUÍ: Pasamos 'dataStore' a la Factory
                 val loginViewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(authRepository, dataStore)
                 )
 
-                // DataStore States
+                // --- ESTADOS DE SESIÓN (Reactivos) ---
+                // Observamos los Flows del DataStore para determinar qué pantalla mostrar al inicio.
+                // 'initial = null' nos permite mostrar un Splash mientras se leen los datos del disco.
                 val onboardingDone: Boolean? by dataStore.onboardingDoneFlow.collectAsState(initial = null)
                 val isLoggedIn: Boolean? by dataStore.isLoggedInFlow.collectAsState(initial = null)
 
+                // LÓGICA DE NAVEGACIÓN INICIAL:
                 if (onboardingDone == null || isLoggedIn == null) {
+                    // Estado de carga inicial (lectura de preferencias).
                     SplashLoader()
                 } else if (onboardingDone == false) {
+                    // Si el usuario no ha visto el onboarding, se muestra.
                     OnboardingView(
                         viewModel = onboardingViewModel,
-                        onFinish = { scope.launch { dataStore.setOnboardingDone(true) } }
+                        onFinish = {
+                            // Al terminar, guardamos la bandera y la UI se recompondrá automáticamente.
+                            scope.launch { dataStore.setOnboardingDone(true) }
+                        }
                     )
                 } else {
+                    // Si ya vio el onboarding, decidimos si va al Home (tabbar) o al Login.
                     val startDestination = if (isLoggedIn == true) "tabbar" else ScreenNavigation.Login.route
 
+                    // Configuración del Grafo de Navegación principal.
                     NavHost(
                         navController = navController,
                         startDestination = startDestination
                     ) {
-                        // --- RUTA 1: LOGIN ---
+                        // --- PANTALLA DE LOGIN ---
                         composable(ScreenNavigation.Login.route) {
                             LoginView(navController, dataStore)
                         }
 
-                        // --- RUTAS DE REGISTRO (Shared ViewModel) ---
+                        // --- FLUJO DE REGISTRO (Wizard) ---
+                        // Comparten el mismo 'loginViewModel' para mantener el estado del formulario.
 
-                        // Paso 1: Email
+                        // Paso 1: Ingreso de correo electrónico.
                         composable(ScreenNavigation.SignUpEmail.route) {
                             SignUpEmailView(
                                 navHostController = navController,
@@ -91,7 +109,8 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Paso 2: Código
+                        // Paso 2: Verificación de código OTP.
+                        // Recibe el email como argumento para mostrarlo en la UI.
                         composable(
                             route = ScreenNavigation.SignUpCode.route,
                             arguments = listOf(navArgument("email") { type = NavType.StringType })
@@ -104,7 +123,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Paso 3: Perfil
+                        // Paso 3: Completar perfil (nombre, contraseña, etc.).
                         composable(
                             route = ScreenNavigation.SignUpProfile.route,
                             arguments = listOf(navArgument("email") { type = NavType.StringType })
@@ -117,17 +136,22 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // --- APP PRINCIPAL ---
+                        // --- APLICACIÓN PRINCIPAL (Bottom Navigation) ---
+                        // Contenedor para las pantallas principales (Home, Ventas, Perfil).
                         composable("tabbar") {
                             TabBarNavigationView(
                                 dataStore = dataStore,
                                 startDestination = ScreenNavigation.Home.route,
                                 onLogout = {
+                                    // Lógica de cierre de sesión:
+                                    // 1. Limpiar datos locales (token, sesión).
                                     scope.launch {
                                         dataStore.setLoggedIn(false)
                                         dataStore.setUserName("Usuario")
-                                        dataStore.saveAccessToken("") // Limpiamos el token al salir
+                                        dataStore.saveAccessToken("") // Borrado de seguridad del token
                                     }
+                                    // 2. Navegar al Login y limpiar el historial de navegación (Back Stack)
+                                    // para que el usuario no pueda volver atrás con el botón físico.
                                     navController.navigate(ScreenNavigation.Login.route) {
                                         popUpTo(0) { inclusive = true }
                                     }
@@ -141,6 +165,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Componente simple de carga (Spinner) que se muestra mientras se leen las preferencias iniciales.
+ * Evita parpadeos o decisiones incorrectas de navegación.
+ */
 @Composable
 private fun SplashLoader() {
     Box(

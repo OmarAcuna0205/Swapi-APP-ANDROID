@@ -14,26 +14,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.swapi.swapiV1.R
 
+/**
+ * Componente Composable que renderiza la interfaz visual de la Splash Screen.
+ * Muestra el logo de la aplicación centrado en la pantalla junto con el nombre "Swapi".
+ */
 @Composable
 fun SplashScreenView() {
+    // Contenedor principal que ocupa todo el tamaño de la pantalla.
+    // Usamos un Box para poder centrar el contenido fácilmente en ambos ejes.
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.background), // Fondo adaptable al tema (claro/oscuro)
         contentAlignment = Alignment.Center
     ) {
+        // Columna para apilar verticalmente la imagen y el texto.
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            // Imagen del logo de la aplicación.
             Image(
                 painter = painterResource(id = R.drawable.swapi),
-                contentDescription = "Swapi logo",
-                modifier = Modifier.size(160.dp)
+                contentDescription = "Swapi logo", // Descripción para accesibilidad
+                modifier = Modifier.size(160.dp) // Tamaño fijo para el logo
             )
+
+            // Espaciador vertical para separar la imagen del texto.
             Spacer(modifier = Modifier.height(16.dp))
+
+            // Texto con el nombre de la aplicación.
             Text(
                 text = "Swapi",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground // Color de texto que contrasta con el fondo
             )
         }
     }

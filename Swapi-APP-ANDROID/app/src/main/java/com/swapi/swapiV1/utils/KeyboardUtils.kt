@@ -21,9 +21,7 @@ fun Modifier.dismissKeyboardOnClick(): Modifier = composed {
     val focusManager = LocalFocusManager.current
 
     this.clickable(
-        // 3. Hacemos que sea clickeable, pero...
-
-        // ...sin "ripple" (el efecto visual de onda)
+        // 3. Hacemos que sea clickeable
         indication = null,
 
         // ...sin estado de interacción (para que no parezca un botón)

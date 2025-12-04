@@ -37,23 +37,26 @@ import com.swapi.swapiV1.saved.viewmodel.SavedUIState
 import com.swapi.swapiV1.utils.ErrorMessageMapper
 import com.swapi.swapiV1.utils.dismissKeyboardOnClick
 
+/**
+ * Pantalla que muestra la lista de publicaciones guardadas por el usuario.
+ * Maneja estados de carga, error y lista vacía, además de permitir la búsqueda local.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedPostsView(navController: NavController) {
-    // Instanciamos el ViewModel que manejara la logica de negocio de esta pantalla
+    // Instanciamos el ViewModel que manejara la logica de negocio de esta pantalla.
     val viewModel: SavedPostsViewModel = viewModel()
 
-    // Recolectamos el estado de la UI (Carga, Error, Exito) de forma reactiva.
-    // collectAsStateWithLifecycle asegura que la recoleccion se detenga si la app pasa a segundo plano.
+    // Recolectamos el estado de la UI (Carga, Error, Exito) de forma reactiva y segura para el ciclo de vida.
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    // Efecto de lanzamiento unico: Se ejecuta solo la primera vez que se compone la vista
-    // para solicitar al servidor la lista de posts guardados mas reciente.
+    // Efecto de lanzamiento unico: Se ejecuta solo al iniciar la composicion para cargar los datos.
     LaunchedEffect(Unit) {
         viewModel.loadSavedPosts()
     }
 
+    // Estado para el texto del buscador local.
     var searchQuery by remember { mutableStateOf("") }
     val swapiBrandColor = Color(0xFF4A8BFF)
 
@@ -84,23 +87,23 @@ fun SavedPostsView(navController: NavController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .dismissKeyboardOnClick(), // Oculta el teclado al tocar fuera del campo de busqueda
+                    .dismissKeyboardOnClick(), // Oculta el teclado al tocar fuera
                 contentAlignment = Alignment.Center
             ) {
-                // Gestion de los estados de la UI usando un 'when' exhaustivo
+                // Gestion de los estados de la UI usando un 'when' exhaustivo.
                 when (val state = uiState) {
                     is SavedUIState.Loading -> {
                         CircularProgressIndicator(color = swapiBrandColor)
                     }
                     is SavedUIState.Error -> {
-                        // Mapeo del codigo de error del backend a un mensaje amigable para el usuario
+                        // Mapeo del codigo de error a un mensaje legible.
                         val errorText = ErrorMessageMapper.getMessage(context, state.code)
                         Text(text = errorText, color = MaterialTheme.colorScheme.error)
                     }
                     is SavedUIState.Success -> {
                         val allListings = state.products
 
-                        // Estado Vacio: Si el usuario no tiene guardados, mostramos un icono y mensaje
+                        // Estado Vacio: Si no hay guardados, mostramos feedback visual.
                         if (allListings.isEmpty()) {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -115,14 +118,14 @@ fun SavedPostsView(navController: NavController) {
                                 Text(stringResource(R.string.saved_empty_state))
                             }
                         } else {
-                            // Logica de Filtrado: Filtramos la lista localmente segun el texto de busqueda
+                            // Logica de Filtrado Local: Busqueda por titulo sin hacer peticiones extra.
                             val filteredListings = if (searchQuery.isBlank()) allListings else {
                                 allListings.filter {
                                     it.title.contains(searchQuery, ignoreCase = true)
                                 }
                             }
 
-                            // Lista vertical optimizada para renderizar los productos
+                            // Lista optimizada para mostrar los productos.
                             LazyVerticalGrid(
                                 columns = GridCells.Fixed(1),
                                 contentPadding = PaddingValues(16.dp),
@@ -131,22 +134,18 @@ fun SavedPostsView(navController: NavController) {
                             ) {
                                 items(filteredListings, key = { it.id }) { product ->
 
-                                    // Validacion de 'Soft Delete':
-                                    // Comprobamos si la publicacion sigue activa en el servidor.
+                                    // Validacion de 'Soft Delete': Verifica si el post sigue activo.
                                     val isDeleted = !product.isActive
 
-                                    // Contenedor principal del item para permitir superposicion de elementos
+                                    // Contenedor Box para permitir superposicion de elementos (Card + Boton Eliminar).
                                     Box(modifier = Modifier.fillMaxWidth()) {
 
-                                        // 1. Tarjeta del Producto
-                                        // Aplicamos opacidad (alpha) si esta eliminada para dar feedback visual
+                                        // 1. Tarjeta del Producto: Con opacidad reducida si esta eliminado.
                                         Box(modifier = Modifier.alpha(if (isDeleted) 0.6f else 1f)) {
                                             CategoryProductCardView(
                                                 product = product,
                                                 onClick = {
-                                                    // Interceptamos el click:
-                                                    // Si esta eliminada, mostramos un Toast informativo en lugar de navegar,
-                                                    // evitando errores 404 en la pantalla de detalle.
+                                                    // Interceptamos el click: Si esta eliminado, mostramos aviso en vez de navegar.
                                                     if (isDeleted) {
                                                         Toast.makeText(
                                                             context,
@@ -160,13 +159,11 @@ fun SavedPostsView(navController: NavController) {
                                             )
                                         }
 
-                                        // 2. Boton de Eliminar Manual
-                                        // Este boton solo aparece si la publicacion fue borrada por el autor (isDeleted),
-                                        // permitiendo al usuario quitarla de su lista de guardados facilmente.
+                                        // 2. Boton de Eliminar Manual: Solo visible si el post fue borrado por el autor.
+                                        // Permite al usuario limpiar su lista de guardados.
                                         if (isDeleted) {
                                             IconButton(
                                                 onClick = {
-                                                    // Llamada al ViewModel para actualizar la lista local y el backend
                                                     viewModel.removeSavedPost(product.id)
                                                     Toast.makeText(
                                                         context,
@@ -175,7 +172,7 @@ fun SavedPostsView(navController: NavController) {
                                                     ).show()
                                                 },
                                                 modifier = Modifier
-                                                    .align(Alignment.TopEnd) // Posicionamos en la esquina superior derecha
+                                                    .align(Alignment.TopEnd)
                                                     .padding(8.dp)
                                                     .background(
                                                         MaterialTheme.colorScheme.surface,
@@ -202,6 +199,7 @@ fun SavedPostsView(navController: NavController) {
     }
 }
 
+// Componente para la barra superior, separado para mantener el codigo limpio.
 @Composable
 private fun SavedTopBar(
     searchQuery: String,

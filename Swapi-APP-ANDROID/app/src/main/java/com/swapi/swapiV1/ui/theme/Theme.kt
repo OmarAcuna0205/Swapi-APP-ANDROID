@@ -33,7 +33,6 @@ private val LuxuryDarkColorScheme = darkColorScheme(
     outline = SlateGray.copy(alpha = 0.5f) // Para bordes y divisores
 )
 
-// --- (Opcional) Un LightColorScheme coherente ---
 private val LuxuryLightColorScheme = lightColorScheme(
     primary = RoyalBlue,
     onPrimary = Color.White,
@@ -51,8 +50,7 @@ private val LuxuryLightColorScheme = lightColorScheme(
 @Composable
 fun SwapiTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true, // Puedes ponerlo en `false` para forzar tu tema
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -60,7 +58,6 @@ fun SwapiTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        // --- 3. Usamos nuestro Luxury Theme ---
         darkTheme -> LuxuryDarkColorScheme
         else -> LuxuryLightColorScheme
     }
