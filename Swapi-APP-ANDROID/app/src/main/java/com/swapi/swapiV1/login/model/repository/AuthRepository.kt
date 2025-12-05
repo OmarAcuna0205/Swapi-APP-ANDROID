@@ -2,15 +2,16 @@ package com.swapi.swapiV1.login.model.repository
 
 import com.swapi.swapiV1.login.model.dto.*
 import com.swapi.swapiV1.login.model.network.AuthApi
+import com.swapi.swapiV1.login.model.network.RetrofitProvider
 import org.json.JSONObject
 import retrofit2.Response
 import java.io.IOException
 
-class AuthRepository(private val api: AuthApi) {
+class AuthRepository {
+
+    private val api: AuthApi = RetrofitProvider.authApi
 
     // ---------------- LOGIN ----------------
-    // Nota: Mantenemos el retorno directo de LoginResponse por compatibilidad con tu código actual,
-    // pero idealmente debería retornar Result<LoginResponse> como en el registro.
     suspend fun login(email: String, password: String): LoginResponse {
         return try {
             val response = api.login(LoginRequest(email, password))
@@ -72,7 +73,6 @@ class AuthRepository(private val api: AuthApi) {
     // ---------------- HELPER PRIVADO ----------------
     /**
      * Extrae el mensaje "message" del JSON de error que devuelve el backend.
-     * Retrofit no convierte automáticamente los cuerpos de error, hay que hacerlo manual.
      */
     private fun parseErrorBody(response: Response<*>): String {
         return try {
