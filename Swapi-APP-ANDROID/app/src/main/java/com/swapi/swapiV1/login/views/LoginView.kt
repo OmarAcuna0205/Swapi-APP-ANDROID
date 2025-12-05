@@ -220,17 +220,6 @@ fun LoginView(
                 }
             }
 
-            // BOTÓN OLVIDÉ CONTRASEÑA
-            TextButton(onClick = { /* TODO: Navegar a recuperar pass */ }) {
-                Text(
-                    stringResource(id = R.string.login_forgot_password),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = swapiBrandColor.copy(alpha = 0.8f)
-                    ),
-                    textAlign = TextAlign.Center
-                )
-            }
-
             // DIVISOR OR
             Row(
                 modifier = Modifier
