@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.swapi.swapiV1.R
-import com.swapi.swapiV1.login.model.network.RetrofitProvider
+// import com.swapi.swapiV1.login.model.network.RetrofitProvider <-- Ya no se necesita aquí
 import com.swapi.swapiV1.login.model.repository.AuthRepository
 import com.swapi.swapiV1.login.viewmodel.LoginViewModel
 import com.swapi.swapiV1.login.viewmodel.LoginViewModelFactory
@@ -49,9 +49,10 @@ fun LoginView(
 ) {
     val context = LocalContext.current
 
-    // Inicialización del repositorio y ViewModel.
-    // Usamos 'remember' para que el repositorio no se recree innecesariamente al repintar.
-    val repo = remember { AuthRepository(RetrofitProvider.authApi) }
+    // CORREGIDO: AuthRepository() ya no recibe parámetros.
+    // Él solito obtiene la API desde RetrofitProvider internamente.
+    val repo = remember { AuthRepository() }
+
     val vm: LoginViewModel = viewModel(
         factory = LoginViewModelFactory(repo, dataStore)
     )
@@ -62,13 +63,12 @@ fun LoginView(
     // Estado local de la vista (solo afecta visualmente al campo de contraseña)
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // Color de marca local (idealmente debería estar en tu archivo de tema Theme.kt)
+    // Color de marca local
     val swapiBrandColor = Color(0xFF4A8BFF)
 
     // 1. ESCUCHA DE MENSAJES (TOASTS)
     LaunchedEffect(vm) {
         vm.toastEvents.collectLatest { msgCode ->
-            // Convertimos el código de error (ej. "ERROR_RED") en texto legible
             val message = ErrorMessageMapper.getMessage(context, msgCode)
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
@@ -79,16 +79,13 @@ fun LoginView(
         vm.navEvents.collectLatest { event ->
             when (event) {
                 is LoginViewModel.LoginNavEvent.GoHome -> {
-                    // Nota: Ya no guardamos nada en DataStore aquí.
-                    // El ViewModel ya lo hizo antes de emitir este evento.
                     navHostController.navigate("tabbar") {
-                        // Limpiamos la pila para que el usuario no pueda volver al login con "Atrás"
                         popUpTo(ScreenNavigation.Login.route) { inclusive = true }
                         launchSingleTop = true
                     }
                 }
                 is LoginViewModel.LoginNavEvent.GoVerifyCode -> {
-                    // Navegación futura (cuando implementes el registro)
+                    // Navegación futura
                 }
                 else -> {}
             }
@@ -99,12 +96,12 @@ fun LoginView(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .dismissKeyboardOnClick(), // Oculta teclado al tocar el fondo
+            .dismissKeyboardOnClick(),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()) // Permite scroll en pantallas pequeñas
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 28.dp, vertical = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)

@@ -14,7 +14,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.swapi.swapiV1.login.model.network.AuthApiImpl
 import com.swapi.swapiV1.login.model.network.RetrofitProvider
 import com.swapi.swapiV1.login.model.repository.AuthRepository
 import com.swapi.swapiV1.login.viewmodel.LoginViewModel
@@ -58,9 +57,12 @@ class MainActivity : ComponentActivity() {
                 val onboardingViewModel: OnboardingViewModel = viewModel()
 
                 // --- INYECCIÓN DE DEPENDENCIAS (Login) ---
+                // CORREGIDO: Ahora AuthRepository se instancia vacío, porque él mismo obtiene
+                // la conexión desde RetrofitProvider internamente.
+                val authRepository = AuthRepository()
+
                 // Creamos una instancia compartida del LoginViewModel para que los datos persistan
                 // a través de los pasos del registro (Email -> Código -> Perfil).
-                val authRepository = AuthRepository(AuthApiImpl.service)
                 val loginViewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(authRepository, dataStore)
                 )
