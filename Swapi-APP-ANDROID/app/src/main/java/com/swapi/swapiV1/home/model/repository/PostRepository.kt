@@ -13,6 +13,9 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import java.io.ByteArrayOutputStream
 
 class PostRepository {
     private val api = PostApiImpl.service
@@ -106,9 +109,8 @@ class PostRepository {
             if (imageUri != null) {
                 val file = uriToFile(context, imageUri)
                 if (file != null) {
-                    // "image/*" indica que aceptamos jpg, png, etc.
-                    val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-                    // "image" es el nombre del campo que espera el backend (upload.single('image'))
+                    // Usamos "image/jpeg" en lugar de "image/*"
+                    val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
                     imagePart = MultipartBody.Part.createFormData("image", file.name, requestFile)
                 }
             }
@@ -143,23 +145,25 @@ class PostRepository {
     private fun uriToFile(context: Context, uri: Uri): File? {
         return try {
             val contentResolver = context.contentResolver
-            // Crea un archivo vacío temporal
-            val tempFile = File.createTempFile("upload", ".jpg", context.cacheDir)
 
-            // Abre flujos de entrada (lectura del Uri) y salida (escritura al archivo temp)
+            // 1. Decodificar la URI a un Bitmap (Imagen en memoria)
             val inputStream = contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+
+            // 2. Crear un archivo temporal
+            val tempFile = File.createTempFile("upload", ".jpg", context.cacheDir)
             val outputStream = FileOutputStream(tempFile)
 
-            // Copia los bytes
-            inputStream?.copyTo(outputStream)
+            // 3. COMPRIMIR: Calidad 50% suele ser suficiente para móviles y baja mucho el peso
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
 
-            // Cierra flujos para liberar memoria
-            inputStream?.close()
+            outputStream.flush()
             outputStream.close()
 
             tempFile
         } catch (e: Exception) {
-            Log.e("PostRepo", "Error convirtiendo Uri a File: ${e.message}")
+            Log.e("PostRepo", "Error optimizando imagen: ${e.message}")
             null
         }
     }

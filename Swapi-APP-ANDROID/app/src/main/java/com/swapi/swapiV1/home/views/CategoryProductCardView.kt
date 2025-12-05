@@ -45,8 +45,8 @@ fun CategoryProductCardView(
     val priceColor = Color(0xFF448AFF)
 
     // Construccion segura de la URL de la imagen.
-    // Concatenamos la URL base del servidor con la ruta de la primera imagen del array.
-    val imageUrl = if (product.images.isNotEmpty()) Constants.BASE_URL + "storage/" + product.images[0] else ""
+    // Ya no agregamos Constants.BASE_URL porque la URL ya viene completa desde Cloudinary
+    val imageUrl = if (product.images.isNotEmpty()) product.images[0] else ""
 
     // --- LOGICA DE ANIMACION ---
     // Estado para detectar si la tarjeta esta siendo presionada.
@@ -127,8 +127,8 @@ fun CategoryProductCardView(
                         fontSize = 18.sp
                     ),
                     color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1, // Limitamos a una linea para mantener uniformidad en la grilla
-                    overflow = TextOverflow.Ellipsis // Agrega "..." si el texto es muy largo
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(Modifier.height(12.dp))

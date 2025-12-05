@@ -298,8 +298,9 @@ fun ModernProductCard(product: Product, navController: NavController) {
     val priceColor = Color(0xFF448AFF)
     val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
 
-    val baseUrl = Constants.BASE_URL + "storage/"
-    val imageUrl = if (product.images.isNotEmpty()) baseUrl + product.images[0] else ""
+    // --- CORRECCIÓN FINAL ---
+    // Quitamos la concatenación "baseUrl + storage/"
+    val imageUrl = if (product.images.isNotEmpty()) product.images[0] else ""
 
     // Traducción de la etiqueta flotante sobre la imagen
     val categoryLabel = when(product.category.lowercase()) {

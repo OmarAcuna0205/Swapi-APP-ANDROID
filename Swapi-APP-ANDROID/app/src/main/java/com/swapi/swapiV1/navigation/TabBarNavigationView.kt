@@ -40,25 +40,30 @@ fun TabBarNavigationView(
     startDestination: String = ScreenNavigation.Home.route,
     navController: NavHostController = rememberNavController()
 ) {
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Color de marca (idealmente muévelo a tu Theme.kt)
     val swapiBlue = Color(0xFF448AFF)
 
     Scaffold(
-        // La barra inferior solo se muestra en las pantallas principales (Home y Perfil)
         bottomBar = {
-            if (currentRoute == ScreenNavigation.Home.route || currentRoute == ScreenNavigation.Profile.route) {
+            if (
+                currentRoute == ScreenNavigation.Home.route ||
+                currentRoute == ScreenNavigation.Profile.route
+            ) {
                 Box(modifier = Modifier.fillMaxWidth()) {
 
-                    // 1. La barra horizontal estándar
+                    // ================= NAVBAR TRANSPARENTE =================
                     NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 8.dp, // Elevación para sombra sutil
-                        modifier = Modifier.height(80.dp).align(Alignment.BottomCenter)
+                        containerColor = Color.Transparent,
+                        tonalElevation = 0.dp,
+                        modifier = Modifier
+                            .height(80.dp)
+                            .align(Alignment.BottomCenter)
+                            .background(Color.Transparent)
                     ) {
-                        // Ítem Izquierdo: INICIO
+
                         NavigationBarItem(
                             selected = currentRoute == ScreenNavigation.Home.route,
                             onClick = {
@@ -68,7 +73,7 @@ fun TabBarNavigationView(
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.tab_home)) },
+                            icon = { Icon(Icons.Default.Home, contentDescription = null) },
                             label = { Text(stringResource(R.string.tab_home)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = swapiBlue,
@@ -78,10 +83,8 @@ fun TabBarNavigationView(
                             )
                         )
 
-                        // Espaciador central transparente para dejar lugar al botón flotante
                         Spacer(modifier = Modifier.weight(1f))
 
-                        // Ítem Derecho: PERFIL
                         NavigationBarItem(
                             selected = currentRoute == ScreenNavigation.Profile.route,
                             onClick = {
@@ -91,7 +94,7 @@ fun TabBarNavigationView(
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(Icons.Default.Person, contentDescription = stringResource(R.string.tab_perfil)) },
+                            icon = { Icon(Icons.Default.Person, contentDescription = null) },
                             label = { Text(stringResource(R.string.tab_perfil)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = swapiBlue,
@@ -102,37 +105,38 @@ fun TabBarNavigationView(
                         )
                     }
 
-                    // 2. El Botón Flotante (FAB) superpuesto
-                    // Usamos offset para subirlo visualmente por encima de la barra
+                    // ================= FAB MÁS SOBRESALIDO =================
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .offset(y = (-30).dp) // Ajuste para que "flote" a la mitad
+                            .offset(y = (-44).dp) // 🔥 MÁS ARRIBA
                     ) {
-                        // Círculo blanco exterior (borde)
+
                         Box(
                             modifier = Modifier
-                                .size(70.dp)
-                                .shadow(8.dp, CircleShape)
+                                .size(76.dp) // 🔥 MÁS GRANDE
+                                .shadow(14.dp, CircleShape) // 🔥 MÁS SOMBRA
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surface)
-                                .padding(4.dp), // Grosor del borde blanco
+                                .padding(5.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            // Círculo azul interior (botón real)
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(CircleShape)
                                     .background(swapiBlue)
-                                    .clickable { navController.navigate(ScreenNavigation.NewPublication.route) },
+                                    .clickable {
+                                        navController.navigate(ScreenNavigation.NewPublication.route)
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
                                     contentDescription = stringResource(R.string.nav_fab_publicar_cd),
                                     tint = Color.White,
-                                    modifier = Modifier.size(32.dp)
+                                    modifier = Modifier.size(34.dp)
                                 )
                             }
                         }
@@ -142,43 +146,62 @@ fun TabBarNavigationView(
         },
         contentWindowInsets = WindowInsets(0.dp)
     ) { innerPadding ->
-        // --- GRAFO DE NAVEGACIÓN ---
+
         NavHost(
             navController = navController,
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
-            // Pantallas Principales
-            composable(ScreenNavigation.Home.route) { HomeView(navController, dataStore) }
-            composable(ScreenNavigation.Profile.route) { ProfileView(navController, onLogout, dataStore) }
 
-            // Acciones y Listas
-            composable(ScreenNavigation.NewPublication.route) { NewPublicationView(navController) }
-            composable(ScreenNavigation.MyPosts.route) { MyPostsView(navController) }
-            composable(ScreenNavigation.SavedPosts.route) { SavedPostsView(navController) }
+            composable(ScreenNavigation.Home.route) {
+                HomeView(navController, dataStore)
+            }
 
-            // Categorías (Reutilizamos la misma vista con diferente parámetro)
-            composable(ScreenNavigation.Sales.route) { CategoryProductView(navController, category = "ventas") }
-            composable(ScreenNavigation.Rents.route) { CategoryProductView(navController, category = "rentas") }
-            composable(ScreenNavigation.Services.route) { CategoryProductView(navController, category = "servicios") }
-            composable(ScreenNavigation.Ads.route) { CategoryProductView(navController, category = "anuncios") }
+            composable(ScreenNavigation.Profile.route) {
+                ProfileView(navController, onLogout, dataStore)
+            }
 
-            // Detalles y Edición (Con Argumentos)
+            composable(ScreenNavigation.NewPublication.route) {
+                NewPublicationView(navController)
+            }
+
+            composable(ScreenNavigation.MyPosts.route) {
+                MyPostsView(navController)
+            }
+
+            composable(ScreenNavigation.SavedPosts.route) {
+                SavedPostsView(navController)
+            }
+
+            composable(ScreenNavigation.Sales.route) {
+                CategoryProductView(navController, "ventas")
+            }
+
+            composable(ScreenNavigation.Rents.route) {
+                CategoryProductView(navController, "rentas")
+            }
+
+            composable(ScreenNavigation.Services.route) {
+                CategoryProductView(navController, "servicios")
+            }
+
+            composable(ScreenNavigation.Ads.route) {
+                CategoryProductView(navController, "anuncios")
+            }
+
             composable(
                 route = ScreenNavigation.ProductDetail.route,
                 arguments = listOf(navArgument("productId") { type = NavType.StringType })
-            ) { entry ->
-                val id = entry.arguments?.getString("productId")
-                requireNotNull(id) { "El productId es obligatorio" }
+            ) {
+                val id = it.arguments?.getString("productId")!!
                 ProductDetailView(id, navController)
             }
 
             composable(
                 route = ScreenNavigation.EditPost.route,
                 arguments = listOf(navArgument("postId") { type = NavType.StringType })
-            ) { entry ->
-                val id = entry.arguments?.getString("postId")
-                requireNotNull(id) { "El postId es obligatorio" }
+            ) {
+                val id = it.arguments?.getString("postId")!!
                 EditPostView(postId = id, navController = navController)
             }
         }

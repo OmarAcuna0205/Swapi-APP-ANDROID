@@ -221,13 +221,13 @@ private fun DashboardCard(
         modifier = modifier.height(120.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(2.dp, contentColor), // Borde distintivo
+        border = BorderStroke(2.dp, contentColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(12.dp), // Reducir un poco el padding interno (antes 16.dp) para dar más espacio al texto
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -238,21 +238,28 @@ private fun DashboardCard(
                 modifier = Modifier.size(34.dp)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp)) // Reducir un poco el espacio vertical
 
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium.copy(
+                // CAMBIO 1: Usar un estilo un poco más pequeño (titleSmall o labelLarge)
+                style = MaterialTheme.typography.titleSmall.copy(
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.5.sp
                 ),
                 color = contentColor,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                // CAMBIO 2: Permitir que el texto use hasta 2 líneas si es necesario
+                minLines = 1,
+                maxLines = 2,
+                // CAMBIO 3: Si aun así no cabe, poner "..." en lugar de cortarlo feo
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                // CAMBIO 4: Ajustar la altura de línea para que si se hacen 2 líneas, no queden muy separadas
+                lineHeight = 18.sp
             )
         }
     }
 }
-
 @Composable
 private fun LogoutButton(onLogout: () -> Unit) {
     OutlinedButton(

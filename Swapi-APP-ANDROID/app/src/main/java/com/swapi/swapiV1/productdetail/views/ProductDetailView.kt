@@ -50,11 +50,10 @@ fun ProductDetailView(
     val context = LocalContext.current
 
     // Instanciamos los repositorios necesarios
-    // Usamos 'remember' para evitar que se re-creen en cada recomposición
     val homeRepository = remember { HomeRepository() }
     val userRepository = remember { UserRepository() }
 
-    // Creamos la fábrica pasando las tres dependencias: ID, HomeRepo y UserRepo
+    // Creamos la fábrica pasando las tres dependencias
     val factory = ProductDetailViewModelFactory(productId, homeRepository, userRepository)
 
     val viewModel: ProductDetailViewModel = viewModel(factory = factory)
@@ -69,7 +68,7 @@ fun ProductDetailView(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = {}, // Título vacío para dejar ver la imagen
+                title = {},
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -80,7 +79,6 @@ fun ProductDetailView(
                     }
                 },
                 actions = {
-                    // Botón de Guardar/Favorito
                     IconButton(onClick = { viewModel.toggleSave() }) {
                         Icon(
                             imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
@@ -93,11 +91,8 @@ fun ProductDetailView(
             )
         },
         bottomBar = {
-            // Solo mostramos el botón de WhatsApp si la carga fue exitosa
             if (uiState is ProductDetailUiState.Success) {
                 val product = (uiState as ProductDetailUiState.Success).product
-
-                // Preparamos los textos aquí para no pasarlos uno por uno
                 val wppMsgTemplate = stringResource(R.string.detail_whatsapp_mensaje)
                 val toastMsgNoNum = stringResource(R.string.detail_toast_no_numero)
                 val toastMsgNoWpp = stringResource(R.string.detail_toast_no_whatsapp)
@@ -110,7 +105,7 @@ fun ProductDetailView(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
-                            .navigationBarsPadding() // Respeta la barra de gestos del sistema
+                            .navigationBarsPadding()
                     ) {
                         Button(
                             onClick = {
@@ -143,7 +138,6 @@ fun ProductDetailView(
                     CircularProgressIndicator(color = brandColor)
                 }
                 is ProductDetailUiState.Error -> {
-                    // Traducimos el código de error a texto real
                     val errorText = ErrorMessageMapper.getMessage(context, state.messageCode)
                     Text(
                         text = errorText,
@@ -162,8 +156,10 @@ fun ProductDetailView(
 @Composable
 fun ProductContentView(product: Product) {
     val scrollState = rememberScrollState()
-    // Construcción de la URL de la imagen
-    val mainImage = if (product.images.isNotEmpty()) Constants.BASE_URL + "storage/" + product.images[0] else ""
+
+    // CORRECCIÓN AQUÍ: Quitamos Constants.BASE_URL + "storage/"
+    // Cloudinary ya entrega la URL completa (https://...)
+    val mainImage = if (product.images.isNotEmpty()) product.images[0] else ""
 
     Column(
         modifier = Modifier
@@ -188,7 +184,6 @@ fun ProductContentView(product: Product) {
 
         // --- CONTENIDO ---
         Column(modifier = Modifier.padding(16.dp)) {
-            // Título
             Text(
                 text = product.title,
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, fontSize = 24.sp),
@@ -197,7 +192,6 @@ fun ProductContentView(product: Product) {
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Precio
             Text(
                 text = "$${product.price}",
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
@@ -206,7 +200,6 @@ fun ProductContentView(product: Product) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Ubicación (Dummy por ahora)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     Icons.Default.LocationOn,
@@ -226,7 +219,6 @@ fun ProductContentView(product: Product) {
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Descripción
             Text(
                 text = stringResource(R.string.detail_descripcion),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
@@ -243,7 +235,6 @@ fun ProductContentView(product: Product) {
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Info Vendedor
             Text(
                 text = stringResource(R.string.product_info_vendedor),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
@@ -252,7 +243,6 @@ fun ProductContentView(product: Product) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Avatar con inicial
                 Box(
                     modifier = Modifier
                         .size(56.dp)
@@ -269,7 +259,6 @@ fun ProductContentView(product: Product) {
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Nombre completo
                 Column {
                     Text(
                         text = "${product.author.firstName} ${product.author.paternalSurname ?: ""}",
@@ -285,13 +274,11 @@ fun ProductContentView(product: Product) {
                 }
             }
 
-            // Espacio extra al final para que el botón flotante no tape contenido
             Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }
 
-// Lógica de Intent para abrir WhatsApp
 private fun openWhatsApp(
     context: Context,
     phoneNumber: String?,
@@ -305,12 +292,10 @@ private fun openWhatsApp(
         return
     }
 
-    // Formateamos el mensaje: "Hola, me interesa tu producto: Laptop..."
     val message = String.format(msgTemplate, productName)
 
     try {
         val intent = Intent(Intent.ACTION_VIEW)
-        // Usamos la API universal de WhatsApp
         val url = "https://api.whatsapp.com/send?phone=$phoneNumber&text=${Uri.encode(message)}"
         intent.data = Uri.parse(url)
         context.startActivity(intent)

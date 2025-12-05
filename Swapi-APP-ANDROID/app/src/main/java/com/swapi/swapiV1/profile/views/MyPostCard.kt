@@ -28,14 +28,6 @@ import com.swapi.swapiV1.utils.Constants
 import java.text.NumberFormat
 import java.util.Locale
 
-/**
- * Tarjeta personalizada para la sección "Mis Publicaciones".
- * A diferencia de las tarjetas normales, esta incluye controles de gestión (Editar/Eliminar).
- *
- * @param product Datos de la publicación a mostrar.
- * @param onEditClick Acción al presionar el botón de lápiz.
- * @param onDeleteClick Acción al presionar el botón de basura.
- */
 @Composable
 fun MyPostCard(
     product: Product,
@@ -43,17 +35,14 @@ fun MyPostCard(
     onDeleteClick: () -> Unit,
     onClick: () -> Unit
 ) {
-    // Configuración regional para formatear el precio en pesos mexicanos (MXN) sin decimales.
     val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
     format.maximumFractionDigits = 0
 
     val priceColor = Color(0xFF448AFF)
 
-    // Construcción segura de la URL de la imagen (usa la primera del array si existe).
-    val imageUrl = if (product.images.isNotEmpty()) Constants.BASE_URL + "storage/" + product.images[0] else ""
+    // CORRECCIÓN AQUÍ: Quitamos Constants.BASE_URL + "storage/"
+    val imageUrl = if (product.images.isNotEmpty()) product.images[0] else ""
 
-    // Lógica para internacionalización: convierte el string de la categoría que viene del backend
-    // en un recurso de texto traducible (R.string).
     val categoryLabel = when(product.category.lowercase()) {
         "ventas" -> stringResource(R.string.ventas_title)
         "rentas" -> stringResource(R.string.rentas_title)
@@ -77,7 +66,6 @@ fun MyPostCard(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Sección superior: Imagen y etiqueta de categoría
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -91,7 +79,6 @@ fun MyPostCard(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Etiqueta flotante para identificación rápida de la categoría
                 Surface(
                     color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.9f),
                     shape = RoundedCornerShape(bottomStart = 8.dp),
@@ -107,7 +94,6 @@ fun MyPostCard(
                 }
             }
 
-            // Sección inferior: Datos y acciones
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -136,7 +122,6 @@ fun MyPostCard(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Fila con el precio y los botones de acción (Editar y Eliminar)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -151,7 +136,6 @@ fun MyPostCard(
                         color = priceColor
                     )
 
-                    // Grupo de botones de gestión
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
